@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#073B78">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Trecco What's On">
+<title>Trecco What's On</title>
+<style>
+:root{--blue:#073b78;--blue2:#0b4d96;--card:#0a468a;--yellow:#ffd633;--white:#fff;--muted:#cfe1f7}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--blue);color:#fff}
+body{background:linear-gradient(180deg,var(--blue2),var(--blue));padding-bottom:30px}
+header{position:sticky;top:0;z-index:10;background:rgba(7,59,120,.97);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.12);padding-top:env(safe-area-inset-top)}
+.wrap{max-width:760px;margin:auto;padding:15px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{margin:0;color:var(--yellow);font-size:25px}.sub{margin-top:3px;color:var(--muted);font-size:12px}
+button{font:inherit}.icon{width:44px;height:44px;border:0;border-radius:13px;background:rgba(255,255,255,.1);color:#fff;font-size:20px}
+.datebar{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;margin-top:13px}
+.datebox{border:1px solid rgba(255,255,255,.13);border-radius:15px;background:rgba(255,255,255,.08);color:#fff;padding:9px;text-align:center}
+.datebox strong{display:block;color:var(--yellow);font-size:17px}.datebox span{font-size:12px;color:var(--muted)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}
+.tab{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;border-radius:13px;padding:10px 5px;font-weight:800}
+.tab.active{background:var(--yellow);border-color:var(--yellow);color:var(--blue)}
+main{max-width:760px;margin:auto;padding:16px}.status{padding:12px;border-radius:14px;background:rgba(255,255,255,.08);color:var(--muted);font-size:13px;line-height:1.4;margin-bottom:13px}
+.status.ok{background:rgba(88,214,141,.14);color:#dcffe9}.status.error{background:rgba(255,80,80,.15);color:#ffdede}
+.list{display:grid;gap:12px}.event{background:linear-gradient(180deg,var(--card),#083b74);border:1px solid rgba(255,255,255,.12);border-radius:19px;padding:15px;box-shadow:0 10px 24px rgba(0,0,0,.16)}
+.time{font-size:22px;font-weight:900;color:var(--yellow)}h2{font-size:18px;margin:5px 0}.loc,.desc{color:var(--muted);font-size:13px}.desc{margin-top:9px;line-height:1.4}
+.badge{display:inline-block;margin-top:11px;padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.1);font-size:12px;font-weight:800}
+.empty{text-align:center;padding:45px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<div class="top"><div><h1>Trecco What's On</h1><div class="sub">Showdome and Pavilion</div></div><button class="icon" id="refresh">↻</button></div>
+<div class="datebar"><button class="icon" id="prev">‹</button><button class="datebox" id="pick"><strong id="dateTitle"></strong><span id="dateSub"></span></button><button class="icon" id="next">›</button></div>
+<div class="tabs"><button class="tab active" data-v="both">Both</button><button class="tab" data-v="showdome">Showdome</button><button class="tab" data-v="pavilion">Pavilion</button></div>
+</div></header>
+<main><div id="status" class="status">Loading saved live listings…</div><section id="list" class="list"></section></main>
+<input type="date" id="dateInput" hidden>
+<script>
+let selected=isoToday(),filter='both',events=[],meta={};
+const $=x=>document.getElementById(x);
+function isoToday(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function shift(n){const d=new Date(selected+'T12:00:00');d.setDate(d.getDate()+n);selected=d.toISOString().slice(0,10);render()}
+function clean(v){return String(v??'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function flat(data,venue){
+ const out=[];if(Array.isArray(data?.results))for(const g of data.results)if(Array.isArray(g))for(const a of g){
+  const dt=a.datetime?new Date(a.datetime):null;
+  out.push({venue,date:dt&&!isNaN(dt)?dt.toISOString().slice(0,10):'',time:clean(a.time||''),name:clean(a.name||a.act_name||a.title||'Untitled event'),location:clean(a.location||(venue==='showdome'?'Showdome / Showbar':'Pavilion')),description:clean(a.description||a.desc||'')});
+ }return out;
+}
+function render(){
+ const d=new Date(selected+'T12:00:00');
+ $('dateTitle').textContent=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+ $('dateSub').textContent=selected===isoToday()?'Today':String(d.getFullYear());
+ $('dateInput').value=selected;
+ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.v===filter));
+ const rows=events.filter(e=>(!e.date||e.date===selected)&&(filter==='both'||e.venue===filter)).sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+ $('list').innerHTML=rows.length?rows.map(e=>`<article class="event"><div class="time">${esc(e.time||'Time TBC')}</div><h2>${esc(e.name)}</h2><div class="loc">${esc(e.location)}</div>${e.description?`<div class="desc">${esc(e.description)}</div>`:''}<span class="badge">${e.venue==='showdome'?'Showdome':'Pavilion'}</span></article>`).join(''):'<div class="empty">No events listed for this date.</div>';
+}
+async function load(){
+ $('status').className='status';$('status').textContent='Loading saved live listings…';
+ try{
+  const [s,p,m]=await Promise.all([
+   fetch('data/showdome.json?'+Date.now()).then(r=>{if(!r.ok)throw Error('Showdome data missing');return r.json()}),
+   fetch('data/pavilion.json?'+Date.now()).then(r=>{if(!r.ok)throw Error('Pavilion data missing');return r.json()}),
+   fetch('data/meta.json?'+Date.now()).then(r=>r.ok?r.json():({}))
+  ]);
+  events=[...flat(s,'showdome'),...flat(p,'pavilion')];meta=m;
+  $('status').className='status ok';
+  $('status').textContent=`Listings updated ${meta.updated_at||'recently'}. ${events.length} events loaded.`;
+  render();
+ }catch(e){
+  $('status').className='status error';
+  $('status').textContent='The data files have not been created yet. Run the GitHub Action called “Update Trecco listings”, then refresh this page.';
+  $('list').innerHTML='';
+ }
+}
+$('prev').onclick=()=>shift(-1);$('next').onclick=()=>shift(1);$('refresh').onclick=load;
+$('pick').onclick=()=>{try{$('dateInput').showPicker()}catch{$('dateInput').click()}};
+$('dateInput').onchange=e=>{if(e.target.value){selected=e.target.value;render()}};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{filter=b.dataset.v;render()});
+load();
+</script>
+</body></html>

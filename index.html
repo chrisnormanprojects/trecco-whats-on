@@ -119,7 +119,7 @@ main{max-width:800px;margin:0 auto;padding:16px}
   background:rgba(4,31,67,.97);backdrop-filter:blur(18px);
   border-top:1px solid rgba(255,255,255,.1)
 }
-.bottominner{max-width:800px;margin:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.bottominner{max-width:800px;margin:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
 .navbtn{border:0;background:transparent;color:var(--muted);padding:7px;border-radius:13px;font-size:12px}
 .navbtn b{display:block;font-size:21px;margin-bottom:2px}
 .navbtn.active{color:var(--yellow);background:rgba(255,255,255,.06)}
@@ -139,6 +139,40 @@ main{max-width:800px;margin:0 auto;padding:16px}
 .setting{background:#fff;border:1px solid #DCE5EF;border-radius:16px;padding:14px;margin-bottom:10px}
 .setting h3{margin:0 0 5px;color:var(--navy2)}
 .setting p{margin:0;color:#5E6D7E;font-size:14px;line-height:1.4}
+
+.qrOverlay{
+  position:fixed;
+  inset:0;
+  z-index:200;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));
+  background:#06378A;
+  cursor:pointer;
+}
+.qrOverlay.open{display:flex}
+.qrOverlay img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+.qrHint{
+  position:absolute;
+  left:50%;
+  bottom:calc(14px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  padding:8px 13px;
+  border-radius:999px;
+  background:rgba(0,0,0,.55);
+  color:#fff;
+  font-size:12px;
+  font-weight:800;
+  white-space:nowrap;
+  pointer-events:none;
+}
+
 @media(min-width:700px){.quickdates{grid-template-columns:repeat(3,160px);justify-content:center}}
 </style>
 </head>
@@ -184,6 +218,7 @@ main{max-width:800px;margin:0 auto;padding:16px}
   <div class="bottominner">
     <button class="navbtn active" data-view="schedule"><b>⌂</b>Schedule</button>
     <button class="navbtn" data-view="favourites"><b>★</b>Favourites</button>
+    <button class="navbtn" id="showQr"><b>▣</b>QR Code</button>
     <button class="navbtn" data-view="settings"><b>⚙</b>Settings</button>
   </div>
 </nav>
@@ -199,6 +234,12 @@ main{max-width:800px;margin:0 auto;padding:16px}
     <button class="primary" id="closeSettings">Done</button>
   </div>
 </div>
+
+<div class="qrOverlay" id="qrOverlay" role="button" aria-label="Close QR code">
+  <img src="trecco-qr-code.jpeg" alt="Trecco Bay What's On QR code">
+  <div class="qrHint">Tap anywhere to close</div>
+</div>
+
 
 <script>
 const FAVKEY='trecco-v2-favourites';
@@ -368,6 +409,16 @@ $('list').onclick=e=>{
 };
 $('closeSettings').onclick=()=>$('settingsModal').classList.remove('open');
 $('settingsModal').onclick=e=>{if(e.target===$('settingsModal'))$('settingsModal').classList.remove('open')};
+
+$('showQr').onclick=()=>{
+  $('qrOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+};
+$('qrOverlay').onclick=()=>{
+  $('qrOverlay').classList.remove('open');
+  document.body.style.overflow='';
+};
+
 load();
 </script>
 </body>

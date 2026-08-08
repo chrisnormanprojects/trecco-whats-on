@@ -315,7 +315,6 @@ button:active{transform:scale(.97)}
 .eventlist{transition:opacity .18s ease,transform .18s ease}
 .eventlist.switching{opacity:.25;transform:translateY(4px)}
 .event{padding-left:14px!important;padding-right:14px!important;border-radius:17px!important;box-shadow:0 6px 16px rgba(0,0,0,.13)!important;transition:box-shadow .18s ease,border-color .18s ease;background-clip:padding-box;border-left:3px solid rgba(255,255,255,.12)!important}
-.event[data-venue='both';box-shadow:0 0 0 1px rgba(46,212,122,.55),0 8px 20px rgba(0,0,0,.18)!important}
 .event.soon{outline:none!important;box-shadow:0 0 0 1px rgba(255,159,67,.5),0 8px 20px rgba(0,0,0,.17)!important}
 .timeLine{gap:6px!important;flex-wrap:nowrap!important;overflow:hidden}
 .time{font-size:20px!important}
@@ -909,20 +908,27 @@ main{
 
 <script>
 const FAVKEY='trecco-v2-favourites';
+const VALID_VENUES=new Set(['both','showdome','pavilion']);
+const storedDefaultVenue=localStorage.getItem('trecco-default-venue');
+let defaultVenue=VALID_VENUES.has(storedDefaultVenue)?storedDefaultVenue:'both';
 let selected=isoToday(),
-venue='both',
+venue=defaultVenue,
 view='schedule',events=[],meta={},search='',
-timeFilter='all',
 hideFinished=true,
 weather=null,expandedEvents=new Set(),
 autoRefresh=localStorage.getItem('trecco-auto-refresh')!=='false',
 expandDescriptions=localStorage.getItem('trecco-expand-descriptions')==='true',
 showCountdowns=localStorage.getItem('trecco-show-countdowns')!=='false',
-defaultVenue=localStorage.getItem('trecco-default-venue')||'both',
 usingOfflineCache=false,
 autoRefreshTimer=null,
 lastFavAlertKey='',searchAllMode=false;
-let favourites=new Set(JSON.parse(localStorage.getItem(FAVKEY)||'[]'));
+let favourites=new Set();
+try{
+ const savedFavourites=JSON.parse(localStorage.getItem(FAVKEY)||'[]');
+ if(Array.isArray(savedFavourites))favourites=new Set(savedFavourites);
+}catch{
+ localStorage.removeItem(FAVKEY);
+}
 const $=id=>document.getElementById(id);
 
 function isoToday(){
@@ -1001,8 +1007,6 @@ function countdownText(e){
  const h=Math.floor(diff/60),m=diff%60;
  return m?`In ${h}h ${m}m`:`In ${h}h`;
 }
-function matchesTimeFilter(e){return true;
-}
 function weatherCodeInfo(code){const map={0:['☀️','Clear'],1:['🌤️','Mostly clear'],2:['⛅','Partly cloudy'],3:['☁️','Overcast'],45:['🌫️','Fog'],48:['🌫️','Fog'],51:['🌦️','Light drizzle'],53:['🌦️','Drizzle'],55:['🌧️','Heavy drizzle'],61:['🌦️','Light rain'],63:['🌧️','Rain'],65:['🌧️','Heavy rain'],71:['🌨️','Light snow'],73:['🌨️','Snow'],75:['❄️','Heavy snow'],80:['🌦️','Rain showers'],81:['🌧️','Showers'],82:['⛈️','Heavy showers'],95:['⛈️','Thunderstorms'],96:['⛈️','Thunderstorms'],99:['⛈️','Thunderstorms']};return map[code]||['🌤️','Changeable']}
 async function loadWeather(){
  try{
@@ -1077,8 +1081,7 @@ function selectedRows(){
   if(view==='favourites'){
    rows=rows.filter(e=>favourites.has(eventKey(e)));
   }
-  rows=rows.filter(matchesTimeFilter);
-  if(hideFinished && selected===isoToday() && timeFilter!=='now'){
+  if(hideFinished && selected===isoToday()){
    rows=rows.filter(e=>!isFinished(e));
   }
  }
@@ -1205,8 +1208,10 @@ async function load(){
   try{
    const cached=JSON.parse(localStorage.getItem('trecco-cache-events')||'[]');
    const cachedMeta=JSON.parse(localStorage.getItem('trecco-cache-meta')||'{}');
-   if(!cached.length)throw Error();
-   events=cached;meta=cachedMeta;usingOfflineCache=true;
+   if(!Array.isArray(cached)||!cached.length)throw Error();
+   events=cached;
+   meta=cachedMeta&&typeof cachedMeta==='object'&&!Array.isArray(cachedMeta)?cachedMeta:{};
+   usingOfflineCache=true;
    setHeaderStatus(extractUpdateTime(meta.updated_at),pageRefreshTime(),'error');
    render();
   }catch{
@@ -1215,26 +1220,20 @@ async function load(){
   }
  }
 }
-$('prev').onclick=()=>{
- selected=addDays(selected,-1);
+function changeScheduleDate(nextDate,{animate=false}={}){
+ selected=nextDate;
  venue='both';
+ view='schedule';
  search='';
  searchAllMode=false;
- document.body.classList.remove('searchMode');
+ document.body.classList.remove('searchMode','weatherMode');
  if($('search'))$('search').value='';
- render();
- setTimeout(()=>$('list').scrollIntoView({behavior:'smooth',block:'start'}),80);
-};
-$('next').onclick=()=>{
- selected=addDays(selected,1);
- venue='both';
- search='';
- searchAllMode=false;
- document.body.classList.remove('searchMode');
- if($('search'))$('search').value='';
- render();
- setTimeout(()=>$('list').scrollIntoView({behavior:'smooth',block:'start'}),80);
-};
+ if(animate)animateRender();else render();
+ setTimeout(()=>$('list').scrollIntoView({behavior:'smooth',block:'start'}),animate?110:80);
+}
+
+$('prev').onclick=()=>changeScheduleDate(addDays(selected,-1));
+$('next').onclick=()=>changeScheduleDate(addDays(selected,1));
 
 // When Weather is open, tapping anywhere except the weather button returns to Schedule.
 document.addEventListener('click',e=>{
@@ -1271,7 +1270,7 @@ $('refresh').onclick=async()=>{
  setTimeout(()=>btn.classList.remove('done'),650);
 };
 $('pick').onclick=()=>{try{$('dateInput').showPicker()}catch{$('dateInput').click()}};
-$('dateInput').onchange=e=>{if(e.target.value){selected=e.target.value;localStorage.setItem('trecco-selected-date',selected);animateRender()}};
+$('dateInput').onchange=e=>{if(e.target.value)changeScheduleDate(e.target.value,{animate:true})};
 $('search').oninput=e=>{
  search=e.target.value;
  searchAllMode=true;
@@ -1289,30 +1288,16 @@ $('search').onkeydown=e=>{
 document.querySelectorAll('.venue').forEach(b=>b.onclick=()=>{
  searchAllMode=false;search='';document.body.classList.remove('searchMode');$('search').value='';
  venue=b.dataset.v;
- localStorage.setItem('trecco-venue',venue);
  animateRender();
  setTimeout(()=>$('list').scrollIntoView({behavior:'smooth',block:'start'}),110);
 });
 document.querySelectorAll('.quick').forEach(b=>b.onclick=()=>{
- searchAllMode=false;search='';document.body.classList.remove('searchMode');$('search').value='';
- selected=b.dataset.quick==='today'
+ const nextDate=b.dataset.quick==='today'
    ?isoToday()
    :b.dataset.quick==='tomorrow'
      ?addDays(isoToday(),1)
      :nextSaturday();
-
- // Date shortcuts always return to the combined programme.
- venue='both';
-
- localStorage.setItem('trecco-selected-date',selected);
- 
-
- animateRender();
-
- // After the new programme has rendered, return to its top.
- setTimeout(()=>{
-   $('list').scrollIntoView({behavior:'smooth',block:'start'});
- },110);
+ changeScheduleDate(nextDate,{animate:true});
 });
 
 function syncSettings(){
@@ -1340,7 +1325,7 @@ $('settingCountdowns').onchange=e=>{
  localStorage.setItem('trecco-show-countdowns',String(showCountdowns));render();
 };
 $('settingDefaultVenue').onchange=e=>{
- defaultVenue=e.target.value;
+ defaultVenue=VALID_VENUES.has(e.target.value)?e.target.value:'both';
  localStorage.setItem('trecco-default-venue',defaultVenue);
 };
 
@@ -1453,10 +1438,7 @@ document.addEventListener('touchend',e=>{
  if(view!=='schedule')return;
  const t=e.changedTouches[0],dx=t.clientX-touchStartX,dy=t.clientY-touchStartY;
  if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.4)return;
- selected=addDays(selected,dx<0?1:-1);
- localStorage.setItem('trecco-selected-date',selected);
- animateRender();
- setTimeout(()=>$('list').scrollIntoView({behavior:'smooth',block:'start'}),110);
+ changeScheduleDate(addDays(selected,dx<0?1:-1),{animate:true});
 },{passive:true});
 
 

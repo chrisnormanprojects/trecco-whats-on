@@ -708,9 +708,24 @@ document.querySelectorAll('.venue').forEach(b=>b.onclick=()=>{
  setTimeout(()=>$('list').scrollIntoView({behavior:'smooth',block:'start'}),110);
 });
 document.querySelectorAll('.quick').forEach(b=>b.onclick=()=>{
- selected=b.dataset.quick==='today'?isoToday():b.dataset.quick==='tomorrow'?addDays(isoToday(),1):nextSaturday();
+ selected=b.dataset.quick==='today'
+   ?isoToday()
+   :b.dataset.quick==='tomorrow'
+     ?addDays(isoToday(),1)
+     :nextSaturday();
+
+ // Date shortcuts always return to the combined programme.
+ venue='both';
+
  localStorage.setItem('trecco-selected-date',selected);
+ localStorage.setItem('trecco-venue',venue);
+
  animateRender();
+
+ // After the new programme has rendered, return to its top.
+ setTimeout(()=>{
+   $('list').scrollIntoView({behavior:'smooth',block:'start'});
+ },110);
 });
 document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
  const target=b.dataset.view;

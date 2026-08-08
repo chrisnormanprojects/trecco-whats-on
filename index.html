@@ -525,6 +525,45 @@ body.searchMode #sectionHeading{
   color:var(--yellow);
 }
 
+
+/* NAV OPTION 2 — weather moved to top header */
+.bottominner{
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  gap:3px !important;
+}
+.navbtn{
+  min-width:0 !important;
+  white-space:nowrap !important;
+  font-size:9px !important;
+}
+.topWeatherBtn{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:3px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.07);
+  color:#fff;
+  border-radius:11px;
+  padding:5px 7px;
+  min-height:31px;
+  font-weight:900;
+}
+#topWeatherIcon{
+  font-size:16px;
+  line-height:1;
+}
+#topWeatherTemp{
+  font-size:11px;
+  line-height:1;
+  white-space:nowrap;
+}
+@media(max-width:390px){
+  .topWeatherBtn{padding:4px 5px}
+  #topWeatherIcon{font-size:15px}
+  #topWeatherTemp{font-size:10px}
+}
+
 </style>
 </head>
 <body>
@@ -532,6 +571,10 @@ body.searchMode #sectionHeading{
 <div class="wrap">
   <div class="brand">
     <div class="brandTitle"><h1>Trecco What's On</h1></div>
+    <button class="topWeatherBtn" id="topWeather" aria-label="Weather">
+      <span id="topWeatherIcon">☀️</span>
+      <span id="topWeatherTemp">--°</span>
+    </button>
     <div class="refreshGroup">
       <div id="headerUpdated" class="headerUpdated">Loading…</div>
       <button class="iconbtn" id="refresh" aria-label="Refresh">↻</button>
@@ -590,7 +633,6 @@ body.searchMode #sectionHeading{
   <div class="bottominner">
     <button class="navbtn active" data-view="schedule"><b>⌂</b>Schedule</button>
     <button class="navbtn" data-view="favourites"><b>★</b>Favourites</button>
-    <button class="navbtn" data-view="weather"><b>☀️</b>Weather</button>
     <button class="navbtn" data-view="search"><b>⌕</b>Search</button>
     <button class="navbtn" id="showQr"><b>▣</b>QR Code</button>
     <button class="navbtn" data-view="settings"><b>⚙</b>Settings</button>
@@ -752,6 +794,11 @@ async function loadWeather(){
 function renderWeather(){
  if(!weather?.daily)return;
  const d=weather.daily;
+ if($('topWeatherIcon')&&$(`topWeatherTemp`)){
+  const info=weatherCodeInfo((d.weather_code||[])[0]);
+  $('topWeatherIcon').textContent=info[0];
+  $('topWeatherTemp').textContent=`${Math.round((d.temperature_2m_max||[])[0]??0)}°`;
+ }
  $('weatherContent').innerHTML=(d.time||[]).slice(0,7).map((day,i)=>{
   const date=new Date(day+'T12:00:00');
   const name=i===0?'Today':date.toLocaleDateString('en-GB',{weekday:'short'});
@@ -967,6 +1014,13 @@ async function load(){
 }
 $('prev').onclick=()=>{selected=addDays(selected,-1);localStorage.setItem('trecco-selected-date',selected);animateRender()};
 $('next').onclick=()=>{selected=addDays(selected,1);localStorage.setItem('trecco-selected-date',selected);animateRender()};
+$('topWeather').onclick=()=>{
+ view='weather';
+ document.body.classList.add('weatherMode');
+ document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));
+ loadWeather();
+};
+
 $('refresh').onclick=async()=>{
  const btn=$('refresh');
  btn.classList.add('spinning');

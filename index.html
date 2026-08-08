@@ -211,6 +211,31 @@ main{max-width:800px;margin:0 auto;padding:16px}
 
 .weatherCard{background:linear-gradient(135deg,#1769AA,#0B4D96);border:1px solid rgba(255,255,255,.12);border-radius:21px;padding:15px;box-shadow:0 10px 24px rgba(0,0,0,.15);margin-bottom:14px}.weatherTop{display:flex;justify-content:space-between;gap:12px}.weatherTitle{font-size:14px;font-weight:900;color:var(--yellow)}.weatherPlace{font-size:12px;color:var(--muted);margin-top:2px}.weatherMain{display:flex;align-items:center;gap:12px;margin-top:10px}.weatherIcon{font-size:40px}.weatherTemp{font-size:32px;font-weight:900}.weatherDesc{font-size:13px;color:var(--muted);margin-top:2px}.weatherFacts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.weatherFact{background:rgba(255,255,255,.08);border-radius:12px;padding:9px;text-align:center}.weatherFact b{display:block;font-size:14px}.weatherFact span{display:block;color:var(--muted);font-size:10px;margin-top:2px}.weatherDays{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.weatherDay{background:rgba(255,255,255,.07);border-radius:12px;padding:9px;text-align:center;font-size:11px;color:var(--muted)}.weatherDay b{display:block;color:#fff;font-size:13px;margin-top:3px}.smartMessage{padding:11px;border-radius:14px;background:rgba(255,214,51,.12);color:#fff4be;font-size:12px;line-height:1.35;margin-bottom:12px}.timeFilters{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}.timeFilter{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:#fff;border-radius:13px;padding:9px 4px;font-size:12px;font-weight:800}.timeFilter.active{background:#fff;color:var(--navy)}.controlRow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;color:var(--muted);font-size:12px}.toggleLabel{display:flex;align-items:center;gap:8px;white-space:nowrap}.toggleLabel input{accent-color:var(--yellow);width:18px;height:18px}.venueTotals{font-weight:800}.nextStrip{display:grid;gap:9px;margin:0 0 15px}.nextItem{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:12px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1)}.nextTime{font-weight:900;color:var(--yellow)}.nextName{font-weight:800;font-size:14px}.nextVenue{color:var(--muted);font-size:11px}.countdown{font-size:11px;font-weight:900;background:rgba(255,255,255,.1);border-radius:999px;padding:6px 8px;white-space:nowrap}
 @media(min-width:700px){.quickdates{grid-template-columns:repeat(3,160px);justify-content:center}}
+
+#dateTitle{
+  white-space:nowrap;
+  font-size:clamp(18px,5.2vw,24px);
+  letter-spacing:-.2px;
+}
+
+
+/* Version 4 compact date controls */
+.datebar{
+  padding:6px 8px !important;
+  min-height:0 !important;
+  border-radius:12px !important;
+}
+.datebar button{
+  padding:5px 7px !important;
+  min-height:0 !important;
+  line-height:1 !important;
+}
+#dateTitle{
+  font-size:clamp(15px,4.3vw,19px) !important;
+  line-height:1.05 !important;
+  margin:0 !important;
+}
+
 </style>
 </head>
 <body>

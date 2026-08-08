@@ -55,6 +55,16 @@ header{
 .miniWeatherIcon{font-size:26px;line-height:1}.miniWeatherTemp{font-size:24px;line-height:1;font-weight:900;color:#fff}
 .miniWeatherDesc{min-width:0;flex:1;font-size:11px;line-height:1.25;color:var(--muted)}
 
+.sevenDayWeather{padding:9px 10px!important;margin-bottom:9px!important;border-radius:16px!important}
+.sevenDayWeather .weatherTitle{font-size:10px;margin:0 0 6px;font-weight:900;color:var(--yellow)}
+.weatherWeek{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;align-items:start}
+.weatherDayMini{text-align:center;min-width:0}
+.weatherDayMini .wdName{font-size:9px;color:var(--muted);font-weight:800;line-height:1}
+.weatherDayMini .wdIcon{font-size:18px;line-height:1.25;margin:2px 0}
+.weatherDayMini .wdTemp{font-size:11px;color:#fff;font-weight:900;line-height:1}
+.weatherLoading{grid-column:1/-1;color:var(--muted);font-size:11px;padding:4px 0}
+
+
 .iconbtn{
   width:46px;height:46px;border:0;border-radius:15px;
   color:#fff;background:rgba(255,255,255,.09);font-size:21px
@@ -238,12 +248,10 @@ main{max-width:800px;margin:0 auto;padding:16px}
 
 <main>
   <div class="searchwrap"><input id="search" type="search" placeholder="Search entertainers or events"><span class="searchicon">⌕</span></div>
-  <section class="weatherCard compactWeather" id="weatherCard">
-    <div class="weatherTitle">Porthcawl Weather</div>
-    <div id="weatherContent" class="compactWeatherContent">
-      <span class="miniWeatherIcon">🌤️</span>
-      <span class="miniWeatherTemp">--°</span>
-      <span class="miniWeatherDesc">Loading…</span>
+  <section class="weatherCard sevenDayWeather" id="weatherCard">
+    <div class="weatherTitle">Porthcawl · 7 day forecast</div>
+    <div id="weatherContent" class="weatherWeek">
+      <div class="weatherLoading">Loading forecast…</div>
     </div>
   </section>
   <div id="smartMessage" class="smartMessage">Checking today’s programme…</div>
@@ -358,27 +366,30 @@ function matchesTimeFilter(e){const m=minutesFromTime(e.time);if(timeFilter==='a
 function weatherCodeInfo(code){const map={0:['☀️','Clear'],1:['🌤️','Mostly clear'],2:['⛅','Partly cloudy'],3:['☁️','Overcast'],45:['🌫️','Fog'],48:['🌫️','Fog'],51:['🌦️','Light drizzle'],53:['🌦️','Drizzle'],55:['🌧️','Heavy drizzle'],61:['🌦️','Light rain'],63:['🌧️','Rain'],65:['🌧️','Heavy rain'],71:['🌨️','Light snow'],73:['🌨️','Snow'],75:['❄️','Heavy snow'],80:['🌦️','Rain showers'],81:['🌧️','Showers'],82:['⛈️','Heavy showers'],95:['⛈️','Thunderstorms'],96:['⛈️','Thunderstorms'],99:['⛈️','Thunderstorms']};return map[code]||['🌤️','Changeable']}
 async function loadWeather(){
  try{
-  const url='https://api.open-meteo.com/v1/forecast?latitude=51.4790&longitude=-3.7030&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&hourly=precipitation_probability&daily=precipitation_probability_max&timezone=Europe%2FLondon&forecast_days=1';
+  const url='https://api.open-meteo.com/v1/forecast?latitude=51.4790&longitude=-3.7030&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FLondon&forecast_days=7';
   const r=await fetch(url,{cache:'no-store'});
   if(!r.ok) throw Error();
   weather=await r.json();
   renderWeather();
  }catch(e){
-  $('weatherContent').innerHTML='<span class="miniWeatherIcon">🌤️</span><span class="miniWeatherDesc">Forecast unavailable</span>';
+  $('weatherContent').innerHTML='<div class="weatherLoading">Forecast unavailable</div>';
  }
 }
 function renderWeather(){
- if(!weather)return;
- const c=weather.current||{},info=weatherCodeInfo(c.weather_code);
- const times=weather.hourly?.time||[],probs=weather.hourly?.precipitation_probability||[];
- let rain='—',best=0,dist=Infinity,now=new Date();
- for(let i=0;i<times.length;i++){
-  const x=Math.abs(new Date(times[i])-now);
-  if(x<dist){dist=x;best=i}
- }
- if(times.length)rain=probs[best]??'—';
- const wind=Math.round(c.wind_speed_10m??0);
- $('weatherContent').innerHTML=`<span class="miniWeatherIcon">${info[0]}</span><span class="miniWeatherTemp">${Math.round(c.temperature_2m??0)}°</span><span class="miniWeatherDesc">${info[1]} · Rain ${rain}% · Wind ${wind} km/h</span>`;
+ if(!weather?.daily)return;
+ const d=weather.daily;
+ $('weatherContent').innerHTML=(d.time||[]).slice(0,7).map((day,i)=>{
+  const date=new Date(day+'T12:00:00');
+  const name=i===0?'Today':date.toLocaleDateString('en-GB',{weekday:'short'});
+  const info=weatherCodeInfo((d.weather_code||[])[i]);
+  const hi=Math.round((d.temperature_2m_max||[])[i]??0);
+  const lo=Math.round((d.temperature_2m_min||[])[i]??0);
+  return `<div class="weatherDayMini" title="${esc(info[1])}">
+    <div class="wdName">${name}</div>
+    <div class="wdIcon" aria-label="${esc(info[1])}">${info[0]}</div>
+    <div class="wdTemp">${hi}°/${lo}°</div>
+  </div>`;
+ }).join('');
  renderSmartMessage();
 }
 function renderSmartMessage(){if(!$('smartMessage'))return;const rows=events.filter(e=>e.date===selected),live=rows.find(e=>timing(e)==='live'),up=rows.filter(e=>{const m=minutesFromTime(e.time);return selected===isoToday()&&m!==null&&m>nowMinutes()}).sort((a,b)=>minutesFromTime(a.time)-minutesFromTime(b.time));let msg=live?`Live now: ${esc(live.name)} at the ${live.venue==='showdome'?'Showdome':'Pavilion'}.`:up[0]?`Next up: ${esc(up[0].name)} at ${esc(up[0].time)} in the ${up[0].venue==='showdome'?'Showdome':'Pavilion'}.`:'Browse the programme by date, venue or time of day.';const rain=weather?.daily?.precipitation_probability_max?.[0];if(selected===isoToday()&&Number(rain)>=50)msg+=` Rain chance is ${rain}% today, so the indoor programme may be especially handy.`;$('smartMessage').innerHTML=msg}

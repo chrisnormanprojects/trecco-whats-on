@@ -615,7 +615,13 @@ $('dateInput').onchange=e=>{if(e.target.value){selected=e.target.value;render()}
 $('search').oninput=e=>{search=e.target.value;render()};
 document.querySelectorAll('.timeFilter').forEach(b=>b.onclick=()=>{timeFilter=b.dataset.time;document.querySelectorAll('.timeFilter').forEach(x=>x.classList.toggle('active',x.dataset.time===timeFilter));render()});
 $('hideFinished').onchange=e=>{hideFinished=e.target.checked;render()};
-document.querySelectorAll('.venue').forEach(b=>b.onclick=()=>{venue=b.dataset.v;render()});
+document.querySelectorAll('.venue').forEach(b=>b.onclick=()=>{
+ venue=b.dataset.v;
+ render();
+ requestAnimationFrame(()=>{
+  $('list').scrollIntoView({behavior:'smooth',block:'start'});
+ });
+});
 document.querySelectorAll('.quick').forEach(b=>b.onclick=()=>{
  selected=b.dataset.quick==='today'?isoToday():b.dataset.quick==='tomorrow'?addDays(isoToday(),1):nextSaturday();render()
 });

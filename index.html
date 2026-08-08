@@ -236,6 +236,35 @@ main{max-width:800px;margin:0 auto;padding:16px}
   margin:0 !important;
 }
 
+
+/* Version 4: tighter event title/description spacing */
+.event .title,
+.card .title{
+  margin-bottom:2px !important;
+}
+.event .description,
+.event .desc,
+.card .description,
+.card .desc{
+  margin-top:0 !important;
+  padding-top:0 !important;
+}
+
+
+/* Version 4: compact search bar to match control buttons */
+#search{
+  padding-top:6px !important;
+  padding-bottom:6px !important;
+  min-height:0 !important;
+  height:32px !important;
+  border-radius:12px !important;
+  font-size:13px !important;
+  line-height:1.1 !important;
+}
+.searchwrap{
+  min-height:0 !important;
+}
+
 </style>
 </head>
 <body>
@@ -414,18 +443,7 @@ function renderWeather(){
     <div class="wdTemp">${hi}°/${lo}°</div>
   </div>`;
  }).join('');
- renderSmartMessage();
-}
-function renderSmartMessage(){if(!$('smartMessage'))return;const rows=events.filter(e=>e.date===selected),live=rows.find(e=>timing(e)==='live'),up=rows.filter(e=>{const m=minutesFromTime(e.time);return selected===isoToday()&&m!==null&&m>nowMinutes()}).sort((a,b)=>minutesFromTime(a.time)-minutesFromTime(b.time));let msg=live?`Live now: ${esc(live.name)} at the ${live.venue==='showdome'?'Showdome':'Pavilion'}.`:up[0]?`Next up: ${esc(up[0].name)} at ${esc(up[0].time)} in the ${up[0].venue==='showdome'?'Showdome':'Pavilion'}.`:'Browse the programme by date, venue or time of day.';const rain=weather?.daily?.precipitation_probability_max?.[0];if(selected===isoToday()&&Number(rain)>=50)msg+=` Rain chance is ${rain}% today, so the indoor programme may be especially handy.`;$('smartMessage').innerHTML=msg}
-function renderUpNext(){if(!$('nextStrip'))return;if(selected!==isoToday()){$('nextStrip').innerHTML='<div class="nextItem"><div class="nextName">Up Next is shown for today.</div></div>';$('nextCount').textContent='';return}const up=events.filter(e=>{if(e.date!==isoToday())return false;if(venue!=='both'&&e.venue!==venue)return false;const m=minutesFromTime(e.time);return m!==null&&m>=nowMinutes()-59}).sort((a,b)=>minutesFromTime(a.time)-minutesFromTime(b.time)).slice(0,3);$('nextCount').textContent=up.length?`${up.length} shown`:'';$('nextStrip').innerHTML=up.length?up.map(e=>`<div class="nextItem"><div class="nextTime">${esc(e.time)}</div><div><div class="nextName">${esc(e.name)}</div><div class="nextVenue">${e.venue==='showdome'?'Showdome':'Pavilion'}</div></div><div class="countdown">${esc(countdownText(e))}</div></div>`).join(''):'<div class="nextItem"><div class="nextName">Nothing else listed today.</div></div>'}
 
-function selectedRows(){
- let rows=events.filter(e=>(!e.date||e.date===selected)&&(venue==='both'||e.venue===venue));
- if(search) rows=rows.filter(e=>(e.name+' '+e.location+' '+e.description).toLowerCase().includes(search.toLowerCase()));
- if(view==='favourites') rows=rows.filter(e=>favourites.has(eventKey(e)));
- rows=rows.filter(matchesTimeFilter);
- if(hideFinished&&selected===isoToday()&&timeFilter!=='now')rows=rows.filter(e=>!isFinished(e));
- return rows.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
 }
 function updateHeader(){
  const d=new Date(selected+'T12:00:00');
@@ -458,7 +476,7 @@ function render(){
  $('venueTotals').textContent=`Showdome ${dayRows.filter(e=>e.venue==='showdome').length} · Pavilion ${dayRows.filter(e=>e.venue==='pavilion').length}`;
  renderHero(rows);
  
- renderSmartMessage();
+
  $('sectionHeading').textContent=view==='favourites'?'Favourite events':selected===isoToday()?'Today’s programme':'Programme';
  $('count').textContent=`${rows.length} event${rows.length===1?'':'s'}`;
  if(!rows.length){

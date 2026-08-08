@@ -761,6 +761,31 @@ body.weatherMode .weatherView::after{
   margin:12px 0 4px;
 }
 
+
+/* Favourite star fixed to top-right of every event card */
+.event{
+  position:relative !important;
+  padding-right:58px !important;
+}
+.event .fav{
+  position:absolute !important;
+  top:10px !important;
+  right:10px !important;
+  margin:0 !important;
+  z-index:3 !important;
+  width:40px !important;
+  height:40px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+.eventSummary{
+  grid-template-columns:1fr !important;
+}
+.eventSummary > div:last-child{
+  position:static !important;
+}
+
 </style>
 </head>
 <body>
@@ -1108,9 +1133,7 @@ function render(){
       ${searchAllMode&&search?`<div class="eventSearchDate">${esc(formatEventDate(e.date))}</div>`:''}
       ${(t==='live'||t==='soon')&&e.description&&!expanded?`<div class="eventTeaser">${esc(e.description)}</div>`:''}
     </div>
-    <div style="display:flex;gap:6px;align-items:center">
-      <button class="fav" data-key="${encodeURIComponent(key)}" aria-label="Favourite">${fav?'★':'☆'}</button>
-    </div>
+    <button class="fav" data-key="${encodeURIComponent(key)}" aria-label="Favourite">${fav?'★':'☆'}</button>
    </div>
    ${e.description?`<div class="eventDetails"><div class="eventDetailsInner"><div class="desc">${esc(e.description)}</div></div></div>`:''}
   </article>`;

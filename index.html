@@ -327,8 +327,6 @@ button:active{transform:scale(.97)}
 @keyframes livePulse{0%,100%{opacity:.45;transform:scale(.8)}50%{opacity:1;transform:scale(1.25)}}
 .eventSummary{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start}
 .eventMain{min-width:0}
-.eventChevron{width:30px;height:30px;border:0;border-radius:10px;background:rgba(255,255,255,.07);color:var(--muted);font-size:16px;line-height:1;transition:transform .2s ease,color .2s ease}
-.event.expanded .eventChevron{transform:rotate(180deg);color:var(--yellow)}
 .eventDetails{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .24s ease,opacity .22s ease,margin-top .22s ease;margin-top:0}
 .eventDetailsInner{overflow:hidden}
 .event.expanded .eventDetails{grid-template-rows:1fr;opacity:1;margin-top:6px}
@@ -587,6 +585,17 @@ body.searchMode #sectionHeading{
   line-height:1;
   white-space:nowrap;
   text-align:center;
+}
+
+
+/* Option 2 refinement — descriptions */
+.eventToggleArea{cursor:pointer}
+.eventSummary{grid-template-columns:1fr auto !important}
+.event.live .eventDetails,
+.event.soon .eventDetails{
+  grid-template-rows:1fr !important;
+  opacity:1 !important;
+  margin-top:6px !important;
 }
 
 </style>
@@ -955,11 +964,11 @@ function render(){
  }
  $('list').innerHTML=rows.map(e=>{
   const t=timing(e),key=eventKey(e),fav=favourites.has(key);
-  const autoOpen=expandDescriptions;
+  const autoOpen=expandDescriptions||t==='live'||t==='soon';
   const expanded=autoOpen||expandedEvents.has(key);
   return `<article class="event ${t} ${expanded?'expanded':''}" data-key="${encodeURIComponent(key)}" data-venue="${e.venue}">
    <div class="eventSummary">
-    <div class="eventMain">
+    <div class="eventMain eventToggleArea">
       <div class="timeLine">
         <div class="time">${esc(e.time||'Time TBC')}</div>
         <span class="venueInline">${e.venue==='showdome'?'Showdome':'Pavilion'}</span>
@@ -972,7 +981,6 @@ function render(){
     </div>
     <div style="display:flex;gap:6px;align-items:center">
       <button class="fav" data-key="${encodeURIComponent(key)}" aria-label="Favourite">${fav?'★':'☆'}</button>
-      ${e.description?`<button class="eventChevron" data-expand="${encodeURIComponent(key)}" aria-label="Show details">⌄</button>`:''}
     </div>
    </div>
    ${e.description?`<div class="eventDetails"><div class="eventDetailsInner"><div class="desc">${esc(e.description)}</div></div></div>`:''}
@@ -1182,12 +1190,18 @@ $('list').onclick=e=>{
   const key=decodeURIComponent(favBtn.dataset.key);
   favourites.has(key)?favourites.delete(key):favourites.add(key);
   localStorage.setItem(FAVKEY,JSON.stringify([...favourites]));
-  render();return;
+  render();
+  return;
  }
- const expandBtn=e.target.closest('[data-expand]');
+
  const card=e.target.closest('.event');
- if(!card||!card.querySelector('.eventDetails'))return;
- const key=decodeURIComponent(expandBtn?.dataset.expand||card.dataset.key);
+ const toggleArea=e.target.closest('.eventToggleArea,.eventDetails');
+ if(!card||!toggleArea||!card.querySelector('.eventDetails'))return;
+
+ // Live and starting-soon events stay automatically expanded.
+ if(card.classList.contains('live')||card.classList.contains('soon'))return;
+
+ const key=decodeURIComponent(card.dataset.key);
  expandedEvents.has(key)?expandedEvents.delete(key):expandedEvents.add(key);
  card.classList.toggle('expanded',expandedEvents.has(key));
 };

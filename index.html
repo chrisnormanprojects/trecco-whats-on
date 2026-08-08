@@ -308,8 +308,7 @@ main{max-width:800px;margin:0 auto;padding:16px}
       <div class="weatherLoading">Loading forecast…</div>
     </div>
   </section>
-  <div id="smartMessage" class="smartMessage">Checking today’s programme…</div>
-  <div class="timeFilters"><button class="timeFilter active" data-time="all">All</button><button class="timeFilter" data-time="now">Now</button><button class="timeFilter" data-time="afternoon">Afternoon</button><button class="timeFilter" data-time="evening">Evening</button></div>
+<div class="timeFilters"><button class="timeFilter active" data-time="all">All</button><button class="timeFilter" data-time="now">Now</button><button class="timeFilter" data-time="afternoon">Afternoon</button><button class="timeFilter" data-time="evening">Evening</button></div>
   <div class="controlRow"><span id="venueTotals" class="venueTotals"></span><label class="toggleLabel"><input id="hideFinished" type="checkbox" checked>Hide finished</label></div>
   <div id="hero"></div>
   <div class="sectiontitle"><h2 id="sectionHeading">Today’s programme</h2><span id="count"></span></div>
@@ -445,6 +444,26 @@ function renderWeather(){
  }).join('');
 
 }
+
+function selectedRows(){
+ let rows=events.filter(e=>(!e.date||e.date===selected)&&(venue==='both'||e.venue===venue));
+ if(search){
+  rows=rows.filter(e=>
+   (e.name+' '+e.location+' '+e.description)
+    .toLowerCase()
+    .includes(search.toLowerCase())
+  );
+ }
+ if(view==='favourites'){
+  rows=rows.filter(e=>favourites.has(eventKey(e)));
+ }
+ rows=rows.filter(matchesTimeFilter);
+ if(hideFinished && selected===isoToday() && timeFilter!=='now'){
+  rows=rows.filter(e=>!isFinished(e));
+ }
+ return rows.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+}
+
 function updateHeader(){
  const d=new Date(selected+'T12:00:00');
  $('dateTitle').textContent=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});

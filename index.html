@@ -37,16 +37,32 @@ header{
 }
 .wrap{max-width:800px;margin:0 auto;padding:16px}
 .brand{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand h1{margin:0;color:var(--yellow);font-size:27px;letter-spacing:-.5px}
-.brand p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.brand h1{
+  margin:0;
+  color:var(--yellow);
+  font-size:clamp(20px,6vw,27px);
+  letter-spacing:-.5px;
+  line-height:1.05;
+  white-space:nowrap
+}
+.brandTitle{min-width:0;flex:1}
+.refreshGroup{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.headerUpdated{max-width:88px;text-align:right;color:var(--muted);font-size:10px;font-weight:800;line-height:1.15}
+.headerUpdated.fresh{color:#BDF7D6}.headerUpdated.stale{color:#FFD58A}.headerUpdated.error{color:#FFB6B6}
+.compactWeather{padding:11px 13px!important;margin-bottom:10px!important;border-radius:17px!important}
+.compactWeather .weatherTitle{font-size:11px;margin-bottom:5px;opacity:.95}
+.compactWeatherContent{display:flex;align-items:center;gap:8px;min-height:31px}
+.miniWeatherIcon{font-size:26px;line-height:1}.miniWeatherTemp{font-size:24px;line-height:1;font-weight:900;color:#fff}
+.miniWeatherDesc{min-width:0;flex:1;font-size:11px;line-height:1.25;color:var(--muted)}
+
 .iconbtn{
   width:46px;height:46px;border:0;border-radius:15px;
   color:#fff;background:rgba(255,255,255,.09);font-size:21px
 }
-.quickdates{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:15px}
+.quickdates{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px}
 .quick{
   border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.07);
-  color:#fff;border-radius:14px;padding:10px 5px;font-weight:800
+  color:#fff;border-radius:12px;padding:6px 5px;font-weight:800;font-size:13px;line-height:1.1
 }
 .quick.active{background:var(--yellow);color:var(--navy);border-color:var(--yellow)}
 .datebar{display:grid;grid-template-columns:46px 1fr 46px;gap:9px;align-items:center;margin-top:10px}
@@ -56,10 +72,10 @@ header{
 }
 .datecenter strong{display:block;color:var(--yellow);font-size:18px}
 .datecenter span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
-.venuefilters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.venuefilters{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px}
 .venue{
   border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.07);
-  color:#fff;border-radius:14px;padding:11px 6px;font-weight:800
+  color:#fff;border-radius:12px;padding:6px 5px;font-weight:800;font-size:13px;line-height:1.1
 }
 .venue.active{background:var(--yellow);color:var(--navy);border-color:var(--yellow)}
 main{max-width:800px;margin:0 auto;padding:16px}
@@ -100,6 +116,15 @@ main{max-width:800px;margin:0 auto;padding:16px}
 .event.soon{outline:2px solid var(--orange)}
 .eventtop{display:flex;justify-content:space-between;gap:12px}
 .time{font-size:23px;font-weight:900;color:var(--yellow);white-space:nowrap}
+.timeLine{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.venueInline{
+  display:inline-flex;align-items:center;
+  padding:4px 7px;border-radius:999px;
+  background:rgba(255,255,255,.10);
+  color:#fff;font-size:11px;font-weight:900;
+  line-height:1
+}
+
 .title{font-size:18px;font-weight:900;margin:4px 0 5px}
 .location{color:var(--muted);font-size:13px}
 .desc{color:var(--muted);font-size:14px;line-height:1.42;margin-top:10px}
@@ -173,6 +198,8 @@ main{max-width:800px;margin:0 auto;padding:16px}
   pointer-events:none;
 }
 
+
+.weatherCard{background:linear-gradient(135deg,#1769AA,#0B4D96);border:1px solid rgba(255,255,255,.12);border-radius:21px;padding:15px;box-shadow:0 10px 24px rgba(0,0,0,.15);margin-bottom:14px}.weatherTop{display:flex;justify-content:space-between;gap:12px}.weatherTitle{font-size:14px;font-weight:900;color:var(--yellow)}.weatherPlace{font-size:12px;color:var(--muted);margin-top:2px}.weatherMain{display:flex;align-items:center;gap:12px;margin-top:10px}.weatherIcon{font-size:40px}.weatherTemp{font-size:32px;font-weight:900}.weatherDesc{font-size:13px;color:var(--muted);margin-top:2px}.weatherFacts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.weatherFact{background:rgba(255,255,255,.08);border-radius:12px;padding:9px;text-align:center}.weatherFact b{display:block;font-size:14px}.weatherFact span{display:block;color:var(--muted);font-size:10px;margin-top:2px}.weatherDays{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.weatherDay{background:rgba(255,255,255,.07);border-radius:12px;padding:9px;text-align:center;font-size:11px;color:var(--muted)}.weatherDay b{display:block;color:#fff;font-size:13px;margin-top:3px}.smartMessage{padding:11px;border-radius:14px;background:rgba(255,214,51,.12);color:#fff4be;font-size:12px;line-height:1.35;margin-bottom:12px}.timeFilters{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}.timeFilter{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:#fff;border-radius:13px;padding:9px 4px;font-size:12px;font-weight:800}.timeFilter.active{background:#fff;color:var(--navy)}.controlRow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;color:var(--muted);font-size:12px}.toggleLabel{display:flex;align-items:center;gap:8px;white-space:nowrap}.toggleLabel input{accent-color:var(--yellow);width:18px;height:18px}.venueTotals{font-weight:800}.nextStrip{display:grid;gap:9px;margin:0 0 15px}.nextItem{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:12px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1)}.nextTime{font-weight:900;color:var(--yellow)}.nextName{font-weight:800;font-size:14px}.nextVenue{color:var(--muted);font-size:11px}.countdown{font-size:11px;font-weight:900;background:rgba(255,255,255,.1);border-radius:999px;padding:6px 8px;white-space:nowrap}
 @media(min-width:700px){.quickdates{grid-template-columns:repeat(3,160px);justify-content:center}}
 </style>
 </head>
@@ -180,8 +207,11 @@ main{max-width:800px;margin:0 auto;padding:16px}
 <header>
 <div class="wrap">
   <div class="brand">
-    <div><h1>Trecco What's On</h1><p>Showdome and Pavilion entertainment</p></div>
-    <button class="iconbtn" id="refresh" aria-label="Refresh">↻</button>
+    <div class="brandTitle"><h1>Trecco What's On</h1></div>
+    <div class="refreshGroup">
+      <div id="headerUpdated" class="headerUpdated">Loading…</div>
+      <button class="iconbtn" id="refresh" aria-label="Refresh">↻</button>
+    </div>
   </div>
 
   <div class="quickdates">
@@ -208,7 +238,18 @@ main{max-width:800px;margin:0 auto;padding:16px}
 
 <main>
   <div class="searchwrap"><input id="search" type="search" placeholder="Search entertainers or events"><span class="searchicon">⌕</span></div>
-  <div id="status" class="status">Loading live listings…</div>
+  <section class="weatherCard compactWeather" id="weatherCard">
+    <div class="weatherTitle">Porthcawl Weather</div>
+    <div id="weatherContent" class="compactWeatherContent">
+      <span class="miniWeatherIcon">🌤️</span>
+      <span class="miniWeatherTemp">--°</span>
+      <span class="miniWeatherDesc">Loading…</span>
+    </div>
+  </section>
+  <div id="smartMessage" class="smartMessage">Checking today’s programme…</div>
+  <div class="sectiontitle"><h2>Up next</h2><span id="nextCount"></span></div><div id="nextStrip" class="nextStrip"></div>
+  <div class="timeFilters"><button class="timeFilter active" data-time="all">All</button><button class="timeFilter" data-time="now">Now</button><button class="timeFilter" data-time="afternoon">Afternoon</button><button class="timeFilter" data-time="evening">Evening</button></div>
+  <div class="controlRow"><span id="venueTotals" class="venueTotals"></span><label class="toggleLabel"><input id="hideFinished" type="checkbox" checked>Hide finished</label></div>
   <div id="hero"></div>
   <div class="sectiontitle"><h2 id="sectionHeading">Today’s programme</h2><span id="count"></span></div>
   <section id="list" class="eventlist"></section>
@@ -243,7 +284,7 @@ main{max-width:800px;margin:0 auto;padding:16px}
 
 <script>
 const FAVKEY='trecco-v2-favourites';
-let selected=isoToday(),venue='both',view='schedule',events=[],meta={},search='';
+let selected=isoToday(),venue='both',view='schedule',events=[],meta={},search='',timeFilter='all',hideFinished=true,weather=null;
 let favourites=new Set(JSON.parse(localStorage.getItem(FAVKEY)||'[]'));
 const $=id=>document.getElementById(id);
 
@@ -309,10 +350,46 @@ function timing(e){
  if(start>n&&start-n<=30)return 'soon';
  return '';
 }
+function minutesFromTime(t){const m=String(t||'').match(/^(\d{1,2}):(\d{2})/);return m?Number(m[1])*60+Number(m[2]):null}
+function nowMinutes(){const d=new Date();return d.getHours()*60+d.getMinutes()}
+function isFinished(e){if(e.date!==isoToday())return false;const s=minutesFromTime(e.time);return s!==null&&nowMinutes()>=s+60}
+function countdownText(e){if(e.date!==isoToday())return '';const s=minutesFromTime(e.time);if(s===null)return '';const diff=s-nowMinutes();if(diff<=0&&diff>-60)return 'Live now';if(diff<0)return 'Finished';if(diff<60)return `In ${diff} min`;const h=Math.floor(diff/60),m=diff%60;return m?`In ${h}h ${m}m`:`In ${h}h`}
+function matchesTimeFilter(e){const m=minutesFromTime(e.time);if(timeFilter==='all')return true;if(timeFilter==='now')return timing(e)==='live';if(m===null)return false;if(timeFilter==='afternoon')return m>=720&&m<1080;if(timeFilter==='evening')return m>=1080;return true}
+function weatherCodeInfo(code){const map={0:['☀️','Clear'],1:['🌤️','Mostly clear'],2:['⛅','Partly cloudy'],3:['☁️','Overcast'],45:['🌫️','Fog'],48:['🌫️','Fog'],51:['🌦️','Light drizzle'],53:['🌦️','Drizzle'],55:['🌧️','Heavy drizzle'],61:['🌦️','Light rain'],63:['🌧️','Rain'],65:['🌧️','Heavy rain'],71:['🌨️','Light snow'],73:['🌨️','Snow'],75:['❄️','Heavy snow'],80:['🌦️','Rain showers'],81:['🌧️','Showers'],82:['⛈️','Heavy showers'],95:['⛈️','Thunderstorms'],96:['⛈️','Thunderstorms'],99:['⛈️','Thunderstorms']};return map[code]||['🌤️','Changeable']}
+async function loadWeather(){
+ try{
+  const url='https://api.open-meteo.com/v1/forecast?latitude=51.4790&longitude=-3.7030&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&hourly=precipitation_probability&daily=precipitation_probability_max&timezone=Europe%2FLondon&forecast_days=1';
+  const r=await fetch(url,{cache:'no-store'});
+  if(!r.ok) throw Error();
+  weather=await r.json();
+  renderWeather();
+ }catch(e){
+  $('weatherContent').innerHTML='<span class="miniWeatherIcon">🌤️</span><span class="miniWeatherDesc">Forecast unavailable</span>';
+ }
+}
+function renderWeather(){
+ if(!weather)return;
+ const c=weather.current||{},info=weatherCodeInfo(c.weather_code);
+ const times=weather.hourly?.time||[],probs=weather.hourly?.precipitation_probability||[];
+ let rain='—',best=0,dist=Infinity,now=new Date();
+ for(let i=0;i<times.length;i++){
+  const x=Math.abs(new Date(times[i])-now);
+  if(x<dist){dist=x;best=i}
+ }
+ if(times.length)rain=probs[best]??'—';
+ const wind=Math.round(c.wind_speed_10m??0);
+ $('weatherContent').innerHTML=`<span class="miniWeatherIcon">${info[0]}</span><span class="miniWeatherTemp">${Math.round(c.temperature_2m??0)}°</span><span class="miniWeatherDesc">${info[1]} · Rain ${rain}% · Wind ${wind} km/h</span>`;
+ renderSmartMessage();
+}
+function renderSmartMessage(){if(!$('smartMessage'))return;const rows=events.filter(e=>e.date===selected),live=rows.find(e=>timing(e)==='live'),up=rows.filter(e=>{const m=minutesFromTime(e.time);return selected===isoToday()&&m!==null&&m>nowMinutes()}).sort((a,b)=>minutesFromTime(a.time)-minutesFromTime(b.time));let msg=live?`Live now: ${esc(live.name)} at the ${live.venue==='showdome'?'Showdome':'Pavilion'}.`:up[0]?`Next up: ${esc(up[0].name)} at ${esc(up[0].time)} in the ${up[0].venue==='showdome'?'Showdome':'Pavilion'}.`:'Browse the programme by date, venue or time of day.';const rain=weather?.daily?.precipitation_probability_max?.[0];if(selected===isoToday()&&Number(rain)>=50)msg+=` Rain chance is ${rain}% today, so the indoor programme may be especially handy.`;$('smartMessage').innerHTML=msg}
+function renderUpNext(){if(!$('nextStrip'))return;if(selected!==isoToday()){$('nextStrip').innerHTML='<div class="nextItem"><div class="nextName">Up Next is shown for today.</div></div>';$('nextCount').textContent='';return}const up=events.filter(e=>{if(e.date!==isoToday())return false;if(venue!=='both'&&e.venue!==venue)return false;const m=minutesFromTime(e.time);return m!==null&&m>=nowMinutes()-59}).sort((a,b)=>minutesFromTime(a.time)-minutesFromTime(b.time)).slice(0,3);$('nextCount').textContent=up.length?`${up.length} shown`:'';$('nextStrip').innerHTML=up.length?up.map(e=>`<div class="nextItem"><div class="nextTime">${esc(e.time)}</div><div><div class="nextName">${esc(e.name)}</div><div class="nextVenue">${e.venue==='showdome'?'Showdome':'Pavilion'}</div></div><div class="countdown">${esc(countdownText(e))}</div></div>`).join(''):'<div class="nextItem"><div class="nextName">Nothing else listed today.</div></div>'}
+
 function selectedRows(){
  let rows=events.filter(e=>(!e.date||e.date===selected)&&(venue==='both'||e.venue===venue));
  if(search) rows=rows.filter(e=>(e.name+' '+e.location+' '+e.description).toLowerCase().includes(search.toLowerCase()));
  if(view==='favourites') rows=rows.filter(e=>favourites.has(eventKey(e)));
+ rows=rows.filter(matchesTimeFilter);
+ if(hideFinished&&selected===isoToday()&&timeFilter!=='now')rows=rows.filter(e=>!isFinished(e));
  return rows.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
 }
 function updateHeader(){
@@ -342,7 +419,11 @@ function renderHero(rows){
 function render(){
  updateHeader();
  const rows=selectedRows();
+ const dayRows=events.filter(e=>e.date===selected);
+ $('venueTotals').textContent=`Showdome ${dayRows.filter(e=>e.venue==='showdome').length} · Pavilion ${dayRows.filter(e=>e.venue==='pavilion').length}`;
  renderHero(rows);
+ renderUpNext();
+ renderSmartMessage();
  $('sectionHeading').textContent=view==='favourites'?'Favourite events':selected===isoToday()?'Today’s programme':'Programme';
  $('count').textContent=`${rows.length} event${rows.length===1?'':'s'}`;
  if(!rows.length){
@@ -353,20 +434,38 @@ function render(){
   const t=timing(e),key=eventKey(e),fav=favourites.has(key);
   return `<article class="event ${t}">
    <div class="eventtop">
-    <div><div class="time">${esc(e.time||'Time TBC')}</div><div class="title">${esc(e.name)}</div><div class="location">${esc(e.location)}</div></div>
+    <div>
+      <div class="timeLine">
+        <div class="time">${esc(e.time||'Time TBC')}</div>
+        <span class="venueInline">${e.venue==='showdome'?'Showdome':'Pavilion'}</span>
+      </div>
+      <div class="title">${esc(e.name)}</div>
+    </div>
     <button class="fav" data-key="${encodeURIComponent(key)}" aria-label="Favourite">${fav?'★':'☆'}</button>
    </div>
    ${e.description?`<div class="desc">${esc(e.description)}</div>`:''}
    <div class="badges">
-    <span class="badge">${e.venue==='showdome'?'Showdome':'Pavilion'}</span>
     ${t==='live'?'<span class="badge live">Live now</span>':''}
     ${t==='soon'?'<span class="badge soon">Starting soon</span>':''}
+    ${selected===isoToday()&&countdownText(e)&&countdownText(e)!=='Finished'?`<span class="badge">${esc(countdownText(e))}</span>`:''}
    </div>
   </article>`;
  }).join('');
 }
+function compactUpdatedText(value){
+ const text=String(value||'').trim();
+ if(!text) return 'Updated recently';
+ const timeMatch=text.match(/(?:at\s+)?(\d{1,2}:\d{2})\b/i);
+ return timeMatch?`Updated ${timeMatch[1]}`:'Updated recently';
+}
+function setHeaderStatus(text,state=''){
+ const el=$('headerUpdated');
+ el.textContent=text;
+ el.className='headerUpdated'+(state?' '+state:'');
+}
+
 async function load(){
- $('status').className='status';$('status').textContent='Loading live listings…';
+ setHeaderStatus('Refreshing…');
  try{
   const stamp=Date.now();
   const [s,p,m]=await Promise.all([
@@ -376,13 +475,11 @@ async function load(){
   ]);
   events=[...flatten(s,'showdome'),...flatten(p,'pavilion')];
   meta=m;
-  $('status').className='status ok';
-  $('status').textContent=`Live programme updated ${meta.updated_at||'recently'}.`;
+  setHeaderStatus(compactUpdatedText(meta.updated_at),'fresh');
   render();
  }catch(e){
-  $('status').className='status error';
-  $('status').textContent='The live programme could not be loaded. Refresh in a moment or check the GitHub Action.';
-  $('list').innerHTML='';
+  setHeaderStatus('Update failed','error');
+  $('list').innerHTML='<div class="empty"><div class="emoji">⚠️</div><strong>Live programme unavailable</strong><p>Tap refresh to try again.</p></div>';
  }
 }
 $('prev').onclick=()=>{selected=addDays(selected,-1);render()};
@@ -391,6 +488,8 @@ $('refresh').onclick=load;
 $('pick').onclick=()=>{try{$('dateInput').showPicker()}catch{$('dateInput').click()}};
 $('dateInput').onchange=e=>{if(e.target.value){selected=e.target.value;render()}};
 $('search').oninput=e=>{search=e.target.value;render()};
+document.querySelectorAll('.timeFilter').forEach(b=>b.onclick=()=>{timeFilter=b.dataset.time;document.querySelectorAll('.timeFilter').forEach(x=>x.classList.toggle('active',x.dataset.time===timeFilter));render()});
+$('hideFinished').onchange=e=>{hideFinished=e.target.checked;render()};
 document.querySelectorAll('.venue').forEach(b=>b.onclick=()=>{venue=b.dataset.v;render()});
 document.querySelectorAll('.quick').forEach(b=>b.onclick=()=>{
  selected=b.dataset.quick==='today'?isoToday():b.dataset.quick==='tomorrow'?addDays(isoToday(),1):nextSaturday();render()
@@ -420,6 +519,8 @@ $('qrOverlay').onclick=()=>{
 };
 
 load();
+loadWeather();
+setInterval(()=>{render();if(weather)renderWeather()},60000);
 </script>
 </body>
 </html>

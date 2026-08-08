@@ -564,13 +564,41 @@ body.searchMode #sectionHeading{
   #topWeatherTemp{font-size:10px}
 }
 
+
+/* Two-line centred Treko title */
+.brandTitleStack{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  min-width:0;
+}
+.brandTitleStack h1{
+  margin:0 !important;
+  line-height:.95 !important;
+  white-space:nowrap;
+}
+.brandSubTitle{
+  margin-top:2px;
+  color:var(--yellow);
+  font-size:13px;
+  font-weight:900;
+  line-height:1;
+  white-space:nowrap;
+  text-align:center;
+}
+
 </style>
 </head>
 <body>
 <header>
 <div class="wrap">
   <div class="brand">
-    <div class="brandTitle"><h1>Trecco What's On</h1></div>
+    <div class="brandTitle brandTitleStack">
+      <h1>Trecco</h1>
+      <div class="brandSubTitle">What’s On</div>
+    </div>
     <button class="topWeatherBtn" id="topWeather" aria-label="Weather">
       <span id="topWeatherIcon">☀️</span>
       <span id="topWeatherTemp">--°</span>

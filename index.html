@@ -786,6 +786,21 @@ body.weatherMode .weatherView::after{
   position:static !important;
 }
 
+
+/* Remove blank space above programme */
+main{
+  padding-top:12px !important;
+  margin-top:0 !important;
+  min-height:0 !important;
+}
+.sectiontitle{
+  margin-top:0 !important;
+  padding-top:0 !important;
+}
+#sectionHeading{
+  margin-top:0 !important;
+}
+
 </style>
 </head>
 <body>
@@ -1200,8 +1215,26 @@ async function load(){
   }
  }
 }
-$('prev').onclick=()=>{selected=addDays(selected,-1);localStorage.setItem('trecco-selected-date',selected);animateRender()};
-$('next').onclick=()=>{selected=addDays(selected,1);localStorage.setItem('trecco-selected-date',selected);animateRender()};
+$('prev').onclick=()=>{
+ selected=addDays(selected,-1);
+ venue='both';
+ search='';
+ searchAllMode=false;
+ document.body.classList.remove('searchMode');
+ if($('search'))$('search').value='';
+ render();
+ setTimeout(()=>$('list').scrollIntoView({behavior:'smooth',block:'start'}),80);
+};
+$('next').onclick=()=>{
+ selected=addDays(selected,1);
+ venue='both';
+ search='';
+ searchAllMode=false;
+ document.body.classList.remove('searchMode');
+ if($('search'))$('search').value='';
+ render();
+ setTimeout(()=>$('list').scrollIntoView({behavior:'smooth',block:'start'}),80);
+};
 
 // When Weather is open, tapping anywhere except the weather button returns to Schedule.
 document.addEventListener('click',e=>{

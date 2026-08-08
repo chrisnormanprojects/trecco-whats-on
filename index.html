@@ -403,22 +403,6 @@ button:active{transform:scale(.97)}
   transition:transform .25s ease;
 }
 .favAlert.show{display:block;transform:translateY(0)}
-.pullHint{
-  position:fixed;
-  top:calc(env(safe-area-inset-top) + 4px);
-  left:50%;
-  transform:translate(-50%,-60px);
-  z-index:160;
-  color:var(--muted);
-  background:rgba(5,41,87,.94);
-  padding:7px 11px;
-  border-radius:999px;
-  font-size:10px;
-  font-weight:900;
-  pointer-events:none;
-  transition:transform .18s ease;
-}
-.pullHint.show{transform:translate(-50%,0)}
 .offlineBanner{
   background:rgba(255,159,67,.16);
   border:1px solid rgba(255,159,67,.35);
@@ -773,6 +757,28 @@ body{
   letter-spacing:-.15px;
 }
 
+
+/* Version 5.2 — simplified schedule: no time-of-day filters */
+.timeFilters{display:none !important}
+
+
+/* Weather screen — tap anywhere to return */
+body.weatherMode .weatherView::after{
+  content:"Tap anywhere to return to Schedule";
+  display:block;
+  text-align:center;
+  color:rgba(255,255,255,.58);
+  font-size:10px;
+  font-weight:800;
+  margin:12px 0 4px;
+}
+
+
+/* Simplified schedule — no bottom event count or pull-to-refresh prompt */
+#pullHint,.pullHint,.refreshHint,.footerCount,.eventFooter,.listFooter{
+  display:none !important;
+}
+
 </style>
 </head>
 <body>
@@ -815,28 +821,9 @@ body{
 </div>
 </header>
 
+<div id="venueTotals" hidden></div><input id="hideFinished" type="checkbox" checked hidden>
 <main>
-  <div class="timeFilters"><button class="timeFilter active" data-time="all">All</button><button class="timeFilter" data-time="now">Now</button><button class="timeFilter" data-time="afternoon">Afternoon</button><button class="timeFilter" data-time="evening">Evening</button></div>
-  <div class="controlRow"><span id="venueTotals" class="venueTotals"></span><label class="toggleLabel"><input id="hideFinished" type="checkbox" checked><span class="hideText">Hide<br>finished</span></label></div>
-  <div class="sectiontitle"><h2 id="sectionHeading">Today’s programme</h2><span id="count"></span></div>
-  <section id="list" class="eventlist"></section>
-</main>
-
-<div id="miniSticky" class="miniSticky" role="button" aria-label="Back to filters"></div>
-<div id="favAlert" class="favAlert"></div>
-<div id="pullHint" class="pullHint">↓ Pull to refresh</div>
-
-<section id="weatherView" class="weatherView">
-  <div class="weatherViewInner">
-    <div class="weatherViewHeader">
-      <h2>Porthcawl Weather</h2>
-      <p>7 day forecast for the Trecco Bay area</p>
-    </div>
-    <section class="weatherCard sevenDayWeather" id="weatherCard">
-      <div class="weatherTitle">7 day forecast</div>
-      <div id="weatherContent" class="weatherWeek">
-        <div class="weatherLoading">Loading forecast…</div>
-      </div>
+  
     </section>
   </div>
 </section>
@@ -866,7 +853,7 @@ body{
 <div class="modal" id="settingsModal">
   <div class="sheet">
     <h2>Settings</h2>
-    <div class="setting settingToggle"><div><h3>Hide finished</h3><p>Hide events roughly 60 minutes after their start time.</p></div><input type="checkbox" id="settingHideFinished"></div>
+    
     <div class="setting settingToggle"><div><h3>Auto refresh</h3><p>Check GitHub quietly every 7 minutes while the page is open.</p></div><input type="checkbox" id="settingAutoRefresh"></div>
     <div class="setting settingToggle"><div><h3>Expand descriptions</h3><p>Show all event descriptions without tapping each card.</p></div><input type="checkbox" id="settingExpandDescriptions"></div>
     <div class="setting settingToggle"><div><h3>Show countdowns</h3><p>Show time remaining beside the venue.</p></div><input type="checkbox" id="settingCountdowns"></div>
@@ -889,7 +876,7 @@ let selected=isoToday(),
 venue=localStorage.getItem('trecco-venue')||'both',
 view='schedule',events=[],meta={},search='',
 timeFilter=localStorage.getItem('trecco-time-filter')||'all',
-hideFinished=localStorage.getItem('trecco-hide-finished')!=='false',
+hideFinished=true,
 weather=null,expandedEvents=new Set(),
 autoRefresh=localStorage.getItem('trecco-auto-refresh')!=='false',
 expandDescriptions=localStorage.getItem('trecco-expand-descriptions')==='true',
@@ -978,18 +965,7 @@ function countdownText(e){
  const h=Math.floor(diff/60),m=diff%60;
  return m?`In ${h}h ${m}m`:`In ${h}h`;
 }
-function matchesTimeFilter(e){
- const m=minutesFromTime(e.time);
- if(timeFilter==='all')return true;
- if(timeFilter==='now'){
-  if(selected!==isoToday()||m===null)return false;
-  const diff=m-nowMinutes();
-  return timing(e)==='live'||(diff>0&&diff<=60);
- }
- if(m===null)return false;
- if(timeFilter==='afternoon')return m>=720&&m<1080;
- if(timeFilter==='evening')return m>=1080;
- return true
+function matchesTimeFilter(e){return true;
 }
 function weatherCodeInfo(code){const map={0:['☀️','Clear'],1:['🌤️','Mostly clear'],2:['⛅','Partly cloudy'],3:['☁️','Overcast'],45:['🌫️','Fog'],48:['🌫️','Fog'],51:['🌦️','Light drizzle'],53:['🌦️','Drizzle'],55:['🌧️','Heavy drizzle'],61:['🌦️','Light rain'],63:['🌧️','Rain'],65:['🌧️','Heavy rain'],71:['🌨️','Light snow'],73:['🌨️','Snow'],75:['❄️','Heavy snow'],80:['🌦️','Rain showers'],81:['🌧️','Showers'],82:['⛈️','Heavy showers'],95:['⛈️','Thunderstorms'],96:['⛈️','Thunderstorms'],99:['⛈️','Thunderstorms']};return map[code]||['🌤️','Changeable']}
 async function loadWeather(){
@@ -1122,11 +1098,11 @@ function render(){
    ?''
    :`${venue==='showdome'?'Showdome':'Pavilion'} · `;
 
- $('venueTotals').textContent=selected===isoToday()
+ $('venueTotals')&&($('venueTotals').textContent=selected===isoToday()
    ?`${prefix}${totalCount} total · ${finishedCount} finished · ${liveCount} live · ${remainingCount} remaining`
-   :`${prefix}${totalCount} total`;
+   :`${prefix}${totalCount} total`);
  if(searchAllMode&&search){
-  $('venueTotals').textContent='All dates · Both venues';
+  $('venueTotals')&&($('venueTotals').textContent='All dates · Both venues');
  }
  
 
@@ -1238,6 +1214,29 @@ async function load(){
 }
 $('prev').onclick=()=>{selected=addDays(selected,-1);localStorage.setItem('trecco-selected-date',selected);animateRender()};
 $('next').onclick=()=>{selected=addDays(selected,1);localStorage.setItem('trecco-selected-date',selected);animateRender()};
+
+// While the weather screen is open, a tap anywhere on the page returns to Schedule.
+document.addEventListener('click',e=>{
+ if(view!=='weather')return;
+
+ // The weather button's own click is used to open the weather view,
+ // so don't immediately close it from the same event.
+ if(e.target.closest('#topWeather'))return;
+
+ view='schedule';
+ document.body.classList.remove('weatherMode');
+ searchAllMode=false;
+ search='';
+ document.body.classList.remove('searchMode');
+
+ document.querySelectorAll('.navbtn').forEach(x=>{
+  x.classList.toggle('active',x.dataset.view==='schedule');
+ });
+
+ render();
+ window.scrollTo({top:0,behavior:'smooth'});
+},false);
+
 $('topWeather').onclick=()=>{
  view='weather';
  document.body.classList.add('weatherMode');
@@ -1275,9 +1274,7 @@ document.querySelectorAll('.timeFilter').forEach(b=>b.onclick=()=>{
  document.querySelectorAll('.timeFilter').forEach(x=>x.classList.toggle('active',x.dataset.time===timeFilter));
  animateRender();
 });
-$('hideFinished').onchange=e=>{
- hideFinished=e.target.checked;
- localStorage.setItem('trecco-hide-finished',String(hideFinished));
+localStorage.setItem('trecco-hide-finished',String(hideFinished));
  if($('settingHideFinished'))$('settingHideFinished').checked=hideFinished;
  animateRender();
 };
@@ -1460,31 +1457,6 @@ document.addEventListener('touchend',e=>{
  setTimeout(()=>$('list').scrollIntoView({behavior:'smooth',block:'start'}),110);
 },{passive:true});
 
-
-let pullStartY=0,pullTracking=false;
-document.addEventListener('touchstart',e=>{
- if(window.scrollY<=2&&view==='schedule'){
-  pullStartY=e.touches[0].clientY;
-  pullTracking=true;
- }
-},{passive:true});
-document.addEventListener('touchmove',e=>{
- if(!pullTracking)return;
- const dy=e.touches[0].clientY-pullStartY;
- if(dy>45)$('pullHint').classList.add('show');
-},{passive:true});
-document.addEventListener('touchend',async e=>{
- if(!pullTracking)return;
- const dy=e.changedTouches[0].clientY-pullStartY;
- pullTracking=false;
- $('pullHint').classList.remove('show');
- if(dy>75){
-  const btn=$('refresh');btn.classList.add('spinning');
-  await load();
-  btn.classList.remove('spinning');btn.classList.add('done');
-  setTimeout(()=>btn.classList.remove('done'),650);
- }
-},{passive:true});
 
 setInterval(()=>{render();if(weather)renderWeather();checkFavouriteAlert();updateMiniSticky()},60000);
 configureAutoRefresh();

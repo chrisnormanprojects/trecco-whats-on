@@ -403,6 +403,22 @@ button:active{transform:scale(.97)}
   transition:transform .25s ease;
 }
 .favAlert.show{display:block;transform:translateY(0)}
+.pullHint{
+  position:fixed;
+  top:calc(env(safe-area-inset-top) + 4px);
+  left:50%;
+  transform:translate(-50%,-60px);
+  z-index:160;
+  color:var(--muted);
+  background:rgba(5,41,87,.94);
+  padding:7px 11px;
+  border-radius:999px;
+  font-size:10px;
+  font-weight:900;
+  pointer-events:none;
+  transition:transform .18s ease;
+}
+.pullHint.show{transform:translate(-50%,0)}
 .offlineBanner{
   background:rgba(255,159,67,.16);
   border:1px solid rgba(255,159,67,.35);
@@ -774,8 +790,8 @@ body.weatherMode .weatherView::after{
 }
 
 
-/* Simplified schedule — no bottom event count or pull-to-refresh prompt */
-#pullHint,.pullHint,.refreshHint,.footerCount,.eventFooter,.listFooter{
+/* Repaired simplified UI */
+#pullHint,.pullHint,#bottomCount,#footerCount,#eventFooter,.eventFooter{
   display:none !important;
 }
 
@@ -1274,10 +1290,7 @@ document.querySelectorAll('.timeFilter').forEach(b=>b.onclick=()=>{
  document.querySelectorAll('.timeFilter').forEach(x=>x.classList.toggle('active',x.dataset.time===timeFilter));
  animateRender();
 });
-localStorage.setItem('trecco-hide-finished',String(hideFinished));
- if($('settingHideFinished'))$('settingHideFinished').checked=hideFinished;
- animateRender();
-};
+
 document.querySelectorAll('.venue').forEach(b=>b.onclick=()=>{
  searchAllMode=false;search='';document.body.classList.remove('searchMode');$('search').value='';
  venue=b.dataset.v;
@@ -1457,6 +1470,31 @@ document.addEventListener('touchend',e=>{
  setTimeout(()=>$('list').scrollIntoView({behavior:'smooth',block:'start'}),110);
 },{passive:true});
 
+
+let pullStartY=0,pullTracking=false;
+document.addEventListener('touchstart',e=>{
+ if(false&&window.scrollY<=2&&view==='schedule'){
+  pullStartY=e.touches[0].clientY;
+  pullTracking=true;
+ }
+},{passive:true});
+document.addEventListener('touchmove',e=>{
+ if(!pullTracking)return;
+ const dy=e.touches[0].clientY-pullStartY;
+ if(dy>45)if($('pullHint'))$('pullHint').classList.add('show');
+},{passive:true});
+document.addEventListener('touchend',async e=>{
+ if(!pullTracking)return;
+ const dy=e.changedTouches[0].clientY-pullStartY;
+ pullTracking=false;
+ if($('pullHint'))$('pullHint').classList.remove('show');
+ if(dy>75){
+  const btn=$('refresh');btn.classList.add('spinning');
+  await load();
+  btn.classList.remove('spinning');btn.classList.add('done');
+  setTimeout(()=>btn.classList.remove('done'),650);
+ }
+},{passive:true});
 
 setInterval(()=>{render();if(weather)renderWeather();checkFavouriteAlert();updateMiniSticky()},60000);
 configureAutoRefresh();

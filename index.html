@@ -315,9 +315,7 @@ button:active{transform:scale(.97)}
 .eventlist{transition:opacity .18s ease,transform .18s ease}
 .eventlist.switching{opacity:.25;transform:translateY(4px)}
 .event{padding-left:14px!important;padding-right:14px!important;border-radius:17px!important;box-shadow:0 6px 16px rgba(0,0,0,.13)!important;transition:box-shadow .18s ease,border-color .18s ease;background-clip:padding-box;border-left:3px solid rgba(255,255,255,.12)!important}
-.event[data-venue="showdome"]{border-left-color:var(--showdome-accent)!important}
-.event[data-venue="pavilion"]{border-left-color:var(--pavilion-accent)!important}
-.event.live{outline:none!important;box-shadow:0 0 0 1px rgba(46,212,122,.55),0 8px 20px rgba(0,0,0,.18)!important}
+.event[data-venue='both';box-shadow:0 0 0 1px rgba(46,212,122,.55),0 8px 20px rgba(0,0,0,.18)!important}
 .event.soon{outline:none!important;box-shadow:0 0 0 1px rgba(255,159,67,.5),0 8px 20px rgba(0,0,0,.17)!important}
 .timeLine{gap:6px!important;flex-wrap:nowrap!important;overflow:hidden}
 .time{font-size:20px!important}
@@ -739,6 +737,17 @@ body{
   .brandSubTitle{font-size:15px !important}
 }
 
+
+/* Version 5.2 — full event status summary */
+#venueTotals{
+  font-size:11px !important;
+  line-height:1.2 !important;
+  white-space:nowrap;
+}
+@media(max-width:390px){
+  #venueTotals{font-size:10px !important}
+}
+
 </style>
 </head>
 <body>
@@ -851,7 +860,7 @@ body{
 
 <script>
 const FAVKEY='trecco-v2-favourites';
-let selected=localStorage.getItem('trecco-selected-date')||isoToday(),
+let selected=isoToday(),
 venue=localStorage.getItem('trecco-venue')||'both',
 view='schedule',events=[],meta={},search='',
 timeFilter=localStorage.getItem('trecco-time-filter')||'all',
@@ -1070,14 +1079,27 @@ function render(){
  const rows=selectedRows();
  const dayRows=events.filter(e=>e.date===selected);
  const relevantDay=dayRows.filter(e=>venue==='both'||e.venue===venue);
- const countRows=(selected===isoToday()&&hideFinished)
-   ?relevantDay.filter(e=>timing(e)!=='finished')
-   :relevantDay;
- const liveCount=countRows.filter(e=>timing(e)==='live').length;
- const countWord=(selected===isoToday()&&hideFinished)?'remaining':'events';
- $('venueTotals').textContent=venue==='both'
-   ?`${countRows.length} ${countWord}${liveCount?` · ${liveCount} live`:''}`
-   :`${venue==='showdome'?'Showdome':'Pavilion'} · ${countRows.length} ${countWord}${liveCount?` · ${liveCount} live`:''}`;
+ const totalCount=relevantDay.length;
+ const finishedCount=selected===isoToday()
+   ?relevantDay.filter(e=>timing(e)==='finished').length
+   :0;
+ const liveCount=selected===isoToday()
+   ?relevantDay.filter(e=>timing(e)==='live').length
+   :0;
+ const remainingCount=selected===isoToday()
+   ?relevantDay.filter(e=>{
+      const m=minutesFromTime(e.time);
+      return m!==null && m>nowMinutes();
+    }).length
+   :totalCount;
+
+ const prefix=venue==='both'
+   ?''
+   :`${venue==='showdome'?'Showdome':'Pavilion'} · `;
+
+ $('venueTotals').textContent=selected===isoToday()
+   ?`${prefix}${totalCount} total · ${finishedCount} finished · ${liveCount} live · ${remainingCount} remaining`
+   :`${prefix}${totalCount} total`;
  if(searchAllMode&&search){
   $('venueTotals').textContent='All dates · Both venues';
  }

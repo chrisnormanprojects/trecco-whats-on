@@ -598,6 +598,147 @@ body.searchMode #sectionHeading{
   margin-top:6px !important;
 }
 
+
+/* VERSION 5.2 — polished mock-up inspired UI */
+:root{
+  --blue:#0750b7;
+  --blue2:#08366f;
+  --blue3:#061f49;
+  --yellow:#ffd42a;
+  --text:#fff;
+  --muted:#c9d8ef;
+}
+body{
+  background:
+    radial-gradient(circle at 50% -10%,rgba(29,112,229,.55),transparent 35%),
+    linear-gradient(180deg,#0753bd 0%,#073b82 43%,#062654 100%) !important;
+}
+.top{
+  background:linear-gradient(180deg,rgba(4,60,137,.98),rgba(4,45,103,.98)) !important;
+  box-shadow:0 10px 28px rgba(0,0,0,.16);
+}
+.brand{
+  align-items:center !important;
+  gap:8px !important;
+}
+.brandTitleStack{
+  flex:1 1 auto;
+  align-items:center !important;
+  text-align:center !important;
+}
+.brandTitleStack h1{
+  font-family:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold",system-ui,sans-serif !important;
+  font-size:31px !important;
+  font-weight:1000 !important;
+  letter-spacing:-1.3px !important;
+  line-height:.9 !important;
+  color:#fff !important;
+  text-shadow:0 3px 0 rgba(0,0,0,.16);
+}
+.brandSubTitle{
+  font-family:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold",system-ui,sans-serif !important;
+  font-size:17px !important;
+  font-weight:1000 !important;
+  letter-spacing:-.3px !important;
+  color:var(--yellow) !important;
+  margin-top:5px !important;
+  text-shadow:0 2px 0 rgba(0,0,0,.12);
+}
+.topWeatherBtn{
+  background:rgba(255,255,255,.10) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 5px 14px rgba(0,0,0,.10);
+}
+.quick,.venue,.timebtn,.datebox,.arrow{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 4px 10px rgba(0,0,0,.08);
+}
+.quick.active,.venue.active,.timebtn.active{
+  background:linear-gradient(180deg,#ffdb35,#ffc91c) !important;
+  color:#06336f !important;
+  border-color:#ffe36a !important;
+  box-shadow:0 5px 14px rgba(0,0,0,.16) !important;
+}
+.datebox{
+  background:rgba(255,255,255,.07) !important;
+  border-color:rgba(255,255,255,.18) !important;
+}
+.event{
+  border-radius:19px !important;
+  box-shadow:0 8px 20px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.08) !important;
+  border:1px solid rgba(255,255,255,.15) !important;
+}
+.event:not(.live):not(.soon){
+  background:linear-gradient(180deg,rgba(15,83,164,.94),rgba(9,61,126,.96)) !important;
+}
+.event.live{
+  background:linear-gradient(135deg,#0b9b61 0%,#087b4d 100%) !important;
+  border-color:#36d58f !important;
+  box-shadow:0 8px 20px rgba(0,0,0,.18),inset 0 0 0 1px rgba(255,255,255,.10) !important;
+}
+.event.soon{
+  background:linear-gradient(135deg,#b86a09 0%,#965109 100%) !important;
+  border-color:#ffb33f !important;
+}
+.event .time{
+  color:var(--yellow) !important;
+  font-size:19px !important;
+  font-weight:1000 !important;
+}
+.event .title{
+  font-family:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold",system-ui,sans-serif !important;
+  font-weight:950 !important;
+  letter-spacing:-.25px;
+}
+.event.live .time,.event.soon .time{
+  color:#fff !important;
+}
+.eventDetails{
+  color:rgba(255,255,255,.90) !important;
+  line-height:1.28 !important;
+}
+.badge{
+  border-radius:999px !important;
+  padding:3px 8px !important;
+  font-weight:950 !important;
+}
+.fav{
+  border-radius:12px !important;
+  background:rgba(0,0,0,.10) !important;
+}
+.programHeader{
+  margin-top:13px !important;
+}
+#sectionHeading{
+  font-family:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold",system-ui,sans-serif !important;
+  font-weight:1000 !important;
+}
+.bottomnav{
+  background:rgba(3,31,70,.97) !important;
+  border-top:1px solid rgba(255,255,255,.09) !important;
+  box-shadow:0 -8px 24px rgba(0,0,0,.18);
+}
+.bottominner{
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  gap:2px !important;
+}
+.navbtn{
+  border-radius:14px !important;
+  font-size:10px !important;
+  font-weight:800 !important;
+  white-space:nowrap !important;
+}
+.navbtn.active{
+  color:var(--yellow) !important;
+  background:rgba(255,255,255,.07) !important;
+}
+.navbtn b{
+  font-size:22px !important;
+}
+@media(max-width:390px){
+  .brandTitleStack h1{font-size:28px !important}
+  .brandSubTitle{font-size:15px !important}
+}
+
 </style>
 </head>
 <body>

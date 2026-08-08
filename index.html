@@ -333,9 +333,6 @@ button:active{transform:scale(.97)}
 .eventDetailsInner{overflow:hidden}
 .event.expanded .eventDetails{grid-template-rows:1fr;opacity:1;margin-top:6px}
 .event .desc{margin:0!important;padding:0 0 8px!important;color:var(--muted);line-height:1.35;font-size:13px}
-.nowMarker{display:flex;align-items:center;gap:8px;margin:2px;color:var(--green);font-size:10px;font-weight:900;letter-spacing:.7px;text-transform:uppercase}
-.nowMarker::before,.nowMarker::after{content:"";height:1px;background:rgba(46,212,122,.55);flex:1}
-.nowDot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(46,212,122,.12)}
 .headerUpdated .freshDot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:1px}
 .headerUpdated .freshDot.good{background:var(--green)}.headerUpdated .freshDot.warn{background:var(--orange)}.headerUpdated .freshDot.bad{background:var(--red)}
 #refresh.spinning{animation:spinRefresh .8s linear infinite}
@@ -368,6 +365,7 @@ button:active{transform:scale(.97)}
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
+  max-width:100%;
 }
 .event.expanded .eventTeaser{display:none}
 .countdownInline.soon{background:var(--orange)!important;color:#4D2800!important}
@@ -392,6 +390,7 @@ button:active{transform:scale(.97)}
 }
 .miniSticky.show{transform:translate(-50%,0)}
 .favAlert{
+  display:none;
   position:fixed;
   left:14px;right:14px;
   bottom:calc(82px + env(safe-area-inset-bottom));
@@ -407,7 +406,7 @@ button:active{transform:scale(.97)}
   transform:translateY(140%);
   transition:transform .25s ease;
 }
-.favAlert.show{transform:translateY(0)}
+.favAlert.show{display:block;transform:translateY(0)}
 .pullHint{
   position:fixed;
   top:calc(env(safe-area-inset-top) + 4px);
@@ -447,6 +446,85 @@ button:active{transform:scale(.97)}
   font:inherit
 }
 
+
+/* VERSION 5.1 — compact settings */
+#settingsModal .sheet{
+  padding:14px !important;
+  border-radius:20px 20px 0 0 !important;
+}
+#settingsModal .sheet h2{
+  margin:0 0 10px !important;
+  font-size:20px !important;
+  line-height:1.1 !important;
+}
+#settingsModal .setting{
+  padding:8px 0 !important;
+  margin:0 !important;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+#settingsModal .setting:last-of-type{
+  border-bottom:0;
+}
+#settingsModal .setting h3{
+  margin:0 !important;
+  font-size:13px !important;
+  line-height:1.15 !important;
+}
+#settingsModal .setting p{
+  margin:2px 0 0 !important;
+  font-size:10px !important;
+  line-height:1.25 !important;
+  color:var(--muted);
+}
+#settingsModal .settingToggle{
+  gap:10px !important;
+}
+#settingsModal .settingToggle input{
+  width:18px !important;
+  height:18px !important;
+}
+#settingsModal .setting select{
+  margin-top:5px !important;
+  padding:6px 8px !important;
+  min-height:30px !important;
+  border-radius:9px !important;
+  font-size:12px !important;
+}
+#settingsModal .primary{
+  margin-top:10px !important;
+  padding:8px 12px !important;
+  min-height:34px !important;
+  font-size:13px !important;
+  border-radius:11px !important;
+}
+
+
+/* VERSION 5.1 — Search moved to bottom navigation */
+.bottominner{gap:2px!important}
+.navbtn{min-width:0!important;padding-left:4px!important;padding-right:4px!important;font-size:10px!important}
+.navbtn b{font-size:21px!important}
+.searchSheet{padding-bottom:calc(18px + env(safe-area-inset-bottom))!important}
+.searchModalTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.searchModalTop h2{margin:0!important;font-size:20px}
+.searchModalBox{margin:0!important}
+
+
+/* VERSION 5.1 — global search across all loaded event data */
+.eventSearchDate{
+  margin-top:1px;
+  color:var(--yellow);
+  font-size:11px;
+  font-weight:900;
+  line-height:1.15;
+}
+body.searchMode .timeFilters,
+body.searchMode .controlRow{
+  display:none !important;
+}
+body.searchMode #sectionHeading{
+  color:var(--yellow);
+}
+
 </style>
 </head>
 <body>
@@ -483,8 +561,7 @@ button:active{transform:scale(.97)}
 </header>
 
 <main>
-  <div class="searchwrap"><input id="search" type="search" placeholder="Search entertainers or events"><span class="searchicon">⌕</span></div>
-<div class="timeFilters"><button class="timeFilter active" data-time="all">All</button><button class="timeFilter" data-time="now">Now</button><button class="timeFilter" data-time="afternoon">Afternoon</button><button class="timeFilter" data-time="evening">Evening</button></div>
+  <div class="timeFilters"><button class="timeFilter active" data-time="all">All</button><button class="timeFilter" data-time="now">Now</button><button class="timeFilter" data-time="afternoon">Afternoon</button><button class="timeFilter" data-time="evening">Evening</button></div>
   <div class="controlRow"><span id="venueTotals" class="venueTotals"></span><label class="toggleLabel"><input id="hideFinished" type="checkbox" checked>Hide finished</label></div>
   <div class="sectiontitle"><h2 id="sectionHeading">Today’s programme</h2><span id="count"></span></div>
   <section id="list" class="eventlist"></section>
@@ -514,12 +591,23 @@ button:active{transform:scale(.97)}
     <button class="navbtn active" data-view="schedule"><b>⌂</b>Schedule</button>
     <button class="navbtn" data-view="favourites"><b>★</b>Favourites</button>
     <button class="navbtn" data-view="weather"><b>☀️</b>Weather</button>
+    <button class="navbtn" data-view="search"><b>⌕</b>Search</button>
     <button class="navbtn" id="showQr"><b>▣</b>QR Code</button>
     <button class="navbtn" data-view="settings"><b>⚙</b>Settings</button>
   </div>
 </nav>
 
 <input type="date" id="dateInput" hidden>
+
+<div class="modal" id="searchModal">
+  <div class="sheet searchSheet">
+    <div class="searchModalTop">
+      <h2>Search events</h2>
+      <button class="iconbtn" id="closeSearch" aria-label="Close search">×</button>
+    </div>
+    <div class="searchwrap searchModalBox"><input id="search" type="search" placeholder="Search entertainers or events"><span class="searchicon">⌕</span></div>
+  </div>
+</div>
 
 <div class="modal" id="settingsModal">
   <div class="sheet">
@@ -555,7 +643,7 @@ showCountdowns=localStorage.getItem('trecco-show-countdowns')!=='false',
 defaultVenue=localStorage.getItem('trecco-default-venue')||'both',
 usingOfflineCache=false,
 autoRefreshTimer=null,
-lastFavAlertKey='';
+lastFavAlertKey='',searchAllMode=false;
 if(!localStorage.getItem('trecco-venue'))venue=defaultVenue;
 let favourites=new Set(JSON.parse(localStorage.getItem(FAVKEY)||'[]'));
 const $=id=>document.getElementById(id);
@@ -679,23 +767,58 @@ function renderWeather(){
 
 }
 
+
+function formatEventDate(iso){
+ if(!iso)return '';
+ const d=new Date(iso+'T12:00:00');
+ if(isNaN(d))return iso;
+ return d.toLocaleDateString('en-GB',{
+  weekday:'short',
+  day:'numeric',
+  month:'short',
+  year:'numeric'
+ });
+}
+
 function selectedRows(){
- let rows=events.filter(e=>(!e.date||e.date===selected)&&(venue==='both'||e.venue===venue));
- if(search){
-  rows=rows.filter(e=>
-   (e.name+' '+e.location+' '+e.description)
-    .toLowerCase()
-    .includes(search.toLowerCase())
+ let rows;
+
+ if(searchAllMode && search){
+  // Search every event loaded from both JSON feeds, across every fetched date.
+  rows=[...events];
+ }else{
+  rows=events.filter(e=>
+   (!e.date||e.date===selected) &&
+   (venue==='both'||e.venue===venue)
   );
  }
- if(view==='favourites'){
-  rows=rows.filter(e=>favourites.has(eventKey(e)));
+
+ if(search){
+  const q=search.toLowerCase().trim();
+  rows=rows.filter(e=>
+   (e.name+' '+e.location+' '+e.description+' '+e.venue+' '+e.date)
+    .toLowerCase()
+    .includes(q)
+  );
  }
- rows=rows.filter(matchesTimeFilter);
- if(hideFinished && selected===isoToday() && timeFilter!=='now'){
-  rows=rows.filter(e=>!isFinished(e));
+
+ if(!searchAllMode){
+  if(view==='favourites'){
+   rows=rows.filter(e=>favourites.has(eventKey(e)));
+  }
+  rows=rows.filter(matchesTimeFilter);
+  if(hideFinished && selected===isoToday() && timeFilter!=='now'){
+   rows=rows.filter(e=>!isFinished(e));
+  }
  }
- return rows.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+
+ return rows.sort((a,b)=>{
+  if(searchAllMode && search){
+   const byDate=(a.date||'9999-99-99').localeCompare(b.date||'9999-99-99');
+   if(byDate!==0)return byDate;
+  }
+  return (a.time||'99:99').localeCompare(b.time||'99:99');
+ });
 }
 
 function updateHeader(){
@@ -722,13 +845,26 @@ function render(){
  const rows=selectedRows();
  const dayRows=events.filter(e=>e.date===selected);
  const relevantDay=dayRows.filter(e=>venue==='both'||e.venue===venue);
- const liveCount=relevantDay.filter(e=>timing(e)==='live').length;
+ const countRows=(selected===isoToday()&&hideFinished)
+   ?relevantDay.filter(e=>timing(e)!=='finished')
+   :relevantDay;
+ const liveCount=countRows.filter(e=>timing(e)==='live').length;
+ const countWord=(selected===isoToday()&&hideFinished)?'remaining':'events';
  $('venueTotals').textContent=venue==='both'
-   ?`${relevantDay.length} events ${selected===isoToday()?'today':''}${liveCount?` · ${liveCount} live`:''}`
-   :`${venue==='showdome'?'Showdome':'Pavilion'} ${relevantDay.length}${liveCount?` · ${liveCount} live`:''}`;
+   ?`${countRows.length} ${countWord}${liveCount?` · ${liveCount} live`:''}`
+   :`${venue==='showdome'?'Showdome':'Pavilion'} · ${countRows.length} ${countWord}${liveCount?` · ${liveCount} live`:''}`;
+ if(searchAllMode&&search){
+  $('venueTotals').textContent='All dates · Both venues';
+ }
  
 
- $('sectionHeading').textContent=view==='favourites'?'Favourite events':selected===isoToday()?'Today’s programme':'Programme';
+ $('sectionHeading').textContent=(searchAllMode&&search)
+  ?'Search results'
+  :view==='favourites'
+    ?'Favourite events'
+    :selected===isoToday()
+      ?'Today’s programme'
+      :'Programme';
  const oldOffline=$('offlineBanner');if(oldOffline)oldOffline.remove();
  if(usingOfflineCache){
   const b=document.createElement('div');b.id='offlineBanner';b.className='offlineBanner';
@@ -737,7 +873,9 @@ function render(){
  }
  $('count').textContent=`${rows.length} event${rows.length===1?'':'s'}`;
  if(!rows.length){
-  $('list').innerHTML=`<div class="empty"><div class="emoji">${view==='favourites'?'☆':'🎭'}</div><strong>${view==='favourites'?'No favourites saved':'No events listed'}</strong><p>${view==='favourites'?'Tap a star beside an event to save it.':'Try another date or venue.'}</p></div>`;
+  $('list').innerHTML=(searchAllMode&&search)
+   ?`<div class="empty"><div class="emoji">⌕</div><strong>No matching events</strong><p>Try a different entertainer, event, venue or date.</p></div>`
+   :`<div class="empty"><div class="emoji">${view==='favourites'?'☆':'🎭'}</div><strong>${view==='favourites'?'No favourites saved':'No events listed'}</strong><p>${view==='favourites'?'Tap a star beside an event to save it.':'Try another date or venue.'}</p></div>`;
   return;
  }
  $('list').innerHTML=rows.map(e=>{
@@ -750,10 +888,11 @@ function render(){
       <div class="timeLine">
         <div class="time">${esc(e.time||'Time TBC')}</div>
         <span class="venueInline">${e.venue==='showdome'?'Showdome':'Pavilion'}</span>
-        ${showCountdowns&&selected===isoToday()&&countdownText(e)&&countdownText(e)!=='Finished'
+        ${showCountdowns&&e.date===isoToday()&&countdownText(e)&&countdownText(e)!=='Finished'
           ?`<span class="countdownInline ${t}">${esc(countdownText(e))}</span>`:''}
       </div>
       <div class="title">${esc(e.name)}</div>
+      ${searchAllMode&&search?`<div class="eventSearchDate">${esc(formatEventDate(e.date))}</div>`:''}
       ${(t==='live'||t==='soon')&&e.description&&!expanded?`<div class="eventTeaser">${esc(e.description)}</div>`:''}
     </div>
     <div style="display:flex;gap:6px;align-items:center">
@@ -764,18 +903,7 @@ function render(){
    ${e.description?`<div class="eventDetails"><div class="eventDetailsInner"><div class="desc">${esc(e.description)}</div></div></div>`:''}
   </article>`;
  }).join('');
- if(selected===isoToday()&&rows.length){
-  const cards=[...$('list').querySelectorAll('.event')];
-  const idx=rows.findIndex(e=>{
-   const m=minutesFromTime(e.time);
-   return m!==null&&m>=nowMinutes();
-  });
-  const marker=document.createElement('div');
-  marker.className='nowMarker';
-  marker.innerHTML='<span class="nowDot"></span>Now';
-  if(idx>=0&&cards[idx])$('list').insertBefore(marker,cards[idx]);
-  else $('list').appendChild(marker);
- }
+
 }
 function extractUpdateTime(value){
  const text=String(value||'').trim();
@@ -849,7 +977,20 @@ $('refresh').onclick=async()=>{
 };
 $('pick').onclick=()=>{try{$('dateInput').showPicker()}catch{$('dateInput').click()}};
 $('dateInput').onchange=e=>{if(e.target.value){selected=e.target.value;localStorage.setItem('trecco-selected-date',selected);animateRender()}};
-$('search').oninput=e=>{search=e.target.value;render()};
+$('search').oninput=e=>{
+ search=e.target.value;
+ searchAllMode=true;
+ document.body.classList.add('searchMode');
+ render();
+};
+$('search').onkeydown=e=>{
+ if(e.key==='Enter'){
+  e.preventDefault();
+  $('searchModal').classList.remove('open');
+  $('search').blur();
+  setTimeout(()=>$('list').scrollIntoView({behavior:'smooth',block:'start'}),50);
+ }
+};
 document.querySelectorAll('.timeFilter').forEach(b=>b.onclick=()=>{
  timeFilter=b.dataset.time;
  localStorage.setItem('trecco-time-filter',timeFilter);
@@ -863,12 +1004,14 @@ $('hideFinished').onchange=e=>{
  animateRender();
 };
 document.querySelectorAll('.venue').forEach(b=>b.onclick=()=>{
+ searchAllMode=false;search='';document.body.classList.remove('searchMode');$('search').value='';
  venue=b.dataset.v;
  localStorage.setItem('trecco-venue',venue);
  animateRender();
  setTimeout(()=>$('list').scrollIntoView({behavior:'smooth',block:'start'}),110);
 });
 document.querySelectorAll('.quick').forEach(b=>b.onclick=()=>{
+ searchAllMode=false;search='';document.body.classList.remove('searchMode');$('search').value='';
  selected=b.dataset.quick==='today'
    ?isoToday()
    :b.dataset.quick==='tomorrow'
@@ -927,7 +1070,20 @@ $('settingDefaultVenue').onchange=e=>{
 document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
  const target=b.dataset.view;
  if(!target)return;
+ if(target==='search'){
+  searchAllMode=true;
+  document.body.classList.add('searchMode');
+  $('searchModal').classList.add('open');
+  setTimeout(()=>$('search').focus(),120);
+  return
+ }
  if(target==='settings'){syncSettings();$('settingsModal').classList.add('open');return}
+ if(target!=='search'){
+  searchAllMode=false;
+  search='';
+  document.body.classList.remove('searchMode');
+  if($('search'))$('search').value='';
+ }
  view=target;
  document.body.classList.toggle('weatherMode',view==='weather');
  document.querySelectorAll('.navbtn').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
@@ -988,6 +1144,8 @@ function updateMiniSticky(){
 window.addEventListener('scroll',updateMiniSticky,{passive:true});
 $('miniSticky').onclick=()=>document.querySelector('.venuefilters').scrollIntoView({behavior:'smooth',block:'start'});
 
+$('closeSearch').onclick=()=>$('searchModal').classList.remove('open');
+$('searchModal').onclick=e=>{if(e.target.id==='searchModal')$('searchModal').classList.remove('open')};
 $('closeSettings').onclick=()=>$('settingsModal').classList.remove('open');
 $('settingsModal').onclick=e=>{if(e.target===$('settingsModal'))$('settingsModal').classList.remove('open')};
 

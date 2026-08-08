@@ -134,6 +134,26 @@ main{max-width:800px;margin:0 auto;padding:16px}
   color:#fff;font-size:11px;font-weight:900;
   line-height:1
 }
+.countdownInline{
+  display:inline-flex;
+  align-items:center;
+  padding:4px 7px;
+  border-radius:999px;
+  background:rgba(255,255,255,.10);
+  color:#fff;
+  font-size:11px;
+  font-weight:900;
+  line-height:1;
+  white-space:nowrap
+}
+.countdownInline.live{
+  background:var(--green);
+  color:#052E22
+}
+.countdownInline.soon{
+  background:var(--orange);
+  color:#4D2800
+}
 
 .title{font-size:18px;font-weight:900;margin:4px 0 5px}
 .location{color:var(--muted);font-size:13px}
@@ -510,17 +530,16 @@ function render(){
       <div class="timeLine">
         <div class="time">${esc(e.time||'Time TBC')}</div>
         <span class="venueInline">${e.venue==='showdome'?'Showdome':'Pavilion'}</span>
+        ${selected===isoToday()&&countdownText(e)&&countdownText(e)!=='Finished'
+          ?`<span class="countdownInline ${t}">${esc(countdownText(e))}</span>`
+          :''}
       </div>
       <div class="title">${esc(e.name)}</div>
     </div>
     <button class="fav" data-key="${encodeURIComponent(key)}" aria-label="Favourite">${fav?'★':'☆'}</button>
    </div>
    ${e.description?`<div class="desc">${esc(e.description)}</div>`:''}
-   <div class="badges">
-    ${t==='live'?'<span class="badge live">Live now</span>':''}
-    ${t==='soon'?'<span class="badge soon">Starting soon</span>':''}
-    ${selected===isoToday()&&countdownText(e)&&countdownText(e)!=='Finished'?`<span class="badge">${esc(countdownText(e))}</span>`:''}
-   </div>
+   ${''}
   </article>`;
  }).join('');
 }

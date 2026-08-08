@@ -174,7 +174,7 @@ main{max-width:800px;margin:0 auto;padding:16px}
   background:rgba(4,31,67,.97);backdrop-filter:blur(18px);
   border-top:1px solid rgba(255,255,255,.1)
 }
-.bottominner{max-width:800px;margin:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.bottominner{max-width:800px;margin:auto;display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
 .navbtn{border:0;background:transparent;color:var(--muted);padding:7px;border-radius:13px;font-size:12px}
 .navbtn b{display:block;font-size:21px;margin-bottom:2px}
 .navbtn.active{color:var(--yellow);background:rgba(255,255,255,.06)}
@@ -292,6 +292,21 @@ main{max-width:800px;margin:0 auto;padding:16px}
   padding-bottom:0 !important;
 }
 
+
+.weatherView{
+  display:none;
+  max-width:800px;
+  margin:0 auto;
+  padding:16px;
+}
+.weatherView.open{display:block}
+.weatherViewInner{padding-bottom:20px}
+.weatherViewHeader{margin:2px 2px 14px}
+.weatherViewHeader h2{margin:0;color:var(--yellow);font-size:24px}
+.weatherViewHeader p{margin:4px 0 0;color:var(--muted);font-size:13px}
+body.weatherMode main{display:none}
+body.weatherMode .weatherView{display:block}
+
 </style>
 </head>
 <body>
@@ -329,12 +344,6 @@ main{max-width:800px;margin:0 auto;padding:16px}
 
 <main>
   <div class="searchwrap"><input id="search" type="search" placeholder="Search entertainers or events"><span class="searchicon">⌕</span></div>
-  <section class="weatherCard sevenDayWeather" id="weatherCard">
-    <div class="weatherTitle">Porthcawl · 7 day forecast</div>
-    <div id="weatherContent" class="weatherWeek">
-      <div class="weatherLoading">Loading forecast…</div>
-    </div>
-  </section>
 <div class="timeFilters"><button class="timeFilter active" data-time="all">All</button><button class="timeFilter" data-time="now">Now</button><button class="timeFilter" data-time="afternoon">Afternoon</button><button class="timeFilter" data-time="evening">Evening</button></div>
   <div class="controlRow"><span id="venueTotals" class="venueTotals"></span><label class="toggleLabel"><input id="hideFinished" type="checkbox" checked>Hide finished</label></div>
   <div id="hero"></div>
@@ -342,10 +351,26 @@ main{max-width:800px;margin:0 auto;padding:16px}
   <section id="list" class="eventlist"></section>
 </main>
 
+<section id="weatherView" class="weatherView">
+  <div class="weatherViewInner">
+    <div class="weatherViewHeader">
+      <h2>Porthcawl Weather</h2>
+      <p>7 day forecast for the Trecco Bay area</p>
+    </div>
+    <section class="weatherCard sevenDayWeather" id="weatherCard">
+      <div class="weatherTitle">7 day forecast</div>
+      <div id="weatherContent" class="weatherWeek">
+        <div class="weatherLoading">Loading forecast…</div>
+      </div>
+    </section>
+  </div>
+</section>
+
 <nav class="bottomnav">
   <div class="bottominner">
     <button class="navbtn active" data-view="schedule"><b>⌂</b>Schedule</button>
     <button class="navbtn" data-view="favourites"><b>★</b>Favourites</button>
+    <button class="navbtn" data-view="weather"><b>☀️</b>Weather</button>
     <button class="navbtn" id="showQr"><b>▣</b>QR Code</button>
     <button class="navbtn" data-view="settings"><b>⚙</b>Settings</button>
   </div>
@@ -593,8 +618,16 @@ document.querySelectorAll('.quick').forEach(b=>b.onclick=()=>{
  selected=b.dataset.quick==='today'?isoToday():b.dataset.quick==='tomorrow'?addDays(isoToday(),1):nextSaturday();render()
 });
 document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
- view=b.dataset.view;
- if(view==='settings'){$('settingsModal').classList.add('open');return}
+ const target=b.dataset.view;
+ if(!target)return;
+ if(target==='settings'){$('settingsModal').classList.add('open');return}
+ view=target;
+ document.body.classList.toggle('weatherMode',view==='weather');
+ document.querySelectorAll('.navbtn').forEach(x=>x.classList.toggle('active',x.dataset.view===view));
+ if(view==='weather'){
+  loadWeather();
+  return;
+ }
  render();
 });
 $('list').onclick=e=>{

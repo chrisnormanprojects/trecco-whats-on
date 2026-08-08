@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#062E63">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Trecco What's On">
+<title>Trecco What's On</title>
+<style>
+:root{
+  --navy:#052957;
+  --navy2:#073B78;
+  --blue:#0B4D96;
+  --card:#0A4381;
+  --card2:#08376C;
+  --yellow:#FFD633;
+  --white:#FFFFFF;
+  --muted:#C9DCF4;
+  --green:#2ED47A;
+  --orange:#FF9F43;
+  --red:#FF6B6B;
+  --shadow:0 14px 34px rgba(0,0,0,.22);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--navy);color:#fff}
+body{background:radial-gradient(circle at top right,rgba(24,103,185,.45),transparent 32%),linear-gradient(180deg,var(--blue),var(--navy));padding-bottom:98px}
+button,input{font:inherit}
+button{cursor:pointer}
+header{
+  position:sticky;top:0;z-index:20;
+  padding-top:env(safe-area-inset-top);
+  background:linear-gradient(180deg,rgba(5,41,87,.98),rgba(5,41,87,.92));
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid rgba(255,255,255,.1)
+}
+.wrap{max-width:800px;margin:0 auto;padding:16px}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand h1{
+  margin:0;
+  color:var(--yellow);
+  font-size:clamp(20px,6vw,27px);
+  letter-spacing:-.5px;
+  line-height:1.05;
+  white-space:nowrap
+}
+.brandTitle{min-width:0;flex:1}
+.refreshGroup{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.headerUpdated{max-width:88px;text-align:right;color:var(--muted);font-size:10px;font-weight:800;line-height:1.15}
+.headerUpdated.fresh{color:#BDF7D6}.headerUpdated.stale{color:#FFD58A}.headerUpdated.error{color:#FFB6B6}
+.compactWeather{padding:11px 13px!important;margin-bottom:10px!important;border-radius:17px!important}
+.compactWeather .weatherTitle{font-size:11px;margin-bottom:5px;opacity:.95}
+.compactWeatherContent{display:flex;align-items:center;gap:8px;min-height:31px}
+.miniWeatherIcon{font-size:26px;line-height:1}.miniWeatherTemp{font-size:24px;line-height:1;font-weight:900;color:#fff}
+.miniWeatherDesc{min-width:0;flex:1;font-size:11px;line-height:1.25;color:var(--muted)}
+
+.sevenDayWeather{padding:9px 10px!important;margin-bottom:9px!important;border-radius:16px!important}
+.sevenDayWeather .weatherTitle{font-size:10px;margin:0 0 6px;font-weight:900;color:var(--yellow)}
+.weatherWeek{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;align-items:start}
+.weatherDayMini{text-align:center;min-width:0}
+.weatherDayMini .wdName{font-size:9px;color:var(--muted);font-weight:800;line-height:1}
+.weatherDayMini .wdIcon{font-size:18px;line-height:1.25;margin:2px 0}
+.weatherDayMini .wdTemp{font-size:11px;color:#fff;font-weight:900;line-height:1}
+.weatherLoading{grid-column:1/-1;color:var(--muted);font-size:11px;padding:4px 0}
+
+
+.iconbtn{
+  width:46px;height:46px;border:0;border-radius:15px;
+  color:#fff;background:rgba(255,255,255,.09);font-size:21px
+}
+.quickdates{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px}
+.quick{
+  border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.07);
+  color:#fff;border-radius:12px;padding:6px 5px;font-weight:800;font-size:13px;line-height:1.1
+}
+.quick.active{background:var(--yellow);color:var(--navy);border-color:var(--yellow)}
+.datebar{display:grid;grid-template-columns:46px 1fr 46px;gap:9px;align-items:center;margin-top:10px}
+.datecenter{
+  border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.07);
+  color:#fff;border-radius:16px;padding:10px;text-align:center
+}
+.datecenter strong{display:block;color:var(--yellow);font-size:18px}
+.datecenter span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.venuefilters{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px}
+.venue{
+  border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.07);
+  color:#fff;border-radius:12px;padding:6px 5px;font-weight:800;font-size:13px;line-height:1.1
+}
+.venue.active{background:var(--yellow);color:var(--navy);border-color:var(--yellow)}
+main{max-width:800px;margin:0 auto;padding:16px}
+.searchwrap{position:relative;margin-bottom:12px}
+.searchwrap input{
+  width:100%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.09);
+  color:#fff;border-radius:16px;padding:13px 44px 13px 15px;outline:none
+}
+.searchwrap input::placeholder{color:#bad0ea}
+.searchicon{position:absolute;right:14px;top:12px;color:var(--muted)}
+.status{
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+  color:var(--muted);padding:11px 13px;border-radius:14px;font-size:12px;line-height:1.4;margin-bottom:14px
+}
+.status.ok{background:rgba(46,212,122,.12);color:#dfffee}
+.status.error{background:rgba(255,107,107,.15);color:#ffe1e1}
+.hero{
+  border-radius:22px;padding:17px;margin-bottom:14px;
+  background:linear-gradient(135deg,#0E5AAE,#0A3B73);
+  border:1px solid rgba(255,255,255,.12);box-shadow:var(--shadow)
+}
+.hero.live{background:linear-gradient(135deg,#0E7A54,#075A3E)}
+.hero.soon{background:linear-gradient(135deg,#AD6412,#78430B)}
+.herolabel{font-size:12px;font-weight:900;letter-spacing:.9px;text-transform:uppercase;color:#fff}
+.herotitle{font-size:22px;font-weight:900;margin-top:7px}
+.herometa{color:#eaf4ff;margin-top:5px;font-size:14px}
+.sectiontitle{display:flex;justify-content:space-between;align-items:end;margin:18px 2px 10px}
+.sectiontitle h2{margin:0;color:var(--yellow);font-size:19px}
+.sectiontitle span{color:var(--muted);font-size:12px}
+.eventlist{display:grid;gap:12px}
+.event{
+  position:relative;overflow:hidden;
+  background:linear-gradient(180deg,var(--card),var(--card2));
+  border:1px solid rgba(255,255,255,.12);border-radius:21px;padding:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,.15)
+}
+.event.live{outline:3px solid var(--green)}
+.event.soon{outline:2px solid var(--orange)}
+.eventtop{display:flex;justify-content:space-between;gap:12px}
+.time{font-size:23px;font-weight:900;color:var(--yellow);white-space:nowrap}
+.timeLine{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.venueInline{
+  display:inline-flex;align-items:center;
+  padding:4px 7px;border-radius:999px;
+  background:rgba(255,255,255,.10);
+  color:#fff;font-size:11px;font-weight:900;
+  line-height:1
+}
+
+.title{font-size:18px;font-weight:900;margin:4px 0 5px}
+.location{color:var(--muted);font-size:13px}
+.desc{color:var(--muted);font-size:14px;line-height:1.42;margin-top:10px}
+.fav{
+  width:42px;height:42px;border:0;border-radius:13px;
+  background:rgba(255,255,255,.09);color:var(--yellow);font-size:22px;flex:0 0 auto
+}
+.badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.badge{padding:6px 9px;border-radius:999px;font-size:12px;font-weight:900;background:rgba(255,255,255,.1)}
+.badge.live{background:var(--green);color:#052E22}
+.badge.soon{background:var(--orange);color:#4D2800}
+.empty{text-align:center;padding:46px 15px;color:var(--muted)}
+.empty .emoji{font-size:46px;margin-bottom:8px}
+.bottomnav{
+  position:fixed;left:0;right:0;bottom:0;z-index:25;
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+  background:rgba(4,31,67,.97);backdrop-filter:blur(18px);
+  border-top:1px solid rgba(255,255,255,.1)
+}
+.bottominner{max-width:800px;margin:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.navbtn{border:0;background:transparent;color:var(--muted);padding:7px;border-radius:13px;font-size:12px}
+.navbtn b{display:block;font-size:21px;margin-bottom:2px}
+.navbtn.active{color:var(--yellow);background:rgba(255,255,255,.06)}
+.modal{
+  position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.62);
+  display:none;align-items:flex-end;justify-content:center
+}
+.modal.open{display:flex}
+.sheet{
+  width:100%;max-width:800px;background:#F5F8FC;color:#10223A;
+  border-radius:25px 25px 0 0;padding:20px 16px calc(24px + env(safe-area-inset-bottom));
+  max-height:88vh;overflow:auto
+}
+.sheet h2{margin:0 0 14px;color:var(--navy2)}
+.sheet input{width:100%;border:1px solid #CCD8E7;border-radius:14px;padding:13px;background:#fff}
+.primary{width:100%;border:0;border-radius:14px;padding:13px;background:var(--navy2);color:#fff;font-weight:900;margin-top:12px}
+.setting{background:#fff;border:1px solid #DCE5EF;border-radius:16px;padding:14px;margin-bottom:10px}
+.setting h3{margin:0 0 5px;color:var(--navy2)}
+.setting p{margin:0;color:#5E6D7E;font-size:14px;line-height:1.4}
+
+.qrOverlay{
+  position:fixed;
+  inset:0;
+  z-index:200;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));
+  background:#06378A;
+  cursor:pointer;
+}
+.qrOverlay.open{display:flex}
+.qrOverlay img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+.qrHint{
+  position:absolute;
+  left:50%;
+  bottom:calc(14px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  padding:8px 13px;
+  border-radius:999px;
+  background:rgba(0,0,0,.55);
+  color:#fff;
+  font-size:12px;
+  font-weight:800;
+  white-space:nowrap;
+  pointer-events:none;
+}
+
+
+.weatherCard{background:linear-gradient(135deg,#1769AA,#0B4D96);border:1px solid rgba(255,255,255,.12);border-radius:21px;padding:15px;box-shadow:0 10px 24px rgba(0,0,0,.15);margin-bottom:14px}.weatherTop{display:flex;justify-content:space-between;gap:12px}.weatherTitle{font-size:14px;font-weight:900;color:var(--yellow)}.weatherPlace{font-size:12px;color:var(--muted);margin-top:2px}.weatherMain{display:flex;align-items:center;gap:12px;margin-top:10px}.weatherIcon{font-size:40px}.weatherTemp{font-size:32px;font-weight:900}.weatherDesc{font-size:13px;color:var(--muted);margin-top:2px}.weatherFacts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.weatherFact{background:rgba(255,255,255,.08);border-radius:12px;padding:9px;text-align:center}.weatherFact b{display:block;font-size:14px}.weatherFact span{display:block;color:var(--muted);font-size:10px;margin-top:2px}.weatherDays{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.weatherDay{background:rgba(255,255,255,.07);border-radius:12px;padding:9px;text-align:center;font-size:11px;color:var(--muted)}.weatherDay b{display:block;color:#fff;font-size:13px;margin-top:3px}.smartMessage{padding:11px;border-radius:14px;background:rgba(255,214,51,.12);color:#fff4be;font-size:12px;line-height:1.35;margin-bottom:12px}.timeFilters{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}.timeFilter{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:#fff;border-radius:13px;padding:9px 4px;font-size:12px;font-weight:800}.timeFilter.active{background:#fff;color:var(--navy)}.controlRow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;color:var(--muted);font-size:12px}.toggleLabel{display:flex;align-items:center;gap:8px;white-space:nowrap}.toggleLabel input{accent-color:var(--yellow);width:18px;height:18px}.venueTotals{font-weight:800}.nextStrip{display:grid;gap:9px;margin:0 0 15px}.nextItem{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:12px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1)}.nextTime{font-weight:900;color:var(--yellow)}.nextName{font-weight:800;font-size:14px}.nextVenue{color:var(--muted);font-size:11px}.countdown{font-size:11px;font-weight:900;background:rgba(255,255,255,.1);border-radius:999px;padding:6px 8px;white-space:nowrap}
+@media(min-width:700px){.quickdates{grid-template-columns:repeat(3,160px);justify-content:center}}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+  <div class="brand">
+    <div class="brandTitle"><h1>Trecco What's On</h1></div>
+    <div class="refreshGroup">
+      <div id="headerUpdated" class="headerUpdated">Loading…</div>
+      <button class="iconbtn" id="refresh" aria-label="Refresh">↻</button>
+    </div>
+  </div>
+
+  <div class="quickdates">
+    <button class="quick active" data-quick="today">Today</button>
+    <button class="quick" data-quick="tomorrow">Tomorrow</button>
+    <button class="quick" data-quick="weekend">Weekend</button>
+  </div>
+
+  <div class="datebar">
+    <button class="iconbtn" id="prev" aria-label="Previous day">‹</button>
+    <button class="datecenter" id="pick">
+      <strong id="dateTitle"></strong><span id="dateSub"></span>
+    </button>
+    <button class="iconbtn" id="next" aria-label="Next day">›</button>
+  </div>
+
+  <div class="venuefilters">
+    <button class="venue active" data-v="both">Both</button>
+    <button class="venue" data-v="showdome">Showdome</button>
+    <button class="venue" data-v="pavilion">Pavilion</button>
+  </div>
+</div>
+</header>
+
+<main>
+  <div class="searchwrap"><input id="search" type="search" placeholder="Search entertainers or events"><span class="searchicon">⌕</span></div>
+  <section class="weatherCard sevenDayWeather" id="weatherCard">
+    <div class="weatherTitle">Porthcawl · 7 day forecast</div>
+    <div id="weatherContent" class="weatherWeek">
+      <div class="weatherLoading">Loading forecast…</div>
+    </div>
+  </section>
+  <div id="smartMessage" class="smartMessage">Checking today’s programme…</div>
+  <div class="timeFilters"><button class="timeFilter active" data-time="all">All</button><button class="timeFilter" data-time="now">Now</button><button class="timeFilter" data-time="afternoon">Afternoon</button><button class="timeFilter" data-time="evening">Evening</button></div>
+  <div class="controlRow"><span id="venueTotals" class="venueTotals"></span><label class="toggleLabel"><input id="hideFinished" type="checkbox" checked>Hide finished</label></div>
+  <div id="hero"></div>
+  <div class="sectiontitle"><h2 id="sectionHeading">Today’s programme</h2><span id="count"></span></div>
+  <section id="list" class="eventlist"></section>
+</main>
+
+<nav class="bottomnav">
+  <div class="bottominner">
+    <button class="navbtn active" data-view="schedule"><b>⌂</b>Schedule</button>
+    <button class="navbtn" data-view="favourites"><b>★</b>Favourites</button>
+    <button class="navbtn" id="showQr"><b>▣</b>QR Code</button>
+    <button class="navbtn" data-view="settings"><b>⚙</b>Settings</button>
+  </div>
+</nav>
+
+<input type="date" id="dateInput" hidden>
+
+<div class="modal" id="settingsModal">
+  <div class="sheet">
+    <h2>Settings</h2>
+    <div class="setting"><h3>Live updates</h3><p>GitHub refreshes the Parkdean programme every hour.</p></div>
+    <div class="setting"><h3>Favourites</h3><p>Tap the star beside an event. Favourites stay saved on this iPhone.</p></div>
+    <div class="setting"><h3>Install as an app</h3><p>In Safari, tap Share, then Add to Home Screen.</p></div>
+    <button class="primary" id="closeSettings">Done</button>
+  </div>
+</div>
+
+<div class="qrOverlay" id="qrOverlay" role="button" aria-label="Close QR code">
+  <img src="trecco-qr-code.jpeg" alt="Trecco Bay What's On QR code">
+  <div class="qrHint">Tap anywhere to close</div>
+</div>
+
+
+<script>
+const FAVKEY='trecco-v2-favourites';
+let selected=isoToday(),venue='both',view='schedule',events=[],meta={},search='',timeFilter='all',hideFinished=true,weather=null;
+let favourites=new Set(JSON.parse(localStorage.getItem(FAVKEY)||'[]'));
+const $=id=>document.getElementById(id);
+
+function isoToday(){
+ const d=new Date();
+ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')
+}
+function addDays(iso,n){
+ const [y,m,d]=iso.split('-').map(Number);
+ const date=new Date(y,m-1,d,12,0,0);
+ date.setDate(date.getDate()+n);
+ return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+}
+function nextSaturday(){
+ const today=isoToday();
+ const [y,m,d]=today.split('-').map(Number);
+ const date=new Date(y,m-1,d,12,0,0);
+ const delta=(6-date.getDay()+7)%7;
+ date.setDate(date.getDate()+delta);
+ return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+}
+function clean(v){return String(v??'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim()}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function eventKey(e){return [e.venue,e.date,e.time,e.name].join('|')}
+function normaliseEventDate(value){
+ if(typeof value!=='string') return '';
+ const match=value.match(/^(\d{4}-\d{2}-\d{2})/);
+ return match?match[1]:'';
+}
+function normaliseEventTime(a){
+ if(a.time) return clean(a.time);
+ if(typeof a.datetime==='string'){
+   const match=a.datetime.match(/\b(\d{1,2}:\d{2})\b/);
+   if(match) return match[1];
+ }
+ return '';
+}
+function flatten(data,venueName){
+ const out=[];
+ if(Array.isArray(data?.results)){
+  for(const group of data.results){
+   if(!Array.isArray(group)) continue;
+   for(const a of group){
+    out.push({
+      venue:venueName,
+      date:normaliseEventDate(a.datetime)||normaliseEventDate(a.date),
+      time:normaliseEventTime(a),
+      name:clean(a.name||a.act_name||a.title||'Untitled event'),
+      location:clean(a.location||(venueName==='showdome'?'Showdome / Showbar':'Pavilion')),
+      description:clean(a.description||a.desc||''),
+      datetime:typeof a.datetime==='string'?a.datetime:''
+    });
+   }
+  }
+ }
+ return out;
+}
+function timing(e){
+ if(e.date!==isoToday()||!e.time.match(/^\d{1,2}:\d{2}/)) return '';
+ const [h,m]=e.time.split(':').map(Number),start=h*60+m;
+ const now=new Date(),n=now.getHours()*60+now.getMinutes();
+ if(n>=start&&n<start+60)return 'live';
+ if(start>n&&start-n<=30)return 'soon';
+ return '';
+}
+function minutesFromTime(t){const m=String(t||'').match(/^(\d{1,2}):(\d{2})/);return m?Number(m[1])*60+Number(m[2]):null}
+function nowMinutes(){const d=new Date();return d.getHours()*60+d.getMinutes()}
+function isFinished(e){if(e.date!==isoToday())return false;const s=minutesFromTime(e.time);return s!==null&&nowMinutes()>=s+60}
+function countdownText(e){if(e.date!==isoToday())return '';const s=minutesFromTime(e.time);if(s===null)return '';const diff=s-nowMinutes();if(diff<=0&&diff>-60)return 'Live now';if(diff<0)return 'Finished';if(diff<60)return `In ${diff} min`;const h=Math.floor(diff/60),m=diff%60;return m?`In ${h}h ${m}m`:`In ${h}h`}
+function matchesTimeFilter(e){const m=minutesFromTime(e.time);if(timeFilter==='all')return true;if(timeFilter==='now')return timing(e)==='live';if(m===null)return false;if(timeFilter==='afternoon')return m>=720&&m<1080;if(timeFilter==='evening')return m>=1080;return true}
+function weatherCodeInfo(code){const map={0:['☀️','Clear'],1:['🌤️','Mostly clear'],2:['⛅','Partly cloudy'],3:['☁️','Overcast'],45:['🌫️','Fog'],48:['🌫️','Fog'],51:['🌦️','Light drizzle'],53:['🌦️','Drizzle'],55:['🌧️','Heavy drizzle'],61:['🌦️','Light rain'],63:['🌧️','Rain'],65:['🌧️','Heavy rain'],71:['🌨️','Light snow'],73:['🌨️','Snow'],75:['❄️','Heavy snow'],80:['🌦️','Rain showers'],81:['🌧️','Showers'],82:['⛈️','Heavy showers'],95:['⛈️','Thunderstorms'],96:['⛈️','Thunderstorms'],99:['⛈️','Thunderstorms']};return map[code]||['🌤️','Changeable']}
+async function loadWeather(){
+ try{
+  const url='https://api.open-meteo.com/v1/forecast?latitude=51.4790&longitude=-3.7030&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FLondon&forecast_days=7';
+  const r=await fetch(url,{cache:'no-store'});
+  if(!r.ok) throw Error();
+  weather=await r.json();
+  renderWeather();
+ }catch(e){
+  $('weatherContent').innerHTML='<div class="weatherLoading">Forecast unavailable</div>';
+ }
+}
+function renderWeather(){
+ if(!weather?.daily)return;
+ const d=weather.daily;
+ $('weatherContent').innerHTML=(d.time||[]).slice(0,7).map((day,i)=>{
+  const date=new Date(day+'T12:00:00');
+  const name=i===0?'Today':date.toLocaleDateString('en-GB',{weekday:'short'});
+  const info=weatherCodeInfo((d.weather_code||[])[i]);
+  const hi=Math.round((d.temperature_2m_max||[])[i]??0);
+  const lo=Math.round((d.temperature_2m_min||[])[i]??0);
+  return `<div class="weatherDayMini" title="${esc(info[1])}">
+    <div class="wdName">${name}</div>
+    <div class="wdIcon" aria-label="${esc(info[1])}">${info[0]}</div>
+    <div class="wdTemp">${hi}°/${lo}°</div>
+  </div>`;
+ }).join('');
+ renderSmartMessage();
+}
+function renderSmartMessage(){if(!$('smartMessage'))return;const rows=events.filter(e=>e.date===selected),live=rows.find(e=>timing(e)==='live'),up=rows.filter(e=>{const m=minutesFromTime(e.time);return selected===isoToday()&&m!==null&&m>nowMinutes()}).sort((a,b)=>minutesFromTime(a.time)-minutesFromTime(b.time));let msg=live?`Live now: ${esc(live.name)} at the ${live.venue==='showdome'?'Showdome':'Pavilion'}.`:up[0]?`Next up: ${esc(up[0].name)} at ${esc(up[0].time)} in the ${up[0].venue==='showdome'?'Showdome':'Pavilion'}.`:'Browse the programme by date, venue or time of day.';const rain=weather?.daily?.precipitation_probability_max?.[0];if(selected===isoToday()&&Number(rain)>=50)msg+=` Rain chance is ${rain}% today, so the indoor programme may be especially handy.`;$('smartMessage').innerHTML=msg}
+function renderUpNext(){if(!$('nextStrip'))return;if(selected!==isoToday()){$('nextStrip').innerHTML='<div class="nextItem"><div class="nextName">Up Next is shown for today.</div></div>';$('nextCount').textContent='';return}const up=events.filter(e=>{if(e.date!==isoToday())return false;if(venue!=='both'&&e.venue!==venue)return false;const m=minutesFromTime(e.time);return m!==null&&m>=nowMinutes()-59}).sort((a,b)=>minutesFromTime(a.time)-minutesFromTime(b.time)).slice(0,3);$('nextCount').textContent=up.length?`${up.length} shown`:'';$('nextStrip').innerHTML=up.length?up.map(e=>`<div class="nextItem"><div class="nextTime">${esc(e.time)}</div><div><div class="nextName">${esc(e.name)}</div><div class="nextVenue">${e.venue==='showdome'?'Showdome':'Pavilion'}</div></div><div class="countdown">${esc(countdownText(e))}</div></div>`).join(''):'<div class="nextItem"><div class="nextName">Nothing else listed today.</div></div>'}
+
+function selectedRows(){
+ let rows=events.filter(e=>(!e.date||e.date===selected)&&(venue==='both'||e.venue===venue));
+ if(search) rows=rows.filter(e=>(e.name+' '+e.location+' '+e.description).toLowerCase().includes(search.toLowerCase()));
+ if(view==='favourites') rows=rows.filter(e=>favourites.has(eventKey(e)));
+ rows=rows.filter(matchesTimeFilter);
+ if(hideFinished&&selected===isoToday()&&timeFilter!=='now')rows=rows.filter(e=>!isFinished(e));
+ return rows.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+}
+function updateHeader(){
+ const d=new Date(selected+'T12:00:00');
+ $('dateTitle').textContent=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+ $('dateSub').textContent=selected===isoToday()?'Today':String(d.getFullYear());
+ $('dateInput').value=selected;
+ document.querySelectorAll('.venue').forEach(b=>b.classList.toggle('active',b.dataset.v===venue));
+ document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+ document.querySelectorAll('.quick').forEach(b=>{
+   const target=b.dataset.quick==='today'?isoToday():b.dataset.quick==='tomorrow'?addDays(isoToday(),1):nextSaturday();
+   b.classList.toggle('active',selected===target);
+ });
+}
+function renderHero(rows){
+ const live=rows.find(e=>timing(e)==='live');
+ const soon=rows.find(e=>timing(e)==='soon');
+ const e=live||soon;
+ if(!e){$('hero').innerHTML='';return}
+ const cls=live?'live':'soon';
+ $('hero').innerHTML=`<section class="hero ${cls}">
+  <div class="heroLabel">${live?'LIVE NOW':'STARTING SOON'}</div>
+  <div class="herotitle">${esc(e.name)}</div>
+  <div class="herometa">${esc(e.time||'Time TBC')} · ${e.venue==='showdome'?'Showdome':'Pavilion'}</div>
+ </section>`;
+}
+function render(){
+ updateHeader();
+ const rows=selectedRows();
+ const dayRows=events.filter(e=>e.date===selected);
+ $('venueTotals').textContent=`Showdome ${dayRows.filter(e=>e.venue==='showdome').length} · Pavilion ${dayRows.filter(e=>e.venue==='pavilion').length}`;
+ renderHero(rows);
+ 
+ renderSmartMessage();
+ $('sectionHeading').textContent=view==='favourites'?'Favourite events':selected===isoToday()?'Today’s programme':'Programme';
+ $('count').textContent=`${rows.length} event${rows.length===1?'':'s'}`;
+ if(!rows.length){
+  $('list').innerHTML=`<div class="empty"><div class="emoji">${view==='favourites'?'☆':'🎭'}</div><strong>${view==='favourites'?'No favourites saved':'No events listed'}</strong><p>${view==='favourites'?'Tap a star beside an event to save it.':'Try another date or venue.'}</p></div>`;
+  return;
+ }
+ $('list').innerHTML=rows.map(e=>{
+  const t=timing(e),key=eventKey(e),fav=favourites.has(key);
+  return `<article class="event ${t}">
+   <div class="eventtop">
+    <div>
+      <div class="timeLine">
+        <div class="time">${esc(e.time||'Time TBC')}</div>
+        <span class="venueInline">${e.venue==='showdome'?'Showdome':'Pavilion'}</span>
+      </div>
+      <div class="title">${esc(e.name)}</div>
+    </div>
+    <button class="fav" data-key="${encodeURIComponent(key)}" aria-label="Favourite">${fav?'★':'☆'}</button>
+   </div>
+   ${e.description?`<div class="desc">${esc(e.description)}</div>`:''}
+   <div class="badges">
+    ${t==='live'?'<span class="badge live">Live now</span>':''}
+    ${t==='soon'?'<span class="badge soon">Starting soon</span>':''}
+    ${selected===isoToday()&&countdownText(e)&&countdownText(e)!=='Finished'?`<span class="badge">${esc(countdownText(e))}</span>`:''}
+   </div>
+  </article>`;
+ }).join('');
+}
+function compactUpdatedText(value){
+ const text=String(value||'').trim();
+ if(!text) return 'Updated recently';
+ const timeMatch=text.match(/(?:at\s+)?(\d{1,2}:\d{2})\b/i);
+ return timeMatch?`Updated ${timeMatch[1]}`:'Updated recently';
+}
+function setHeaderStatus(text,state=''){
+ const el=$('headerUpdated');
+ el.textContent=text;
+ el.className='headerUpdated'+(state?' '+state:'');
+}
+
+async function load(){
+ setHeaderStatus('Refreshing…');
+ try{
+  const stamp=Date.now();
+  const [s,p,m]=await Promise.all([
+   fetch('data/showdome.json?'+stamp).then(r=>{if(!r.ok)throw Error('Showdome data unavailable');return r.json()}),
+   fetch('data/pavilion.json?'+stamp).then(r=>{if(!r.ok)throw Error('Pavilion data unavailable');return r.json()}),
+   fetch('data/meta.json?'+stamp).then(r=>r.ok?r.json():({}))
+  ]);
+  events=[...flatten(s,'showdome'),...flatten(p,'pavilion')];
+  meta=m;
+  setHeaderStatus(compactUpdatedText(meta.updated_at),'fresh');
+  render();
+ }catch(e){
+  setHeaderStatus('Update failed','error');
+  $('list').innerHTML='<div class="empty"><div class="emoji">⚠️</div><strong>Live programme unavailable</strong><p>Tap refresh to try again.</p></div>';
+ }
+}
+$('prev').onclick=()=>{selected=addDays(selected,-1);render()};
+$('next').onclick=()=>{selected=addDays(selected,1);render()};
+$('refresh').onclick=load;
+$('pick').onclick=()=>{try{$('dateInput').showPicker()}catch{$('dateInput').click()}};
+$('dateInput').onchange=e=>{if(e.target.value){selected=e.target.value;render()}};
+$('search').oninput=e=>{search=e.target.value;render()};
+document.querySelectorAll('.timeFilter').forEach(b=>b.onclick=()=>{timeFilter=b.dataset.time;document.querySelectorAll('.timeFilter').forEach(x=>x.classList.toggle('active',x.dataset.time===timeFilter));render()});
+$('hideFinished').onchange=e=>{hideFinished=e.target.checked;render()};
+document.querySelectorAll('.venue').forEach(b=>b.onclick=()=>{venue=b.dataset.v;render()});
+document.querySelectorAll('.quick').forEach(b=>b.onclick=()=>{
+ selected=b.dataset.quick==='today'?isoToday():b.dataset.quick==='tomorrow'?addDays(isoToday(),1):nextSaturday();render()
+});
+document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
+ view=b.dataset.view;
+ if(view==='settings'){$('settingsModal').classList.add('open');return}
+ render();
+});
+$('list').onclick=e=>{
+ const btn=e.target.closest('.fav');if(!btn)return;
+ const key=decodeURIComponent(btn.dataset.key);
+ favourites.has(key)?favourites.delete(key):favourites.add(key);
+ localStorage.setItem(FAVKEY,JSON.stringify([...favourites]));
+ render();
+};
+$('closeSettings').onclick=()=>$('settingsModal').classList.remove('open');
+$('settingsModal').onclick=e=>{if(e.target===$('settingsModal'))$('settingsModal').classList.remove('open')};
+
+$('showQr').onclick=()=>{
+  $('qrOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+};
+$('qrOverlay').onclick=()=>{
+  $('qrOverlay').classList.remove('open');
+  document.body.style.overflow='';
+};
+
+load();
+loadWeather();
+setInterval(()=>{render();if(weather)renderWeather()},60000);
+</script>
+</body>
+</html>

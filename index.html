@@ -830,7 +830,7 @@
 .event.finished:not(.live):not(.soon){
   background:#080808 !important;
   border-color:#2f2f2f !important;
-  color:#d0d0d0 !important;
+  color:#666 !important;
   box-shadow:0 8px 20px rgba(0,0,0,.22) !important;
 }
 .event.finished:not(.live):not(.soon) .time,
@@ -838,13 +838,13 @@
 .event.finished:not(.live):not(.soon) .desc,
 .event.finished:not(.live):not(.soon) .eventDetails,
 .event.finished:not(.live):not(.soon) .eventSearchDate{
-  color:#d0d0d0 !important;
+  color:#666 !important;
 }
 .event.finished:not(.live):not(.soon) .venueInline,
 .event.finished:not(.live):not(.soon) .countdownInline,
 .event.finished:not(.live):not(.soon) .fav{
   background:#242424 !important;
-  color:#d8d8d8 !important;
+  color:#777 !important;
 }
 
 
@@ -885,6 +885,140 @@ body{
   font-size:12px;
   font-weight:750;
   line-height:1.3;
+}
+
+
+/* Event divider between expired and active/upcoming events */
+.currentMarker{
+  height:3px;
+  width:100%;
+  margin:4px 0 12px;
+  background:var(--yellow);
+  border-radius:999px;
+  box-shadow:0 0 0 1px rgba(5,41,87,.15);
+}
+
+
+/* Settings modal — 90% phone width with prompt inside */
+#settingsModal{
+  align-items:flex-end !important;
+  justify-content:center !important;
+  padding:0 0 calc(14px + env(safe-area-inset-bottom)) !important;
+}
+#settingsModal .sheet{
+  width:90vw !important;
+  max-width:720px !important;
+  border-radius:20px !important;
+  margin:0 !important;
+  padding-bottom:14px !important;
+}
+#settingsModal .settingsExitHint{
+  padding:12px 8px 10px !important;
+  margin-top:4px !important;
+  text-align:center !important;
+  color:var(--navy) !important;
+  font-size:11px !important;
+  font-weight:800 !important;
+  line-height:1.3 !important;
+}
+
+
+/* Expanded weather — richer daily information */
+#weatherView .sevenDayWeather{
+  padding:10px !important;
+}
+#weatherView .weatherWeek{
+  display:grid !important;
+  grid-template-columns:1fr !important;
+  gap:9px !important;
+}
+.weatherDetailDay{
+  background:rgba(255,255,255,.09);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:15px;
+  padding:11px;
+}
+.weatherDetailHead{
+  display:grid;
+  grid-template-columns:minmax(58px,.75fr) 1.5fr auto;
+  align-items:center;
+  gap:8px;
+}
+.weatherDetailName{
+  color:#fff;
+  font-size:13px;
+  font-weight:1000;
+}
+.weatherDetailDate{
+  margin-top:2px;
+  color:var(--muted);
+  font-size:10px;
+  font-weight:800;
+}
+.weatherDetailCondition{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+  color:#fff;
+  font-size:11px;
+  font-weight:850;
+}
+.weatherDetailIcon{
+  font-size:23px;
+  line-height:1;
+}
+.weatherDetailTemp{
+  color:#fff;
+  font-size:20px;
+  font-weight:1000;
+  white-space:nowrap;
+}
+.weatherDetailTemp small{
+  color:var(--muted);
+  font-size:13px;
+}
+.weatherDetailFacts{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:5px;
+  margin-top:9px;
+}
+.weatherDetailFacts div{
+  min-width:0;
+  padding:7px 3px;
+  border-radius:10px;
+  background:rgba(0,0,0,.12);
+  text-align:center;
+}
+.weatherDetailFacts b{
+  display:block;
+  color:#fff;
+  font-size:11px;
+  line-height:1.1;
+  white-space:nowrap;
+}
+.weatherDetailFacts span{
+  display:block;
+  margin-top:3px;
+  color:var(--muted);
+  font-size:8px;
+  font-weight:750;
+  line-height:1.1;
+}
+@media(max-width:390px){
+  .weatherDetailHead{
+    grid-template-columns:54px 1fr auto;
+  }
+  .weatherDetailCondition{
+    font-size:10px;
+  }
+  .weatherDetailFacts b{
+    font-size:10px;
+  }
+  .weatherDetailFacts span{
+    font-size:7px;
+  }
 }
 
 </style>
@@ -982,8 +1116,8 @@ body{
     <div class="setting"><h3>Favourites</h3><p>Tap the star in the top-right corner of any event to save it. Open Favourites from the bottom menu to quickly see your saved events. Your favourites are stored on this iPhone, so they will still be there when you return.</p></div>
     <div class="setting"><h3>Install as an app</h3><p>Open Trecco What’s On in Safari, tap the Share button, then choose Add to Home Screen and tap Add. Trecco What’s On will then appear on your iPhone Home Screen and open like an app.</p></div>
     <button class="primary" id="closeSettings">Done</button>
+    <div class="settingsExitHint">Click anywhere other than this box to exit</div>
   </div>
-  <div class="settingsExitHint">Click anywhere other than this box to exit</div>
 </div>
 
 <div class="qrOverlay" id="qrOverlay" role="button" aria-label="Close QR code">
@@ -1091,7 +1225,7 @@ function countdownText(e){
 function weatherCodeInfo(code){const map={0:['☀️','Clear'],1:['🌤️','Mostly clear'],2:['⛅','Partly cloudy'],3:['☁️','Overcast'],45:['🌫️','Fog'],48:['🌫️','Fog'],51:['🌦️','Light drizzle'],53:['🌦️','Drizzle'],55:['🌧️','Heavy drizzle'],61:['🌦️','Light rain'],63:['🌧️','Rain'],65:['🌧️','Heavy rain'],71:['🌨️','Light snow'],73:['🌨️','Snow'],75:['❄️','Heavy snow'],80:['🌦️','Rain showers'],81:['🌧️','Showers'],82:['⛈️','Heavy showers'],95:['⛈️','Thunderstorms'],96:['⛈️','Thunderstorms'],99:['⛈️','Thunderstorms']};return map[code]||['🌤️','Changeable']}
 async function loadWeather(){
  try{
-  const url='https://api.open-meteo.com/v1/forecast?latitude=51.4790&longitude=-3.7030&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FLondon&forecast_days=7';
+  const url='https://api.open-meteo.com/v1/forecast?latitude=51.4790&longitude=-3.7030&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max,sunrise,sunset&timezone=Europe%2FLondon&forecast_days=7';
   const r=await fetch(url,{cache:'no-store'});
   if(!r.ok) throw Error();
   weather=await r.json();
@@ -1111,14 +1245,36 @@ function renderWeather(){
  $('weatherContent').innerHTML=(d.time||[]).slice(0,7).map((day,i)=>{
   const date=new Date(day+'T12:00:00');
   const name=i===0?'Today':date.toLocaleDateString('en-GB',{weekday:'short'});
+  const fullDate=date.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
   const info=weatherCodeInfo((d.weather_code||[])[i]);
   const hi=Math.round((d.temperature_2m_max||[])[i]??0);
   const lo=Math.round((d.temperature_2m_min||[])[i]??0);
-  return `<div class="weatherDayMini" title="${esc(info[1])}">
-    <div class="wdName">${name}</div>
-    <div class="wdIcon" aria-label="${esc(info[1])}">${info[0]}</div>
-    <div class="wdTemp">${hi}°/${lo}°</div>
-  </div>`;
+  const rain=Math.round((d.precipitation_probability_max||[])[i]??0);
+  const rainfall=Number((d.precipitation_sum||[])[i]??0).toFixed(1);
+  const wind=Math.round((d.wind_speed_10m_max||[])[i]??0);
+  const sunrise=String((d.sunrise||[])[i]||'').slice(11,16)||'--:--';
+  const sunset=String((d.sunset||[])[i]||'').slice(11,16)||'--:--';
+
+  return `<article class="weatherDetailDay">
+    <div class="weatherDetailHead">
+      <div>
+        <div class="weatherDetailName">${name}</div>
+        <div class="weatherDetailDate">${fullDate}</div>
+      </div>
+      <div class="weatherDetailCondition">
+        <span class="weatherDetailIcon" aria-label="${esc(info[1])}">${info[0]}</span>
+        <span>${esc(info[1])}</span>
+      </div>
+      <div class="weatherDetailTemp">${hi}° <small>${lo}°</small></div>
+    </div>
+    <div class="weatherDetailFacts">
+      <div><b>${rain}%</b><span>Rain chance</span></div>
+      <div><b>${rainfall} mm</b><span>Rainfall</span></div>
+      <div><b>${wind} km/h</b><span>Max wind</span></div>
+      <div><b>${sunrise}</b><span>Sunrise</span></div>
+      <div><b>${sunset}</b><span>Sunset</span></div>
+    </div>
+  </article>`;
  }).join('');
 
 }
@@ -1207,6 +1363,15 @@ function animateRender(){
  list.classList.add('switching');
  setTimeout(()=>{render();requestAnimationFrame(()=>list.classList.remove('switching'));},80);
 }
+
+function scrollToCurrentMarker({behavior='smooth'}={}){
+ const marker=$('currentMarker');
+ if(!marker)return;
+ const header=document.querySelector('header');
+ const offset=(header?.offsetHeight||0)+8;
+ const top=marker.getBoundingClientRect().top+window.scrollY-offset;
+ window.scrollTo({top:Math.max(0,top),behavior});
+}
 function render(){
  updateHeader();
  const rows=selectedRows();
@@ -1229,7 +1394,7 @@ function render(){
    :`<div class="empty"><div class="emoji">${view==='favourites'?'☆':'🎭'}</div><strong>${view==='favourites'?'No favourites saved':'No events listed'}</strong><p>${view==='favourites'?'Tap a star beside an event to save it.':'Try another date or venue.'}</p></div>`;
   return;
  }
- $('list').innerHTML=rows.map((e,index)=>{
+ const eventHtml=rows.map((e,index)=>{
   const t=timing(e),key=eventKey(e),fav=favourites.has(key);
   // The first event is expanded, and all Live Now / Starting Soon events
   // are fully expanded. Finished events remain permanently collapsed.
@@ -1251,7 +1416,12 @@ function render(){
    </div>
    ${e.description?`<div class="eventDetails"><div class="eventDetailsInner"><div class="desc">${esc(e.description)}</div></div></div>`:''}
   </article>`;
- }).join('');
+ });
+
+ const firstActive=rows.findIndex(e=>!isFinished(e));
+ const markerIndex=firstActive===-1?rows.length:firstActive;
+ eventHtml.splice(markerIndex,0,'<div id="currentMarker" class="currentMarker" aria-label="Current events marker"></div>');
+ $('list').innerHTML=eventHtml.join('');
 
 }
 function extractUpdateTime(value){
@@ -1300,6 +1470,7 @@ async function load(force=false){
   localStorage.setItem('trecco-cache-meta',JSON.stringify(meta));
   setHeaderStatus(extractUpdateTime(meta.updated_at),pageRefreshTime(),'fresh');
   render();
+  setTimeout(()=>scrollToCurrentMarker({behavior:'auto'}),0);
  }catch(e){
   try{
    const cached=JSON.parse(localStorage.getItem('trecco-cache-events')||'[]');
@@ -1310,6 +1481,7 @@ async function load(force=false){
    usingOfflineCache=true;
    setHeaderStatus(extractUpdateTime(meta.updated_at),pageRefreshTime(),'error');
    render();
+   setTimeout(()=>scrollToCurrentMarker({behavior:'auto'}),0);
   }catch{
    setHeaderStatus('failed',pageRefreshTime(),'error');
    $('list').innerHTML='<div class="empty"><div class="emoji">⚠️</div><strong>Live programme unavailable</strong><p>Tap refresh to try again.</p></div>';
@@ -1325,7 +1497,7 @@ function changeScheduleDate(nextDate,{animate=false}={}){
  document.body.classList.remove('searchMode','weatherMode');
  if($('search'))$('search').value='';
  if(animate)animateRender();else render();
- setTimeout(()=>$('list').scrollIntoView({behavior:'smooth',block:'start'}),animate?110:80);
+ setTimeout(()=>scrollToCurrentMarker(),animate?110:80);
 }
 
 $('prev').onclick=()=>changeScheduleDate(addDays(selected,-1));
@@ -1378,14 +1550,14 @@ $('search').onkeydown=e=>{
   e.preventDefault();
   $('searchModal').classList.remove('open');
   $('search').blur();
-  setTimeout(()=>$('list').scrollIntoView({behavior:'smooth',block:'start'}),50);
+  setTimeout(()=>scrollToCurrentMarker(),50);
  }
 };
 document.querySelectorAll('.venue').forEach(b=>b.onclick=()=>{
  searchAllMode=false;search='';document.body.classList.remove('searchMode');$('search').value='';
  venue=b.dataset.v;
  animateRender();
- setTimeout(()=>$('list').scrollIntoView({behavior:'smooth',block:'start'}),110);
+ setTimeout(()=>scrollToCurrentMarker(),110);
 });
 document.querySelectorAll('.quick').forEach(b=>b.onclick=()=>{
  const nextDate=b.dataset.quick==='today'
@@ -1445,6 +1617,7 @@ document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
   return;
  }
  render();
+ setTimeout(()=>scrollToCurrentMarker(),80);
 });
 $('list').onclick=e=>{
  const favBtn=e.target.closest('.fav');

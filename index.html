@@ -1073,7 +1073,7 @@ function timing(e){
 function minutesFromTime(t){const m=String(t||'').match(/^(\d{1,2}):(\d{2})/);return m?Number(m[1])*60+Number(m[2]):null}
 function eventDuration(e){
  const name=String(e?.name||'').trim().toLowerCase();
- return name==='crew photo time'?30:60;
+ return name==='krew photo time'?30:60;
 }
 function nowMinutes(){const d=new Date();return d.getHours()*60+d.getMinutes()}
 function isFinished(e){if(e.date!==isoToday())return false;const s=minutesFromTime(e.time);return s!==null&&nowMinutes()>=s+eventDuration(e)}
@@ -1292,15 +1292,15 @@ function setHeaderStatus(dataText,pageText,state=''){
  el.className='headerUpdated'+(state?' '+state:'');
 }
 
-async function load(){
+async function load(force=false){
  setHeaderStatus('…','refreshing');
  usingOfflineCache=false;
  try{
   const stamp=Date.now();
   const [s,p,m]=await Promise.all([
-   fetch('data/showdome.json?'+stamp,{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Showdome data unavailable');return r.json()}),
-   fetch('data/pavilion.json?'+stamp,{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Pavilion data unavailable');return r.json()}),
-   fetch('data/meta.json?'+stamp,{cache:'no-store'}).then(r=>r.ok?r.json():({}))
+   fetch('data/showdome.json?force='+stamp,{cache:force?'reload':'no-store',headers:force?{'Cache-Control':'no-cache','Pragma':'no-cache'}:{}}).then(r=>{if(!r.ok)throw Error('Showdome data unavailable');return r.json()}),
+   fetch('data/pavilion.json?force='+stamp,{cache:force?'reload':'no-store',headers:force?{'Cache-Control':'no-cache','Pragma':'no-cache'}:{}}).then(r=>{if(!r.ok)throw Error('Pavilion data unavailable');return r.json()}),
+   fetch('data/meta.json?force='+stamp,{cache:force?'reload':'no-store',headers:force?{'Cache-Control':'no-cache','Pragma':'no-cache'}:{}}).then(r=>r.ok?r.json():({}))
   ]);
   events=[...flatten(s,'showdome'),...flatten(p,'pavilion')];
   meta=m;
@@ -1368,7 +1368,7 @@ $('topWeather').onclick=()=>{
 $('refresh').onclick=async()=>{
  const btn=$('refresh');
  btn.classList.add('spinning');
- await load();
+ await load(true);
  btn.classList.remove('spinning');
  btn.classList.add('done');
  setTimeout(()=>btn.classList.remove('done'),650);

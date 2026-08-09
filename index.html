@@ -861,6 +861,32 @@ body{
   padding-bottom:calc(76px + env(safe-area-inset-bottom)) !important;
 }
 
+
+/* Event status borders */
+.event.soon{
+  border:3px solid #ff7a00 !important;
+}
+.event:not(.live):not(.soon):not(.finished){
+  border:3px solid #009dff !important;
+}
+
+
+/* Settings page bottom spacing and exit hint */
+#settingsModal{
+  padding-bottom:calc(22px + env(safe-area-inset-bottom)) !important;
+}
+#settingsModal .sheet{
+  margin-bottom:12px !important;
+}
+.settingsExitHint{
+  padding:4px 18px calc(20px + env(safe-area-inset-bottom));
+  text-align:center;
+  color:rgba(255,255,255,.88);
+  font-size:12px;
+  font-weight:750;
+  line-height:1.3;
+}
+
 </style>
 </head>
 <body>
@@ -957,6 +983,7 @@ body{
     <div class="setting"><h3>Install as an app</h3><p>Open Trecco What’s On in Safari, tap the Share button, then choose Add to Home Screen and tap Add. Trecco What’s On will then appear on your iPhone Home Screen and open like an app.</p></div>
     <button class="primary" id="closeSettings">Done</button>
   </div>
+  <div class="settingsExitHint">Click anywhere other than this box to exit</div>
 </div>
 
 <div class="qrOverlay" id="qrOverlay" role="button" aria-label="Close QR code">

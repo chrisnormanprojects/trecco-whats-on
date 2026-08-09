@@ -1372,7 +1372,6 @@ body.weatherClosing .weatherView{
 <div class="modal" id="settingsModal">
   <div class="sheet">
     <h2>Settings</h2>
-    <div class="setting settingToggle"><div><h3>Show countdowns</h3><p>Show time remaining beside the venue.</p></div><input type="checkbox" id="settingCountdowns"></div>
     <div class="setting"><h3>Favourites</h3><p>Tap the star in the top-right corner of any event to save it. Open Favourites from the bottom menu to quickly see your saved events. Your favourites are stored on this iPhone, so they will still be there when you return.</p></div>
     <div class="setting"><h3>Install as an app</h3><p>Open Trecco What’s On in Safari, tap the Share button, then choose Add to Home Screen and tap Add. Trecco What’s On will then appear on your iPhone Home Screen and open like an app.</p></div>
     <button class="primary" id="closeSettings">Done</button>
@@ -1389,14 +1388,12 @@ body.weatherClosing .weatherView{
 <script>
 const FAVKEY='trecco-v2-favourites';
 const VALID_VENUES=new Set(['both','showdome','pavilion']);
-let defaultVenue=VALID_VENUES.has(storedDefaultVenue)?storedDefaultVenue:'both';
 let selected=isoToday(),
-venue=defaultVenue,
+venue='both',
 view='schedule',events=[],meta={},search='',
 hideFinished=false,
 weather=null,expandedEvents=new Set(),
 usingOfflineCache=false,
-autoRefreshTimer=null,
 lastFavAlertKey='',searchAllMode=false;
 let favourites=new Set();
 try{
@@ -1871,21 +1868,7 @@ document.querySelectorAll('.quick').forEach(b=>b.onclick=()=>{
  changeScheduleDate(nextDate,{animate:true});
 });
 
-function syncSettings(){
- $('settingCountdowns').checked=showCountdowns;
-}
-function configureAutoRefresh(){
- if(autoRefreshTimer)clearInterval(autoRefreshTimer);
- autoRefreshTimer=null;
- if(autoRefresh)autoRefreshTimer=setInterval(()=>load(),7*60*1000);
-}
-$('settingCountdowns').onchange=e=>{
- showCountdowns=e.target.checked;
-};
-$('settingDefaultVenue').onchange=e=>{
- defaultVenue=VALID_VENUES.has(e.target.value)?e.target.value:'both';
-};
-
+function syncSettings(){}
 document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
  const target=b.dataset.view;
  if(!target)return;
@@ -1983,6 +1966,8 @@ $('qrOverlay').onclick=()=>{
   $('qrOverlay').classList.remove('open');
   document.body.style.overflow='';
 };
+
+
 // Fixed automatic programme refresh: every 7 minutes.
 const AUTO_REFRESH_MS=7*60*1000;
 setInterval(()=>load(true),AUTO_REFRESH_MS);
@@ -2004,7 +1989,6 @@ document.addEventListener('touchend',e=>{
 
 
 setInterval(()=>{render();if(weather)renderWeather();checkFavouriteAlert();updateMiniSticky()},60000);
-configureAutoRefresh();
 
 document.addEventListener('pointerdown',e=>{
  const card=e.target.closest('.event');

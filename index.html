@@ -1342,6 +1342,26 @@ body.weatherClosing .weatherView{
   }
 }
 
+
+/* Stronger weather status styling */
+.weatherDetailDay.weatherGood{
+  border:8px solid #20a85a !important;
+  background:#e8f8ed !important;
+}
+.weatherDetailDay.weatherOvercast{
+  border:8px solid #ff8a00 !important;
+  background:#fff0dc !important;
+}
+.weatherDetailDay.weatherRain{
+  border:8px solid #e12b2b !important;
+  background:#ffe8ed !important;
+}
+
+/* Keep the tint visible in expanded cards too */
+.weatherDetailDay.weatherGood.expanded{background:#e8f8ed !important}
+.weatherDetailDay.weatherOvercast.expanded{background:#fff0dc !important}
+.weatherDetailDay.weatherRain.expanded{background:#ffe8ed !important}
+
 </style>
 </head>
 <body>

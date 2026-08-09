@@ -1168,21 +1168,13 @@ function selectedRows(){
  }
 
  return rows.sort((a,b)=>{
-  // Priority: Live Now -> Starting Soon -> next upcoming -> later upcoming -> finished.
+  // Priority: expired/finished -> Live Now -> Starting Soon -> upcoming.
+  // Within each group, events remain in chronological order.
   const rank=e=>{
+   if(isFinished(e))return 0;
    const state=timing(e);
-   if(state==='live')return 0;
-   if(state==='soon')return 1;
-
-   if(e.date===isoToday()){
-    const mins=minutesFromTime(e.time);
-    if(mins!==null){
-     if(isFinished(e))return 4;
-     if(mins>nowMinutes())return 2;
-    }
-   }
-
-   // Future dates / undated non-finished items stay after today's upcoming events.
+   if(state==='live')return 1;
+   if(state==='soon')return 2;
    return 3;
   };
 

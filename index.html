@@ -488,25 +488,7 @@
   overflow:hidden;
   text-overflow:ellipsis;
   max-width:100%;
-}.event.expanded .eventTeaser{display:none;}.countdownInline.soon{background:var(--orange) !important;color:#4D2800 !important;}.miniSticky{
-  position:fixed;
-  top:calc(env(safe-area-inset-top) + 5px);
-  left:50%;
-  transform:translate(-50%,-70px);
-  z-index:150;
-  background:rgba(5,41,87,.94);
-  backdrop-filter:blur(16px);
-  border:1px solid rgba(255,255,255,.14);
-  box-shadow:0 8px 22px rgba(0,0,0,.2);
-  border-radius:999px;
-  padding:8px 13px;
-  color:#fff;
-  font-size:11px;
-  font-weight:900;
-  transition:transform .22s ease;
-  white-space:nowrap;
-  cursor:pointer;
-}.miniSticky.show{transform:translate(-50%,0);}.favAlert{
+}.event.expanded .eventTeaser{display:none;}.countdownInline.soon{background:var(--orange) !important;color:#4D2800 !important;}.favAlert{
   display:none;
   position:fixed;
   left:14px;
@@ -1283,6 +1265,55 @@ body.weatherClosing .weatherView{
   border-color:#e12b2b !important;
 }
 
+
+/* Weather cards physically expand/collapse with their detailed information */
+.weatherDetailDay{
+  transition:
+    transform .18s ease,
+    box-shadow .22s ease,
+    border-color .22s ease,
+    background-color .22s ease,
+    padding .28s ease !important;
+}
+
+.weatherDetailExpand{
+  display:grid !important;
+  grid-template-columns:1fr !important;
+  grid-template-rows:0fr !important;
+  opacity:0 !important;
+  transition:
+    grid-template-rows .34s cubic-bezier(.2,.75,.25,1),
+    opacity .24s ease !important;
+}
+
+.weatherDetailExpandInner{
+  min-height:0 !important;
+  min-width:0 !important;
+  overflow:hidden !important;
+}
+
+.weatherDetailDay.expanded .weatherDetailExpand{
+  grid-template-rows:1fr !important;
+  opacity:1 !important;
+}
+
+.weatherDetailFacts{
+  transform:translateX(-18px) translateY(-5px) !important;
+  opacity:0 !important;
+  transition:
+    transform .34s cubic-bezier(.2,.75,.25,1),
+    opacity .25s ease !important;
+}
+
+.weatherDetailDay.expanded .weatherDetailFacts{
+  transform:translateX(0) translateY(0) !important;
+  opacity:1 !important;
+}
+
+.weatherDetailDay.expanded{
+  box-shadow:0 10px 24px rgba(0,0,0,.18) !important;
+}
+
 </style>
 </head>
 <body>
@@ -1328,8 +1359,6 @@ body.weatherClosing .weatherView{
   <div class="sectiontitle"><h2 id="sectionHeading">Today’s programme</h2></div>
   <section id="list" class="eventlist"></section>
 </main>
-
-<div id="miniSticky" class="miniSticky" role="button" aria-label="Back to filters"></div>
 <div id="favAlert" class="favAlert"></div>
 
 <section id="weatherView" class="weatherView">
@@ -1941,7 +1970,6 @@ function checkFavouriteAlert(){
 }
 
 function updateMiniSticky(){
- const bar=$('miniSticky');
  if(view!=='schedule'||window.scrollY<330){bar.classList.remove('show');return}
  const d=new Date(selected+'T12:00:00');
  const date=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
@@ -1951,7 +1979,6 @@ function updateMiniSticky(){
  bar.classList.add('show');
 }
 window.addEventListener('scroll',updateMiniSticky,{passive:true});
-$('miniSticky').onclick=()=>document.querySelector('.venuefilters').scrollIntoView({behavior:'smooth',block:'start'});
 
 $('closeSearch').onclick=()=>$('searchModal').classList.remove('open');
 $('searchModal').onclick=e=>{if(e.target.id==='searchModal')$('searchModal').classList.remove('open')};

@@ -488,25 +488,7 @@
   overflow:hidden;
   text-overflow:ellipsis;
   max-width:100%;
-}.event.expanded .eventTeaser{display:none;}.countdownInline.soon{background:var(--orange) !important;color:#4D2800 !important;}.miniSticky{
-  position:fixed;
-  top:calc(env(safe-area-inset-top) + 5px);
-  left:50%;
-  transform:translate(-50%,-70px);
-  z-index:150;
-  background:rgba(5,41,87,.94);
-  backdrop-filter:blur(16px);
-  border:1px solid rgba(255,255,255,.14);
-  box-shadow:0 8px 22px rgba(0,0,0,.2);
-  border-radius:999px;
-  padding:8px 13px;
-  color:#fff;
-  font-size:11px;
-  font-weight:900;
-  transition:transform .22s ease;
-  white-space:nowrap;
-  cursor:pointer;
-}.miniSticky.show{transform:translate(-50%,0);}.favAlert{
+}.event.expanded .eventTeaser{display:none;}.countdownInline.soon{background:var(--orange) !important;color:#4D2800 !important;}.favAlert{
   display:none;
   position:fixed;
   left:14px;
@@ -1267,7 +1249,6 @@ body{
   <section id="list" class="eventlist"></section>
 </main>
 
-<div id="miniSticky" class="miniSticky" role="button" aria-label="Back to filters"></div>
 <div id="favAlert" class="favAlert"></div>
 
 <section id="weatherView" class="weatherView">
@@ -1887,19 +1868,6 @@ function checkFavouriteAlert(){
  setTimeout(()=>box.classList.remove('show'),5500);
 }
 
-function updateMiniSticky(){
- const bar=$('miniSticky');
- if(view!=='schedule'||window.scrollY<330){bar.classList.remove('show');return}
- const d=new Date(selected+'T12:00:00');
- const date=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
- const label=venue==='both'?'Both':venue==='showdome'?'Showdome':'Pavilion';
- const rows=selectedRows();
- bar.textContent=`${date} · ${label}`;
- bar.classList.add('show');
-}
-window.addEventListener('scroll',updateMiniSticky,{passive:true});
-$('miniSticky').onclick=()=>document.querySelector('.venuefilters').scrollIntoView({behavior:'smooth',block:'start'});
-
 $('closeSearch').onclick=()=>$('searchModal').classList.remove('open');
 $('searchModal').onclick=e=>{if(e.target.id==='searchModal')$('searchModal').classList.remove('open')};
 $('closeSettings').onclick=()=>$('settingsModal').classList.remove('open');
@@ -1930,7 +1898,7 @@ document.addEventListener('touchend',e=>{
 },{passive:true});
 
 
-setInterval(()=>{render();if(weather)renderWeather();checkFavouriteAlert();updateMiniSticky()},60000);
+setInterval(()=>{render();if(weather)renderWeather();checkFavouriteAlert()},60000);
 configureAutoRefresh();
 
 document.addEventListener('pointerdown',e=>{

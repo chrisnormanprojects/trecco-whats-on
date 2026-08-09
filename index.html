@@ -1314,6 +1314,34 @@ body.weatherClosing .weatherView{
   box-shadow:0 10px 24px rgba(0,0,0,.18) !important;
 }
 
+
+/* Expanded weather details — two rows, fully visible on phone */
+.weatherDetailFacts{
+  display:grid !important;
+  grid-template-columns:repeat(6,minmax(0,1fr)) !important;
+  gap:7px !important;
+  overflow:visible !important;
+  padding:0 11px 11px !important;
+}
+
+.weatherDetailFacts > div{
+  min-width:0 !important;
+  grid-column:span 2;
+}
+
+/* Last two items share the second row evenly */
+.weatherDetailFacts > div:nth-child(4),
+.weatherDetailFacts > div:nth-child(5){
+  grid-column:span 3;
+}
+
+@media(max-width:390px){
+  .weatherDetailFacts{
+    grid-template-columns:repeat(6,minmax(0,1fr)) !important;
+    overflow:visible !important;
+  }
+}
+
 </style>
 </head>
 <body>

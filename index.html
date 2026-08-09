@@ -1021,6 +1021,151 @@ body{
   }
 }
 
+
+/* =========================================================
+   Event animations — subtle, cross-platform, accessible
+   ========================================================= */
+
+/* Smooth visual state changes */
+.event{
+  transition:
+    transform .18s ease,
+    box-shadow .28s ease,
+    background-color .35s ease,
+    border-color .35s ease,
+    color .35s ease,
+    opacity .25s ease !important;
+  transform-origin:center;
+  will-change:transform,opacity;
+}
+
+/* Gentle staggered entrance */
+@keyframes eventEnter{
+  from{opacity:0;transform:translateY(10px) scale(.992)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.event.event-enter{
+  animation:eventEnter .34s cubic-bezier(.2,.75,.25,1) both;
+  animation-delay:var(--event-delay,0ms);
+}
+
+/* Tap / press feedback */
+.event.event-press{
+  transform:scale(.985) !important;
+}
+
+/* First priority event gently lifts once */
+@keyframes topEventEmphasis{
+  0%{transform:translateY(0) scale(1)}
+  45%{transform:translateY(-2px) scale(1.012)}
+  100%{transform:translateY(0) scale(1)}
+}
+.event.top-priority{
+  animation:
+    eventEnter .34s cubic-bezier(.2,.75,.25,1) both,
+    topEventEmphasis .55s ease .38s 1;
+}
+
+/* Starting Soon: subtle orange border pulse */
+@keyframes soonBorderPulse{
+  0%,100%{box-shadow:0 8px 20px rgba(107,45,0,.12),0 0 0 0 rgba(255,122,0,.18)}
+  50%{box-shadow:0 8px 20px rgba(107,45,0,.15),0 0 0 4px rgba(255,122,0,.15)}
+}
+.event.soon{
+  animation:soonBorderPulse 2.2s ease-in-out infinite;
+}
+
+/* Live Now: subtle green pulse */
+@keyframes liveBorderPulse{
+  0%,100%{box-shadow:0 8px 20px rgba(11,77,40,.12),0 0 0 0 rgba(36,180,97,.16)}
+  50%{box-shadow:0 8px 20px rgba(11,77,40,.16),0 0 0 4px rgba(36,180,97,.14)}
+}
+.event.live{
+  animation:liveBorderPulse 2s ease-in-out infinite;
+}
+
+/* Smooth expand / collapse */
+.eventDetails{
+  transition:
+    grid-template-rows .28s cubic-bezier(.2,.75,.25,1),
+    opacity .22s ease,
+    margin-top .25s ease !important;
+}
+.eventDetailsInner{
+  transition:opacity .22s ease,transform .25s ease;
+  opacity:.72;
+  transform:translateY(-3px);
+}
+.event.expanded .eventDetailsInner{
+  opacity:1;
+  transform:translateY(0);
+}
+
+/* Favourite star pop */
+@keyframes favPop{
+  0%{transform:scale(1)}
+  45%{transform:scale(1.28) rotate(-7deg)}
+  72%{transform:scale(.94) rotate(3deg)}
+  100%{transform:scale(1) rotate(0)}
+}
+.fav.fav-pop{
+  animation:favPop .38s cubic-bezier(.2,.8,.25,1);
+}
+
+/* Finished status transition */
+@keyframes finishFade{
+  0%{opacity:.7;transform:scale(.992)}
+  100%{opacity:1;transform:scale(1)}
+}
+.event.finished.status-changed{
+  animation:finishFade .45s ease both;
+}
+
+/* Marker entrance / reposition emphasis */
+@keyframes markerReveal{
+  from{opacity:0;transform:scaleX(.75)}
+  to{opacity:1;transform:scaleX(1)}
+}
+.currentMarker.marker-animate{
+  transform-origin:center;
+  animation:markerReveal .32s ease both;
+}
+
+/* Preserve important status pulses even when cards are entering */
+.event.live.event-enter{
+  animation:eventEnter .34s cubic-bezier(.2,.75,.25,1) both,liveBorderPulse 2s ease-in-out .34s infinite;
+}
+.event.soon.event-enter{
+  animation:eventEnter .34s cubic-bezier(.2,.75,.25,1) both,soonBorderPulse 2.2s ease-in-out .34s infinite;
+}
+
+/* Reduced Motion: keep functionality, remove decorative motion */
+@media (prefers-reduced-motion:reduce){
+  *,
+  *::before,
+  *::after{
+    scroll-behavior:auto !important;
+  }
+  .event,
+  .eventDetails,
+  .eventDetailsInner{
+    transition:none !important;
+  }
+  .event,
+  .event.event-enter,
+  .event.top-priority,
+  .event.live,
+  .event.soon,
+  .event.live.event-enter,
+  .event.soon.event-enter,
+  .fav.fav-pop,
+  .event.finished.status-changed,
+  .currentMarker.marker-animate{
+    animation:none !important;
+    transform:none !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1372,6 +1517,29 @@ function scrollToCurrentMarker({behavior='smooth'}={}){
  const top=marker.getBoundingClientRect().top+window.scrollY-offset;
  window.scrollTo({top:Math.max(0,top),behavior});
 }
+
+function animateFavouriteButton(btn){
+ if(!btn)return;
+ btn.classList.remove('fav-pop');
+ void btn.offsetWidth;
+ btn.classList.add('fav-pop');
+ setTimeout(()=>btn.classList.remove('fav-pop'),450);
+}
+
+function pressEventCard(card){
+ if(!card)return;
+ card.classList.add('event-press');
+ setTimeout(()=>card.classList.remove('event-press'),150);
+}
+
+function animateMarker(){
+ const marker=$('currentMarker');
+ if(!marker)return;
+ marker.classList.remove('marker-animate');
+ void marker.offsetWidth;
+ marker.classList.add('marker-animate');
+}
+
 function render(){
  updateHeader();
  const rows=selectedRows();
@@ -1399,7 +1567,7 @@ function render(){
   // The first event is expanded, and all Live Now / Starting Soon events
   // are fully expanded. Finished events remain permanently collapsed.
   const expanded=!isFinished(e)&&(index===0||t==='live'||t==='soon'||expandedEvents.has(key));
-  return `<article class="event ${t} ${isFinished(e)?'finished':''} ${expanded?'expanded':''}" data-key="${encodeURIComponent(key)}" data-venue="${e.venue}">
+  return `<article class="event event-enter ${index===0?'top-priority':''} ${t} ${isFinished(e)?'finished':''} ${expanded?'expanded':''}" style="--event-delay:${Math.min(index*45,360)}ms" data-key="${encodeURIComponent(key)}" data-venue="${e.venue}">
    <div class="eventSummary">
     <div class="eventMain eventToggleArea">
       <div class="timeLine">
@@ -1420,8 +1588,9 @@ function render(){
 
  const firstActive=rows.findIndex(e=>!isFinished(e));
  const markerIndex=firstActive===-1?rows.length:firstActive;
- eventHtml.splice(markerIndex,0,'<div id="currentMarker" class="currentMarker" aria-label="Current events marker"></div>');
+ eventHtml.splice(markerIndex,0,'<div id="currentMarker" class="currentMarker marker-animate" aria-label="Current events marker"></div>');
  $('list').innerHTML=eventHtml.join('');
+ animateMarker();
 
 }
 function extractUpdateTime(value){
@@ -1708,6 +1877,22 @@ document.addEventListener('touchend',e=>{
 
 setInterval(()=>{render();if(weather)renderWeather();checkFavouriteAlert();updateMiniSticky()},60000);
 configureAutoRefresh();
+
+document.addEventListener('pointerdown',e=>{
+ const card=e.target.closest('.event');
+ if(!card || e.target.closest('.fav'))return;
+ card.classList.add('event-press');
+},{passive:true});
+
+document.addEventListener('pointerup',e=>{
+ const card=e.target.closest('.event');
+ if(card)card.classList.remove('event-press');
+},{passive:true});
+
+document.addEventListener('pointercancel',()=>{
+ document.querySelectorAll('.event.event-press').forEach(card=>card.classList.remove('event-press'));
+},{passive:true});
+
 </script>
 </body>
 </html>

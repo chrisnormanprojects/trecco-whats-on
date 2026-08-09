@@ -1201,6 +1201,23 @@ body{
   .refreshStatusBtn .headerUpdated{font-size:8.5px !important;min-width:70px;}
 }
 
+
+/* Restored daily weather status colours */
+.weatherDetailDay.weatherGood{
+  border:8px solid #20a85a !important;
+  background:#e8f8ed !important;
+}
+.weatherDetailDay.weatherOvercast{
+  border:8px solid #f2c400 !important;
+  background:#fff8cf !important;
+}
+.weatherDetailDay.weatherRain{
+  border:8px solid #e12b2b !important;
+  background:#ffe8ed !important;
+}
+.weatherDetailDay.weatherGood.expanded{background:#e8f8ed !important;}
+.weatherDetailDay.weatherOvercast.expanded{background:#fff8cf !important;}
+.weatherDetailDay.weatherRain.expanded{background:#ffe8ed !important;}
 </style>
 </head>
 <body>
@@ -1427,7 +1444,9 @@ function renderWeather(){
   const date=new Date(day+'T12:00:00');
   const name=i===0?'Today':date.toLocaleDateString('en-GB',{weekday:'short'});
   const fullDate=date.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-  const info=weatherCodeInfo((d.weather_code||[])[i]);
+  const code=(d.weather_code||[])[i]??0;
+  const info=weatherCodeInfo(code);
+  const weatherBorder=code>=51?'weatherRain':code>=2?'weatherOvercast':'weatherGood';
   const hi=Math.round((d.temperature_2m_max||[])[i]??0);
   const lo=Math.round((d.temperature_2m_min||[])[i]??0);
   const rain=Math.round((d.precipitation_probability_max||[])[i]??0);
@@ -1436,7 +1455,7 @@ function renderWeather(){
   const sunrise=String((d.sunrise||[])[i]||'').slice(11,16)||'--:--';
   const sunset=String((d.sunset||[])[i]||'').slice(11,16)||'--:--';
 
-  return `<article class="weatherDetailDay">
+  return `<article class="weatherDetailDay ${weatherBorder}">
     <div class="weatherDetailHead">
       <div>
         <div class="weatherDetailName">${name}</div>

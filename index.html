@@ -1166,6 +1166,123 @@ body{
   }
 }
 
+
+/* Weather zoom + expandable daily cards */
+.weatherView{
+  transform:scale(.94);
+  opacity:0;
+  transform-origin:center top;
+  transition:transform .28s cubic-bezier(.2,.75,.25,1),opacity .24s ease !important;
+}
+body.weatherMode .weatherView{
+  transform:scale(1);
+  opacity:1;
+}
+body.weatherClosing .weatherView{
+  transform:scale(.94);
+  opacity:0;
+}
+
+#weatherView .weatherWeek{
+  display:grid !important;
+  grid-template-columns:1fr !important;
+  gap:10px !important;
+}
+
+.weatherDetailDay{
+  position:relative;
+  overflow:hidden;
+  border-radius:18px !important;
+  background:linear-gradient(180deg,#ffffff,#eef5ff) !important;
+  border:2px solid #55aaff !important;
+  color:#10223a !important;
+  box-shadow:0 7px 18px rgba(0,0,0,.14);
+  cursor:pointer;
+  transition:transform .18s ease,box-shadow .22s ease,border-color .22s ease;
+}
+.weatherDetailDay:active{transform:scale(.988)}
+
+.weatherDetailSummary{
+  display:grid;
+  grid-template-columns:minmax(60px,.7fr) 1.45fr auto;
+  align-items:center;
+  gap:9px;
+  padding:11px 12px;
+}
+.weatherDetailName{color:#10223a !important;font-size:13px;font-weight:1000}
+.weatherDetailDate{margin-top:2px;color:#5d6d82 !important;font-size:10px;font-weight:800}
+.weatherDetailCondition{display:flex;align-items:center;gap:6px;min-width:0;color:#10223a !important;font-size:11px;font-weight:850}
+.weatherDetailIcon{font-size:24px;line-height:1}
+.weatherDetailTemp{color:#10223a !important;font-size:20px;font-weight:1000;white-space:nowrap}
+.weatherDetailTemp small{color:#5d6d82 !important;font-size:13px}
+
+.weatherDetailExpand{
+  display:grid;
+  grid-template-columns:0fr;
+  opacity:0;
+  transition:grid-template-columns .32s cubic-bezier(.2,.75,.25,1),opacity .22s ease;
+}
+.weatherDetailExpandInner{min-width:0;overflow:hidden}
+.weatherDetailDay.expanded .weatherDetailExpand{grid-template-columns:1fr;opacity:1}
+
+.weatherDetailFacts{
+  display:grid !important;
+  grid-template-columns:repeat(5,minmax(76px,1fr)) !important;
+  gap:7px !important;
+  padding:0 11px 11px;
+  margin:0 !important;
+  transform:translateX(-18px);
+  opacity:.25;
+  transition:transform .32s cubic-bezier(.2,.75,.25,1),opacity .25s ease;
+}
+.weatherDetailDay.expanded .weatherDetailFacts{transform:translateX(0);opacity:1}
+.weatherDetailFacts div{min-width:76px;padding:8px 5px !important;border-radius:11px !important;background:#dcecff !important;text-align:center}
+.weatherDetailFacts b{display:block;color:#10223a !important;font-size:11px !important;line-height:1.1;white-space:nowrap}
+.weatherDetailFacts span{display:block;margin-top:3px;color:#52657c !important;font-size:8px !important;font-weight:800;line-height:1.1}
+
+.weatherExpandHint{
+  position:absolute;
+  right:10px;
+  bottom:7px;
+  color:#4d6684;
+  font-size:9px;
+  font-weight:900;
+  opacity:.72;
+  transition:transform .25s ease,opacity .2s ease;
+}
+.weatherDetailDay.expanded .weatherExpandHint{transform:rotate(180deg);opacity:.9}
+
+@media(max-width:390px){
+  .weatherDetailSummary{grid-template-columns:54px 1fr auto;padding:10px}
+  .weatherDetailCondition{font-size:10px}
+  .weatherDetailFacts{overflow-x:auto;grid-template-columns:repeat(5,82px) !important;scrollbar-width:none}
+  .weatherDetailFacts::-webkit-scrollbar{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .weatherView,.weatherDetailDay,.weatherDetailExpand,.weatherDetailFacts,.weatherExpandHint{
+    transition:none !important;
+    animation:none !important;
+  }
+}
+
+
+/* Weather day cards — white background */
+.weatherDetailDay{
+  background:#fff !important;
+}
+
+
+/* Weather condition border colours */
+.weatherDetailDay.weatherGood{
+  border-color:#20a85a !important;
+}
+.weatherDetailDay.weatherOvercast{
+  border-color:#ff8a00 !important;
+}
+.weatherDetailDay.weatherRain{
+  border-color:#e12b2b !important;
+}
+
 </style>
 </head>
 <body>
@@ -1255,9 +1372,7 @@ body{
 <div class="modal" id="settingsModal">
   <div class="sheet">
     <h2>Settings</h2>
-    <div class="setting settingToggle"><div><h3>Auto refresh</h3><p>Check GitHub quietly every 7 minutes while the page is open.</p></div><input type="checkbox" id="settingAutoRefresh"></div>
     <div class="setting settingToggle"><div><h3>Show countdowns</h3><p>Show time remaining beside the venue.</p></div><input type="checkbox" id="settingCountdowns"></div>
-    <div class="setting"><h3>Default venue</h3><select id="settingDefaultVenue"><option value="both">Both</option><option value="showdome">Showdome</option><option value="pavilion">Pavilion</option></select></div>
     <div class="setting"><h3>Favourites</h3><p>Tap the star in the top-right corner of any event to save it. Open Favourites from the bottom menu to quickly see your saved events. Your favourites are stored on this iPhone, so they will still be there when you return.</p></div>
     <div class="setting"><h3>Install as an app</h3><p>Open Trecco What’s On in Safari, tap the Share button, then choose Add to Home Screen and tap Add. Trecco What’s On will then appear on your iPhone Home Screen and open like an app.</p></div>
     <button class="primary" id="closeSettings">Done</button>
@@ -1274,15 +1389,12 @@ body{
 <script>
 const FAVKEY='trecco-v2-favourites';
 const VALID_VENUES=new Set(['both','showdome','pavilion']);
-const storedDefaultVenue=localStorage.getItem('trecco-default-venue');
 let defaultVenue=VALID_VENUES.has(storedDefaultVenue)?storedDefaultVenue:'both';
 let selected=isoToday(),
 venue=defaultVenue,
 view='schedule',events=[],meta={},search='',
 hideFinished=false,
 weather=null,expandedEvents=new Set(),
-autoRefresh=localStorage.getItem('trecco-auto-refresh')!=='false',
-showCountdowns=localStorage.getItem('trecco-show-countdowns')!=='false',
 usingOfflineCache=false,
 autoRefreshTimer=null,
 lastFavAlertKey='',searchAllMode=false;
@@ -1391,7 +1503,9 @@ function renderWeather(){
   const date=new Date(day+'T12:00:00');
   const name=i===0?'Today':date.toLocaleDateString('en-GB',{weekday:'short'});
   const fullDate=date.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-  const info=weatherCodeInfo((d.weather_code||[])[i]);
+  const code=(d.weather_code||[])[i]??0;
+  const info=weatherCodeInfo(code);
+  const weatherBorder=code>=51?'weatherRain':code>=2?'weatherOvercast':'weatherGood';
   const hi=Math.round((d.temperature_2m_max||[])[i]??0);
   const lo=Math.round((d.temperature_2m_min||[])[i]??0);
   const rain=Math.round((d.precipitation_probability_max||[])[i]??0);
@@ -1400,8 +1514,8 @@ function renderWeather(){
   const sunrise=String((d.sunrise||[])[i]||'').slice(11,16)||'--:--';
   const sunset=String((d.sunset||[])[i]||'').slice(11,16)||'--:--';
 
-  return `<article class="weatherDetailDay">
-    <div class="weatherDetailHead">
+  return `<article class="weatherDetailDay ${weatherBorder}" data-weather-day="${i}" aria-expanded="false">
+    <div class="weatherDetailSummary">
       <div>
         <div class="weatherDetailName">${name}</div>
         <div class="weatherDetailDate">${fullDate}</div>
@@ -1412,13 +1526,18 @@ function renderWeather(){
       </div>
       <div class="weatherDetailTemp">${hi}° <small>${lo}°</small></div>
     </div>
-    <div class="weatherDetailFacts">
-      <div><b>${rain}%</b><span>Rain chance</span></div>
-      <div><b>${rainfall} mm</b><span>Rainfall</span></div>
-      <div><b>${wind} km/h</b><span>Max wind</span></div>
-      <div><b>${sunrise}</b><span>Sunrise</span></div>
-      <div><b>${sunset}</b><span>Sunset</span></div>
+    <div class="weatherDetailExpand">
+      <div class="weatherDetailExpandInner">
+        <div class="weatherDetailFacts">
+          <div><b>${rain}%</b><span>Rain chance</span></div>
+          <div><b>${rainfall} mm</b><span>Rainfall</span></div>
+          <div><b>${wind} km/h</b><span>Max wind</span></div>
+          <div><b>${sunrise}</b><span>Sunrise</span></div>
+          <div><b>${sunset}</b><span>Sunset</span></div>
+        </div>
+      </div>
     </div>
+    <div class="weatherExpandHint">›</div>
   </article>`;
  }).join('');
 
@@ -1539,6 +1658,8 @@ function animateMarker(){
  void marker.offsetWidth;
  marker.classList.add('marker-animate');
 }
+
+const showCountdowns=true;
 
 function render(){
  updateHeader();
@@ -1672,13 +1793,24 @@ function changeScheduleDate(nextDate,{animate=false}={}){
 $('prev').onclick=()=>changeScheduleDate(addDays(selected,-1));
 $('next').onclick=()=>changeScheduleDate(addDays(selected,1));
 
+document.addEventListener('click',e=>{
+ const day=e.target.closest('.weatherDetailDay');
+ if(!day)return;
+ e.stopPropagation();
+ const expanded=day.classList.toggle('expanded');
+ day.setAttribute('aria-expanded',expanded?'true':'false');
+});
+
 // When Weather is open, tapping anywhere except the weather button returns to Schedule.
 document.addEventListener('click',e=>{
  if(view!=='weather')return;
  if(e.target.closest('#topWeather'))return;
+ if(e.target.closest('.weatherDetailDay'))return;
 
- view='schedule';
- document.body.classList.remove('weatherMode');
+ document.body.classList.add('weatherClosing');
+ setTimeout(()=>{
+  view='schedule';
+  document.body.classList.remove('weatherMode','weatherClosing');
  searchAllMode=false;
  search='';
  document.body.classList.remove('searchMode');
@@ -1689,10 +1821,12 @@ document.addEventListener('click',e=>{
 
  render();
  window.scrollTo({top:0,behavior:'smooth'});
+ },260);
 });
 
 $('topWeather').onclick=()=>{
  view='weather';
+ document.body.classList.remove('weatherClosing');
  document.body.classList.add('weatherMode');
  document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));
  loadWeather();
@@ -1738,27 +1872,18 @@ document.querySelectorAll('.quick').forEach(b=>b.onclick=()=>{
 });
 
 function syncSettings(){
- $('settingAutoRefresh').checked=autoRefresh;
  $('settingCountdowns').checked=showCountdowns;
- $('settingDefaultVenue').value=defaultVenue;
 }
 function configureAutoRefresh(){
  if(autoRefreshTimer)clearInterval(autoRefreshTimer);
  autoRefreshTimer=null;
  if(autoRefresh)autoRefreshTimer=setInterval(()=>load(),7*60*1000);
 }
-$('settingAutoRefresh').onchange=e=>{
- autoRefresh=e.target.checked;
- localStorage.setItem('trecco-auto-refresh',String(autoRefresh));
- configureAutoRefresh();
-};
 $('settingCountdowns').onchange=e=>{
  showCountdowns=e.target.checked;
- localStorage.setItem('trecco-show-countdowns',String(showCountdowns));render();
 };
 $('settingDefaultVenue').onchange=e=>{
  defaultVenue=VALID_VENUES.has(e.target.value)?e.target.value:'both';
- localStorage.setItem('trecco-default-venue',defaultVenue);
 };
 
 document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
@@ -1858,6 +1983,9 @@ $('qrOverlay').onclick=()=>{
   $('qrOverlay').classList.remove('open');
   document.body.style.overflow='';
 };
+// Fixed automatic programme refresh: every 7 minutes.
+const AUTO_REFRESH_MS=7*60*1000;
+setInterval(()=>load(true),AUTO_REFRESH_MS);
 
 load();
 loadWeather();

@@ -1039,18 +1039,22 @@ function timing(e){
  if(e.date!==isoToday()||!e.time.match(/^\d{1,2}:\d{2}/)) return '';
  const [h,m]=e.time.split(':').map(Number),start=h*60+m;
  const now=new Date(),n=now.getHours()*60+now.getMinutes();
- if(n>=start&&n<start+60)return 'live';
+ if(n>=start&&n<start+eventDuration(e))return 'live';
  if(start>n&&start-n<=30)return 'soon';
  return '';
 }
 function minutesFromTime(t){const m=String(t||'').match(/^(\d{1,2}):(\d{2})/);return m?Number(m[1])*60+Number(m[2]):null}
+function eventDuration(e){
+ const name=String(e?.name||'').trim().toLowerCase();
+ return name==='crew photo time'?30:60;
+}
 function nowMinutes(){const d=new Date();return d.getHours()*60+d.getMinutes()}
-function isFinished(e){if(e.date!==isoToday())return false;const s=minutesFromTime(e.time);return s!==null&&nowMinutes()>=s+60}
+function isFinished(e){if(e.date!==isoToday())return false;const s=minutesFromTime(e.time);return s!==null&&nowMinutes()>=s+eventDuration(e)}
 function countdownText(e){
  if(e.date!==isoToday())return '';
  const s=minutesFromTime(e.time);if(s===null)return '';
  const diff=s-nowMinutes();
- if(diff<=0&&diff>-60)return 'Live now';
+ if(diff<=0&&diff>-eventDuration(e))return 'Live now';
  if(diff<0)return 'Finished';
  if(diff<=30)return `Starting soon · ${diff} min`;
  if(diff<60)return `In ${diff} min`;
@@ -1137,10 +1141,32 @@ function selectedRows(){
  }
 
  return rows.sort((a,b)=>{
+  // Priority: Live Now -> Starting Soon -> next upcoming -> later upcoming -> finished.
+  const rank=e=>{
+   const state=timing(e);
+   if(state==='live')return 0;
+   if(state==='soon')return 1;
+
+   if(e.date===isoToday()){
+    const mins=minutesFromTime(e.time);
+    if(mins!==null){
+     if(isFinished(e))return 4;
+     if(mins>nowMinutes())return 2;
+    }
+   }
+
+   // Future dates / undated non-finished items stay after today's upcoming events.
+   return 3;
+  };
+
+  const ar=rank(a), br=rank(b);
+  if(ar!==br)return ar-br;
+
   if(searchAllMode && search){
    const byDate=(a.date||'9999-99-99').localeCompare(b.date||'9999-99-99');
    if(byDate!==0)return byDate;
   }
+
   return (a.time||'99:99').localeCompare(b.time||'99:99');
  });
 }
@@ -1184,9 +1210,11 @@ function render(){
    :`<div class="empty"><div class="emoji">${view==='favourites'?'☆':'🎭'}</div><strong>${view==='favourites'?'No favourites saved':'No events listed'}</strong><p>${view==='favourites'?'Tap a star beside an event to save it.':'Try another date or venue.'}</p></div>`;
   return;
  }
- $('list').innerHTML=rows.map(e=>{
+ $('list').innerHTML=rows.map((e,index)=>{
   const t=timing(e),key=eventKey(e),fav=favourites.has(key);
-  const expanded=!isFinished(e)&&expandedEvents.has(key);
+  // The first event is expanded, and all Live Now / Starting Soon events
+  // are fully expanded. Finished events remain permanently collapsed.
+  const expanded=!isFinished(e)&&(index===0||t==='live'||t==='soon'||expandedEvents.has(key));
   return `<article class="event ${t} ${isFinished(e)?'finished':''} ${expanded?'expanded':''}" data-key="${encodeURIComponent(key)}" data-venue="${e.venue}">
    <div class="eventSummary">
     <div class="eventMain eventToggleArea">

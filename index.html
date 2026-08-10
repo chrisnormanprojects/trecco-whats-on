@@ -1622,6 +1622,108 @@ body.weatherClosing .weatherView {
 .weatherDetailDay.weatherOvercast.expanded {
   background: #fff8cf !important;
 }
+
+
+/* Version 6 header restore + Search/Weather position swap */
+.brand{
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:12px !important;
+}
+.brandTitleStack{
+  flex:1 1 auto !important;
+  align-items:flex-start !important;
+  text-align:left !important;
+}
+.brandTitleStack h1{
+  font-size:38px !important;
+  line-height:.88 !important;
+  letter-spacing:-1.7px !important;
+}
+.brandSubTitle{
+  font-size:22px !important;
+  line-height:.95 !important;
+  text-align:left !important;
+  margin-top:6px !important;
+}
+.headerActions{
+  flex:0 0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:6px;
+  width:122px;
+}
+.topSearchBtn,
+.refreshStatusBtn{
+  width:100%;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.10);
+  color:#fff;
+  border-radius:13px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 5px 14px rgba(0,0,0,.10);
+}
+.topSearchBtn{
+  min-height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:6px 9px;
+  font-weight:900;
+}
+.topSearchIcon{
+  font-size:19px;
+  line-height:1;
+}
+.topSearchLabel{
+  font-size:11px;
+  line-height:1;
+}
+.refreshStatusBtn{
+  min-height:46px;
+  padding:6px 8px;
+  display:grid;
+  grid-template-columns:1fr 25px;
+  align-items:center;
+  gap:5px;
+  text-align:left;
+}
+.refreshStatusBtn .headerUpdated{
+  display:block;
+  max-width:none;
+  text-align:left;
+  font-size:9px;
+  line-height:1.28;
+  white-space:nowrap;
+  pointer-events:none;
+}
+.refreshIcon{
+  display:grid;
+  place-items:center;
+  width:25px;
+  height:25px;
+  border-radius:9px;
+  background:rgba(255,255,255,.09);
+  color:var(--yellow);
+  font-size:20px;
+  font-weight:900;
+  line-height:1;
+}
+#refresh.spinning .refreshIcon{
+  animation:spin .7s linear infinite;
+}
+#refresh.done .refreshIcon{
+  transform:scale(1.08);
+}
+@media(max-width:390px){
+  .brandTitleStack h1{font-size:35px !important}
+  .brandSubTitle{font-size:20px !important}
+  .headerActions{width:112px}
+  .topSearchBtn{min-height:34px}
+  .refreshStatusBtn{min-height:44px}
+}
+
 </style>
 </head>
 <body>
@@ -1632,13 +1734,15 @@ body.weatherClosing .weatherView {
       <h1>Trecco</h1>
       <div class="brandSubTitle">What’s On</div>
     </div>
-    <button class="topWeatherBtn" id="topWeather" aria-label="Weather">
-      <span id="topWeatherIcon">☀️</span>
-      <span id="topWeatherTemp">--°</span>
-    </button>
-    <div class="refreshGroup">
-      <div id="headerUpdated" class="headerUpdated">Loading…</div>
-      <button class="iconbtn" id="refresh" aria-label="Refresh">↻</button>
+    <div class="headerActions">
+      <button class="topSearchBtn" id="topSearch" aria-label="Search events">
+        <span class="topSearchIcon">⌕</span>
+        <span class="topSearchLabel">Search</span>
+      </button>
+      <button class="refreshStatusBtn" id="refresh" aria-label="Refresh programme data">
+        <span id="headerUpdated" class="headerUpdated">Loading…</span>
+        <span class="refreshIcon" aria-hidden="true">↻</span>
+      </button>
     </div>
   </div>
 
@@ -1688,7 +1792,7 @@ body.weatherClosing .weatherView {
   <div class="bottominner">
     <button class="navbtn active" data-view="schedule"><b>⌂</b>Schedule</button>
     <button class="navbtn" data-view="favourites"><b>★</b>Favourites</button>
-    <button class="navbtn" data-view="search"><b>⌕</b>Search</button>
+    <button class="navbtn" data-view="weather"><b>☀</b>Weather</button>
     <button class="navbtn" id="showQr"><b>▣</b>QR Code</button>
     <button class="navbtn" data-view="settings"><b>⚙</b>Settings</button>
   </div>
@@ -2116,7 +2220,6 @@ document.addEventListener('click',e=>{
 // When Weather is open, tapping anywhere except the weather button returns to Schedule.
 document.addEventListener('click',e=>{
  if(view!=='weather')return;
- if(e.target.closest('#topWeather'))return;
  if(e.target.closest('.weatherDetailDay'))return;
 
  document.body.classList.add('weatherClosing');
@@ -2136,12 +2239,11 @@ document.addEventListener('click',e=>{
  },260);
 });
 
-$('topWeather').onclick=()=>{
- view='weather';
- document.body.classList.remove('weatherClosing');
- document.body.classList.add('weatherMode');
- document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));
- loadWeather();
+$('topSearch').onclick=()=>{
+ searchAllMode=true;
+ document.body.classList.add('searchMode');
+ $('searchModal').classList.add('open');
+ setTimeout(()=>$('search').focus(),120);
 };
 
 $('refresh').onclick=async()=>{

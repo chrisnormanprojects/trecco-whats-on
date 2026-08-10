@@ -1724,6 +1724,27 @@ body.weatherClosing .weatherView {
   .refreshStatusBtn{min-height:44px}
 }
 
+
+/* Version 6 header size + icon-only refresh spin */
+.brandTitleStack h1{
+  font-size:clamp(31px,9vw,43px) !important;
+  line-height:.92 !important;
+}
+.brandSubTitle{
+  font-size:clamp(21px,6vw,28px) !important;
+  line-height:1 !important;
+}
+#refresh.spinning{
+  animation:none !important;
+  transform:none !important;
+}
+#refresh .refreshIcon{
+  display:inline-block;
+  transform-origin:center;
+}
+#refresh.spinning .refreshIcon{
+  animation:spin .8s linear infinite !important;
+}
 </style>
 </head>
 <body>
@@ -1741,7 +1762,7 @@ body.weatherClosing .weatherView {
       </button>
       <button class="refreshStatusBtn" id="refresh" aria-label="Refresh programme data">
         <span id="headerUpdated" class="headerUpdated">Loading…</span>
-        <span class="refreshIcon" aria-hidden="true">↻</span>
+        <span class="refreshIcon" aria-hidden="true"><span class="refreshIcon">↻</span></span>
       </button>
     </div>
   </div>
@@ -2220,6 +2241,7 @@ document.addEventListener('click',e=>{
 // When Weather is open, tapping anywhere except the weather button returns to Schedule.
 document.addEventListener('click',e=>{
  if(view!=='weather')return;
+ if(e.target.closest('[data-view="weather"]'))return;
  if(e.target.closest('.weatherDetailDay'))return;
 
  document.body.classList.add('weatherClosing');

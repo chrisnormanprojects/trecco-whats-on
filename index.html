@@ -1745,6 +1745,31 @@ body.weatherClosing .weatherView {
 #refresh.spinning .refreshIcon{
   animation:spin .8s linear infinite !important;
 }
+
+/* Version 6 header proportions — title takes about two-thirds */
+.brand{
+  display:grid !important;
+  grid-template-columns:minmax(0,2fr) minmax(118px,1fr) !important;
+  align-items:center !important;
+  gap:10px !important;
+}
+.brandTitleStack{
+  min-width:0 !important;
+  width:100% !important;
+}
+.brandRight{
+  min-width:0 !important;
+  width:100% !important;
+  display:flex !important;
+  justify-content:flex-end !important;
+  align-items:center !important;
+  gap:6px !important;
+}
+.brandTitleStack h1,
+.brandSubTitle{
+  max-width:100% !important;
+}
+
 </style>
 </head>
 <body>
@@ -1755,7 +1780,8 @@ body.weatherClosing .weatherView {
       <h1>Trecco</h1>
       <div class="brandSubTitle">What’s On</div>
     </div>
-    <div class="headerActions">
+
+    <div class="brandRight">    <div class="headerActions">
       <button class="topSearchBtn" id="topSearch" aria-label="Search events">
         <span class="topSearchIcon">⌕</span>
         <span class="topSearchLabel">Search</span>
@@ -1764,6 +1790,8 @@ body.weatherClosing .weatherView {
         <span id="headerUpdated" class="headerUpdated">Loading…</span>
         <span class="refreshIcon" aria-hidden="true"><span class="refreshIcon">↻</span></span>
       </button>
+    </div>
+
     </div>
   </div>
 

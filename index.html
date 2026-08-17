@@ -1858,6 +1858,19 @@ body.weatherClosing .weatherView {
   display:block;
 }
 
+
+/* Special event styling — Welsh Wrestling */
+.card.welshWrestling,
+.event.welshWrestling{
+  background:#dc143c !important; /* scarlet */
+  border:4px solid #ff0000 !important;
+  color:#fff !important;
+}
+.card.welshWrestling *,
+.event.welshWrestling *{
+  color:#fff !important;
+}
+
 </style>
 </head>
 <body>
@@ -1968,7 +1981,7 @@ body.weatherClosing .weatherView {
   <div class="qrChoiceCard">
     <h2>QR Codes</h2>
     <button id="openNormalQr" class="qrChoiceBtn">Trecco QR Code</button>
-    <button id="openTripQr" class="qrChoiceBtn">Trip Advisor QR</button>
+    <button id="openTripQr" class="qrChoiceBtn">Trip Advisor QR Code</button>
     <button id="openTripAdvisorLink" class="qrChoiceBtn">Trecco Trip Advisor link</button>
     <button id="closeQrChoice" class="qrChoiceClose">Back to App</button>
   </div>
@@ -2606,6 +2619,20 @@ if(tripAdvisorLink){
    window.open('https://www.tripadvisor.co.uk/Hotel_Review-g672145-d775443-Reviews-Parkdean_Resorts_Trecco_Bay_Holiday_Park-Porthcawl_Bridgend_County_South_Wales_Wales.html','_blank','noopener,noreferrer');
  };
 }
+
+
+// Special styling for Welsh Wrestling events
+function styleWelshWrestling(){
+  document.querySelectorAll('.card,.event').forEach(card=>{
+    const title=card.querySelector('.title,.eventTitle,h2,h3,strong');
+    const name=(title?.textContent || '').trim().toLowerCase();
+    if(name==='welsh wrestling') card.classList.add('welshWrestling');
+    else card.classList.remove('welshWrestling');
+  });
+}
+const welshWrestlingObserver=new MutationObserver(styleWelshWrestling);
+welshWrestlingObserver.observe(document.body,{childList:true,subtree:true});
+styleWelshWrestling();
 
 </script>
 

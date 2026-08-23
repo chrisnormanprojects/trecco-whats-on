@@ -1983,8 +1983,14 @@ body.weatherClosing .weatherView {
     <button id="openNormalQr" class="qrChoiceBtn">Trecco QR Code</button>
     <button id="openTripQr" class="qrChoiceBtn">Trip Advisor QR Code</button>
     <button id="openTripAdvisorLink" class="qrChoiceBtn">Trecco Trip Advisor link</button>
+    <button id="open19AcornsQr" class="qrChoiceBtn">19 Acorns QR Code</button>
+    <button id="open19AcornsFacebook" class="qrChoiceBtn">19 Acorns Facebook</button>
     <button id="closeQrChoice" class="qrChoiceClose">Back to App</button>
   </div>
+</div>
+
+<div id="acornsQrOverlay" class="tripQrOverlay" aria-hidden="true">
+  <img src="19-acorns-qr.png" alt="19 Acorns holiday home QR code">
 </div>
 
 <div id="tripQrOverlay" class="tripQrOverlay" aria-hidden="true">
@@ -2633,6 +2639,32 @@ function styleWelshWrestling(){
 const welshWrestlingObserver=new MutationObserver(styleWelshWrestling);
 welshWrestlingObserver.observe(document.body,{childList:true,subtree:true});
 styleWelshWrestling();
+
+
+const acornsQrOverlay=$('acornsQrOverlay');
+const acornsQrButton=$('open19AcornsQr');
+const acornsFacebookButton=$('open19AcornsFacebook');
+
+if(acornsQrButton){
+ acornsQrButton.onclick=()=>{
+   closeQrChoice();
+   acornsQrOverlay.classList.add('open');
+   acornsQrOverlay.setAttribute('aria-hidden','false');
+   document.body.style.overflow='hidden';
+ };
+}
+if(acornsQrOverlay){
+ acornsQrOverlay.onclick=()=>{
+   acornsQrOverlay.classList.remove('open');
+   acornsQrOverlay.setAttribute('aria-hidden','true');
+   document.body.style.overflow='';
+ };
+}
+if(acornsFacebookButton){
+ acornsFacebookButton.onclick=()=>{
+   window.open('https://www.facebook.com/19Acorns','_blank','noopener,noreferrer');
+ };
+}
 
 </script>
 

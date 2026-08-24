@@ -1951,6 +1951,43 @@ body.weatherClosing .weatherView {
   -webkit-text-fill-color:#7a0000 !important;
 }
 
+
+/* Welsh Wrestling must keep its special styling in search/future results too */
+body.searchMode .event.welshWrestling,
+.event.welshWrestling.event-enter,
+.event.welshWrestling.finished,
+.event.welshWrestling.live,
+.event.welshWrestling.soon{
+  background:#dc143c !important;
+  border:4px solid #ff0000 !important;
+  color:#ffffff !important;
+}
+body.searchMode .event.welshWrestling .time,
+body.searchMode .event.welshWrestling .title,
+body.searchMode .event.welshWrestling .desc,
+body.searchMode .event.welshWrestling .eventDetails,
+body.searchMode .event.welshWrestling .eventSearchDate{
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+}
+body.searchMode .event.welshWrestling .venueInline,
+body.searchMode .event.welshWrestling .countdownInline,
+.event.welshWrestling .venueInline,
+.event.welshWrestling .countdownInline{
+  color:#7a0000 !important;
+  -webkit-text-fill-color:#7a0000 !important;
+}
+
+
+/* FINAL Welsh Wrestling venue/countdown colour override */
+.event.welshWrestling .venueInline,
+body.searchMode .event.welshWrestling .venueInline,
+.event.welshWrestling .countdownInline,
+body.searchMode .event.welshWrestling .countdownInline{
+  color:#7a0000 !important;
+  -webkit-text-fill-color:#7a0000 !important;
+}
+
 </style>
 </head>
 <body>
@@ -2356,7 +2393,8 @@ function render(){
   // The first event is expanded, and all Live Now / Starting Soon events
   // are fully expanded. Finished events remain permanently collapsed.
   const expanded=!finished&&(index===0||t==='live'||t==='soon'||expandedEvents.has(key));
-  return `<article class="event event-enter ${index===0?'top-priority':''} ${t} ${finished?'finished':''} ${expanded?'expanded':''}" style="--event-delay:${Math.min(index*45,360)}ms" data-key="${encodeURIComponent(key)}" data-venue="${e.venue}">
+  const isWelshWrestling=String(e.name||'').trim().toLowerCase()==='welsh wrestling';
+  return `<article class="event event-enter ${index===0?'top-priority':''} ${t} ${finished?'finished':''} ${expanded?'expanded':''} ${isWelshWrestling?'welshWrestling':''}" style="--event-delay:${Math.min(index*45,360)}ms" data-key="${encodeURIComponent(key)}" data-venue="${e.venue}">
    <div class="eventSummary">
     <div class="eventMain eventToggleArea">
       <div class="timeLine">

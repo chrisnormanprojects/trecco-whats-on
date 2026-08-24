@@ -1912,6 +1912,25 @@ body.weatherClosing .weatherView {
   pointer-events:none !important;
 }
 
+
+/* Welsh Wrestling — force ALL event text white, overriding live/soon/status colours */
+.card.welshWrestling,
+.card.welshWrestling *,
+.card.welshWrestling *::before,
+.card.welshWrestling *::after,
+.event.welshWrestling,
+.event.welshWrestling *,
+.event.welshWrestling *::before,
+.event.welshWrestling *::after{
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+}
+.card.welshWrestling,
+.event.welshWrestling{
+  background:#dc143c !important;
+  border:4px solid #ff0000 !important;
+}
+
 </style>
 </head>
 <body>

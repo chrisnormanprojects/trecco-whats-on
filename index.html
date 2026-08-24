@@ -1871,6 +1871,20 @@ body.weatherClosing .weatherView {
   color:#fff !important;
 }
 
+
+/* Version 6 — tap displayed date to open calendar */
+#dateTitle,
+#dateSub,
+.dateDisplay,
+.dateCenter{
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+#dateTitle:active,
+#dateSub:active{
+  opacity:.72;
+}
+
 </style>
 </head>
 <body>
@@ -2427,6 +2441,24 @@ $('refresh').onclick=async()=>{
  setTimeout(()=>btn.classList.remove('done'),650);
 };
 $('pick').onclick=()=>{try{$('dateInput').showPicker()}catch{$('dateInput').click()}};
+
+// Tap the visible date between the arrows to choose a date from the calendar.
+function openScheduleCalendar(){
+  const input=$('dateInput');
+  if(!input)return;
+  input.value=selected;
+  try{
+    if(typeof input.showPicker==='function') input.showPicker();
+    else input.click();
+  }catch(e){
+    input.click();
+  }
+}
+const visibleDateTitle=$('dateTitle');
+const visibleDateSub=$('dateSub');
+if(visibleDateTitle) visibleDateTitle.onclick=openScheduleCalendar;
+if(visibleDateSub) visibleDateSub.onclick=openScheduleCalendar;
+
 $('dateInput').onchange=e=>{if(e.target.value)changeScheduleDate(e.target.value,{animate:true})};
 $('search').oninput=e=>{
  search=e.target.value;

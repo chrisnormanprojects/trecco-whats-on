@@ -11,7 +11,6 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -21,19 +20,23 @@ jobs:
           set -euo pipefail
           mkdir -p data
           TODAY=$(TZ=Europe/London date +%d-%m-%Y)
+          FETCH_DAYS=365
 
-          curl --fail --silent --show-error --location \
-            "https://trouper.parkdean-resorts.com/cabaret/booking-feed-web.php?park_id=11&date=${TODAY}&days=14" \
-            -o data/showdome.json
+          curl --fail --silent --show-error --location             "https://trouper.parkdean-resorts.com/cabaret/booking-feed-web.php?park_id=11&date=${TODAY}&days=${FETCH_DAYS}"             -o data/showdome.json
 
-          curl --fail --silent --show-error --location \
-            "https://trouper.parkdean-resorts.com/cabaret/booking-feed-web.php?park_id=111&date=${TODAY}&days=14" \
-            -o data/pavilion.json
+          curl --fail --silent --show-error --location             "https://trouper.parkdean-resorts.com/cabaret/booking-feed-web.php?park_id=111&date=${TODAY}&days=${FETCH_DAYS}"             -o data/pavilion.json
 
-          printf '{"updated_at":"%s","start_date":"%s"}\n' \
-            "$(TZ=Europe/London date '+%d %B %Y at %H:%M')" \
-            "$(TZ=Europe/London date '+%Y-%m-%d')" \
-            > data/meta.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for p in (Path("data/showdome.json"), Path("data/pavilion.json")):
+              with p.open(encoding="utf-8") as f:
+                  data = json.load(f)
+              if not isinstance(data, dict) or data.get("status") != "OK":
+                  raise SystemExit(f"Unexpected Parkdean response in {p}")
+          PY
+
+          printf '{"updated_at":"%s","start_date":"%s","days_requested":%s}\n'             "$(TZ=Europe/London date '+%d %B %Y at %H:%M')"             "$(TZ=Europe/London date '+%Y-%m-%d')"             "${FETCH_DAYS}"             > data/meta.json
 
       - name: Commit refreshed data
         shell: bash
@@ -41,7 +44,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data
-
           if git diff --cached --quiet; then
             echo "No data changes"
           else

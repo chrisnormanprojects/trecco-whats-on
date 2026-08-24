@@ -1885,6 +1885,33 @@ body.weatherClosing .weatherView {
   opacity:.72;
 }
 
+
+/* Version 6 — reliable iPhone calendar trigger on centre date panel */
+.dateCenter,
+.dateDisplay,
+.datebar .dateMain,
+.datebar .dateTitleWrap{
+  position:relative !important;
+}
+#dateCalendarTap{
+  position:absolute !important;
+  inset:0 !important;
+  width:100% !important;
+  height:100% !important;
+  opacity:0 !important;
+  cursor:pointer !important;
+  z-index:20 !important;
+  border:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  -webkit-appearance:none;
+  appearance:none;
+}
+#dateTitle,
+#dateSub{
+  pointer-events:none !important;
+}
+
 </style>
 </head>
 <body>
@@ -1919,6 +1946,7 @@ body.weatherClosing .weatherView {
     <button class="iconbtn" id="prev" aria-label="Previous day">‹</button>
     <button class="datecenter" id="pick">
       <strong id="dateTitle"></strong><span id="dateSub"></span>
+      <input id="dateCalendarTap" type="date" aria-label="Choose schedule date">
     </button>
     <button class="iconbtn" id="next" aria-label="Next day">›</button>
   </div>
@@ -2456,10 +2484,21 @@ function openScheduleCalendar(){
 }
 const visibleDateTitle=$('dateTitle');
 const visibleDateSub=$('dateSub');
-if(visibleDateTitle) visibleDateTitle.onclick=openScheduleCalendar;
-if(visibleDateSub) visibleDateSub.onclick=openScheduleCalendar;
+
+
 
 $('dateInput').onchange=e=>{if(e.target.value)changeScheduleDate(e.target.value,{animate:true})};
+
+const dateCalendarTap=$('dateCalendarTap');
+if(dateCalendarTap){
+  dateCalendarTap.value=selected;
+  dateCalendarTap.onchange=e=>{
+    if(!e.target.value)return;
+    changeScheduleDate(e.target.value,{animate:true});
+    dateCalendarTap.value=selected;
+  };
+}
+
 $('search').oninput=e=>{
  search=e.target.value;
  searchAllMode=true;

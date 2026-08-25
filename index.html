@@ -2040,7 +2040,7 @@ html body .event.welshWrestling .countdownInline{
 .allEventItem.open .allEventOccurrences{display:block}
 .allEventOccurrence{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:9px 0;border-bottom:1px solid #e2e8f0;color:#23364b}
 .allEventOccurrence:last-child{border-bottom:0}
-.allEventOccurrenceDate{font-size:13px;font-weight:850}
+.allEventOccurrenceDate{font-size:13px;font-weight:850;border:0;background:transparent;color:#0b5ea8;padding:0;text-align:left;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px;cursor:pointer;font-family:inherit}.allEventOccurrenceDate:active{opacity:.65}
 .allEventOccurrenceMeta{font-size:12px;font-weight:800;color:#65758a;text-align:right}
 .allEventsEmpty{padding:14px 6px;color:#65758a;font-size:13px;text-align:center}
 @media(max-width:380px){.allEventOccurrence{grid-template-columns:1fr}.allEventOccurrenceMeta{text-align:left}}
@@ -2053,6 +2053,117 @@ html body .event.welshWrestling .countdownInline{
 .event .eventActions .fav{position:static !important;top:auto !important;right:auto !important;width:36px !important;height:36px !important;margin:0 !important}
 .eventAction{color:inherit}.searchAssist{margin-top:14px}.searchAssistTitle{font-size:12px;font-weight:900;color:#51647b;margin:10px 2px 7px;text-transform:uppercase;letter-spacing:.04em}.searchChips{display:flex;flex-wrap:wrap;gap:8px}.searchChip{border:0;border-radius:999px;padding:9px 12px;background:#e9eef4;color:#062b55;font-size:13px;font-weight:850;cursor:pointer}.searchChip.history::before{content:'↻ ';opacity:.65}.searchClear{border:0;background:transparent;color:#66788e;font-size:12px;font-weight:800;padding:8px 2px;margin-top:4px}.reminderSheet{max-width:430px}.reminderEventName{font-size:16px;font-weight:900;color:#062b55;margin:0 0 4px}.reminderEventMeta{font-size:13px;color:#65758a;margin:0 0 16px}.reminderChoices{display:grid;gap:9px}.reminderChoice{width:100%;min-height:50px;border:0;border-radius:14px;background:#ffd400;color:#062b55;font-size:16px;font-weight:900}.reminderCancel{width:100%;min-height:48px;margin-top:10px;border:0;border-radius:14px;background:#e8edf3;color:#23364b;font-weight:850}.toastV66{position:fixed;left:50%;bottom:92px;transform:translate(-50%,20px);background:#062b55;color:#fff;border:2px solid #ffd400;border-radius:14px;padding:11px 15px;font-weight:850;font-size:13px;z-index:100005;opacity:0;pointer-events:none;transition:.22s ease;max-width:88vw;text-align:center}.toastV66.show{opacity:1;transform:translate(-50%,0)}
 @media(max-width:390px){.event{padding-right:16px !important}.eventTitleRow{gap:5px}.eventActions{gap:4px}.eventActions button,.event .eventActions .fav{width:32px !important;height:32px !important;font-size:16px}}
+
+
+
+/* Version 6.7 — colourful Search page refresh */
+#searchModal{
+  background:rgba(4,28,61,.72) !important;
+}
+#searchModal .searchSheet{
+  background:linear-gradient(180deg,#fff7c7 0%,#ffffff 34%,#eef7ff 100%) !important;
+  border:3px solid #ffd400 !important;
+  box-shadow:0 18px 60px rgba(0,0,0,.36) !important;
+}
+#searchModal .searchTitle,
+#searchModal h2{
+  color:#062b55 !important;
+}
+#searchModal .searchBox,
+#searchModal input[type="search"]{
+  background:#ffffff !important;
+  border:3px solid #2e77c7 !important;
+  box-shadow:0 0 0 4px rgba(255,212,0,.14) !important;
+}
+#searchAssist{
+  background:linear-gradient(135deg,#e9f4ff,#fff6bd) !important;
+  border:2px solid #b9d7f7 !important;
+  border-radius:16px !important;
+  padding:10px !important;
+}
+#searchAssist button,
+#searchAssist [data-search-term]{
+  border:0 !important;
+  box-shadow:0 3px 8px rgba(6,43,85,.12) !important;
+}
+#searchAssist [data-search-term]:nth-child(4n+1){
+  background:#ffd400 !important;
+  color:#062b55 !important;
+}
+#searchAssist [data-search-term]:nth-child(4n+2){
+  background:#d9f7e7 !important;
+  color:#075b36 !important;
+}
+#searchAssist [data-search-term]:nth-child(4n+3){
+  background:#ffe4ef !important;
+  color:#8d1745 !important;
+}
+#searchAssist [data-search-term]:nth-child(4n){
+  background:#e7e1ff !important;
+  color:#4b378f !important;
+}
+.allEventsCatalogue{
+  background:linear-gradient(180deg,#eaf5ff,#f8fbff) !important;
+  border:2px solid #bfdcff !important;
+  border-radius:18px !important;
+  padding:13px !important;
+  margin-top:16px !important;
+}
+.allEventsHeader{
+  background:#062b55 !important;
+  border-radius:13px !important;
+  padding:10px 12px !important;
+  margin:0 0 10px !important;
+}
+.allEventsHeader h3{
+  color:#ffd400 !important;
+  font-size:17px !important;
+}
+.allEventsTotal{
+  color:#ffffff !important;
+  background:rgba(255,255,255,.14) !important;
+  padding:4px 8px !important;
+  border-radius:999px !important;
+}
+.allEventItem{
+  border:2px solid #c7dced !important;
+  box-shadow:0 3px 10px rgba(6,43,85,.08) !important;
+}
+.allEventItem:nth-child(4n+1) .allEventToggle{background:#fff8cf !important}
+.allEventItem:nth-child(4n+2) .allEventToggle{background:#e9f8ef !important}
+.allEventItem:nth-child(4n+3) .allEventToggle{background:#fff0f5 !important}
+.allEventItem:nth-child(4n) .allEventToggle{background:#eef0ff !important}
+.allEventCount{
+  background:#ffd400 !important;
+  color:#062b55 !important;
+  border:2px solid #f1bf00 !important;
+  box-shadow:0 2px 5px rgba(0,0,0,.12) !important;
+}
+.allEventItem.open{
+  border-color:#2e77c7 !important;
+}
+.allEventItem.open .allEventToggle{
+  background:#dceeff !important;
+}
+.allEventOccurrences{
+  background:linear-gradient(180deg,#ffffff,#f3f8fd) !important;
+}
+.allEventOccurrenceDate{
+  color:#0b5ea8 !important;
+  font-weight:900 !important;
+}
+.allEventOccurrenceMeta{
+  color:#495f77 !important;
+}
+#clearSearchHistory{
+  background:#ffe7e7 !important;
+  color:#9a2424 !important;
+  border:1px solid #ffc8c8 !important;
+}
+#closeSearch{
+  background:#062b55 !important;
+  color:#ffffff !important;
+}
 
 </style>
 </head>
@@ -2230,7 +2341,7 @@ function renderAllEventsCatalogue(filter=''){
  list.innerHTML=groups.map(group=>{
   const occ=group.occurrences.map(e=>{
    const venueName=e.venue==='showdome'?'Showdome':'Pavilion';
-   return `<div class="allEventOccurrence"><div class="allEventOccurrenceDate">${esc(formatEventDate(e.date)||e.date||'Date TBC')}</div><div class="allEventOccurrenceMeta">${esc(e.time||'Time TBC')} · ${venueName}</div></div>`;
+   return `<div class="allEventOccurrence"><button type="button" class="allEventOccurrenceDate" data-date="${esc(e.date||'')}" aria-label="Open programme for ${esc(formatEventDate(e.date)||e.date||'this date')}">${esc(formatEventDate(e.date)||e.date||'Date TBC')}</button><div class="allEventOccurrenceMeta">${esc(e.time||'Time TBC')} · ${venueName}</div></div>`;
   }).join('');
   return `<div class="allEventItem"><button type="button" class="allEventToggle" aria-expanded="false"><span class="allEventName">${esc(group.name)}</span><span class="allEventCount" aria-label="${group.occurrences.length} occurrences">${group.occurrences.length}</span><span class="allEventChevron" aria-hidden="true">›</span></button><div class="allEventOccurrences">${occ}</div></div>`;
  }).join('');
@@ -2796,6 +2907,15 @@ function checkFavouriteAlert(){
 
 $('searchAssist').onclick=e=>{const b=e.target.closest('[data-search-term]');if(!b)return;applySearchTerm(b.dataset.searchTerm);$('searchModal').classList.remove('open');setTimeout(()=>scrollToCurrentMarker(),50)};
 $('allEventsList').onclick=e=>{
+ const dateBtn=e.target.closest('.allEventOccurrenceDate');
+ if(dateBtn){
+  e.stopPropagation();
+  const targetDate=dateBtn.dataset.date;
+  if(!targetDate)return;
+  $('searchModal').classList.remove('open');
+  changeScheduleDate(targetDate,{animate:true});
+  return;
+ }
  const toggle=e.target.closest('.allEventToggle');
  if(!toggle)return;
  const item=toggle.closest('.allEventItem');

@@ -2016,6 +2016,17 @@ html body .event.welshWrestling .countdownInline{
   -webkit-text-fill-color:#7a0000 !important;
 }
 
+
+
+/* Version 6.6 — event reminders, sharing and search history */
+.event{padding-right:132px !important;}
+.eventActions{position:absolute;top:10px;right:10px;z-index:6;display:flex;gap:6px;align-items:center}
+.eventActions button{width:36px;height:36px;border:0;border-radius:11px;margin:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.10);font-size:18px;font-weight:900;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.eventActions button:active{transform:scale(.94)}
+.event .eventActions .fav{position:static !important;top:auto !important;right:auto !important;width:36px !important;height:36px !important;margin:0 !important}
+.eventAction{color:inherit}.searchAssist{margin-top:14px}.searchAssistTitle{font-size:12px;font-weight:900;color:#51647b;margin:10px 2px 7px;text-transform:uppercase;letter-spacing:.04em}.searchChips{display:flex;flex-wrap:wrap;gap:8px}.searchChip{border:0;border-radius:999px;padding:9px 12px;background:#e9eef4;color:#062b55;font-size:13px;font-weight:850;cursor:pointer}.searchChip.history::before{content:'↻ ';opacity:.65}.searchClear{border:0;background:transparent;color:#66788e;font-size:12px;font-weight:800;padding:8px 2px;margin-top:4px}.reminderSheet{max-width:430px}.reminderEventName{font-size:16px;font-weight:900;color:#062b55;margin:0 0 4px}.reminderEventMeta{font-size:13px;color:#65758a;margin:0 0 16px}.reminderChoices{display:grid;gap:9px}.reminderChoice{width:100%;min-height:50px;border:0;border-radius:14px;background:#ffd400;color:#062b55;font-size:16px;font-weight:900}.reminderCancel{width:100%;min-height:48px;margin-top:10px;border:0;border-radius:14px;background:#e8edf3;color:#23364b;font-weight:850}.toastV66{position:fixed;left:50%;bottom:92px;transform:translate(-50%,20px);background:#062b55;color:#fff;border:2px solid #ffd400;border-radius:14px;padding:11px 15px;font-weight:850;font-size:13px;z-index:100005;opacity:0;pointer-events:none;transition:.22s ease;max-width:88vw;text-align:center}.toastV66.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:390px){.event{padding-right:116px !important}.eventActions{gap:4px}.eventActions button,.event .eventActions .fav{width:32px !important;height:32px !important;font-size:16px}}
+
 </style>
 </head>
 <body>
@@ -2103,8 +2114,10 @@ html body .event.welshWrestling .countdownInline{
       <button class="iconbtn" id="closeSearch" aria-label="Close search">×</button>
     </div>
     <div class="searchwrap searchModalBox"><input id="search" type="search" placeholder="Search entertainers or events"><span class="searchicon">⌕</span></div>
+    <div class="searchAssist" id="searchAssist"><div class="searchAssistTitle">Quick searches</div><div class="searchChips" id="quickSearchChips"></div><div id="historyBlock"><div class="searchAssistTitle">Recent searches</div><div class="searchChips" id="historySearchChips"></div><button class="searchClear" id="clearSearchHistory">Clear search history</button></div></div>
   </div>
 </div>
+<div class="modal" id="reminderModal"><div class="sheet reminderSheet"><h2>Add reminder</h2><div id="reminderEventName" class="reminderEventName"></div><div id="reminderEventMeta" class="reminderEventMeta"></div><div class="reminderChoices"><button class="reminderChoice" data-minutes="10">10 minutes before</button><button class="reminderChoice" data-minutes="20">20 minutes before</button><button class="reminderChoice" data-minutes="30">30 minutes before</button><button class="reminderChoice" data-minutes="60">1 hour before</button></div><button class="reminderCancel" id="closeReminder">Cancel</button></div></div><div id="toastV66" class="toastV66"></div>
 
 <div class="modal" id="settingsModal">
   <div class="sheet">
@@ -2145,12 +2158,14 @@ html body .event.welshWrestling .countdownInline{
 
 <script>
 const FAVKEY='trecco-v2-favourites';
+const SEARCHHISTORYKEY='trecco-v66-search-history';
+const QUICK_SEARCHES=['Karaoke','Krew','Wrestling','Live Music'];
 let selected=isoToday(),
 venue='both',
 view='schedule',events=[],meta={},search='',
 weather=null,expandedEvents=new Set(),
 usingOfflineCache=false,
-lastFavAlertKey='',searchAllMode=false;
+lastFavAlertKey='',searchAllMode=false,currentReminderEvent=null;
 let favourites=new Set();
 try{
  const savedFavourites=JSON.parse(localStorage.getItem(FAVKEY)||'[]');
@@ -2159,6 +2174,18 @@ try{
  localStorage.removeItem(FAVKEY);
 }
 const $=id=>document.getElementById(id);
+function getSearchHistory(){try{const h=JSON.parse(localStorage.getItem(SEARCHHISTORYKEY)||'[]');return Array.isArray(h)?h.slice(0,6):[]}catch{return []}}
+function saveSearchTerm(term){term=String(term||'').trim();if(!term)return;const h=getSearchHistory().filter(x=>x.toLowerCase()!==term.toLowerCase());h.unshift(term);localStorage.setItem(SEARCHHISTORYKEY,JSON.stringify(h.slice(0,6)));renderSearchAssist()}
+function applySearchTerm(term){search=String(term||'').trim();$('search').value=search;searchAllMode=true;document.body.classList.add('searchMode');saveSearchTerm(search);render()}
+function renderSearchAssist(){const q=$('quickSearchChips'),h=$('historySearchChips'),block=$('historyBlock');if(!q||!h)return;q.innerHTML=QUICK_SEARCHES.map(x=>`<button class="searchChip" data-search-term="${esc(x)}">${esc(x)}</button>`).join('');const hist=getSearchHistory();h.innerHTML=hist.map(x=>`<button class="searchChip history" data-search-term="${esc(x)}">${esc(x)}</button>`).join('');if(block)block.style.display=hist.length?'block':'none'}
+function showToastV66(message){const t=$('toastV66');if(!t)return;t.textContent=message;t.classList.add('show');clearTimeout(showToastV66._timer);showToastV66._timer=setTimeout(()=>t.classList.remove('show'),2600)}
+function findEventByKey(key){return events.find(e=>eventKey(e)===key)||null}
+function eventDateTime(e){const m=String(e.time||'').match(/^(\d{1,2}):(\d{2})/);if(!e.date||!m)return null;const [y,mo,d]=e.date.split('-').map(Number);return new Date(y,mo-1,d,Number(m[1]),Number(m[2]),0)}
+function icsStamp(d){return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'T'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+'00'}
+function icsEscape(v){return String(v||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n')}
+async function addCalendarReminder(e,minutes){const start=eventDateTime(e);if(!start){showToastV66('This event has no usable start time.');return}const end=new Date(start.getTime()+60*60000),venueName=e.venue==='showdome'?'Showdome':'Pavilion',uid='trecco-'+btoa(unescape(encodeURIComponent(eventKey(e)))).replace(/[^a-z0-9]/gi,'').slice(0,28)+'@trecco-whats-on';const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Trecco Whats On//EN','CALSCALE:GREGORIAN','BEGIN:VEVENT',`UID:${uid}`,`DTSTART:${icsStamp(start)}`,`DTEND:${icsStamp(end)}`,`SUMMARY:${icsEscape(e.name)}`,`LOCATION:${icsEscape(venueName+', Trecco Bay')}`,`DESCRIPTION:${icsEscape(e.description||'Trecco What’s On event')}`,'BEGIN:VALARM',`TRIGGER:-PT${minutes}M`,'ACTION:DISPLAY',`DESCRIPTION:${icsEscape(e.name+' starts soon')}`,'END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'}),fileName='trecco-'+String(e.name||'event').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'.ics';try{const file=new File([blob],fileName,{type:'text/calendar'});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:e.name});showToastV66('Calendar reminder ready to add.');return}}catch(err){if(err&&err.name==='AbortError')return}const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fileName;document.body.appendChild(a);a.click();const u=a.href;a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);showToastV66('Calendar reminder downloaded.')}
+async function shareEvent(e){const venueName=e.venue==='showdome'?'Showdome':'Pavilion',text=`${e.name} — ${formatEventDate(e.date)}, ${e.time||'Time TBC'} at ${venueName} — Trecco Bay`;try{if(navigator.share){await navigator.share({title:e.name,text});return}await navigator.clipboard.writeText(text);showToastV66('Event copied to clipboard.')}catch(err){if(err&&err.name!=='AbortError')showToastV66('Could not share this event.')}}
+function openReminderForEvent(e){currentReminderEvent=e;$('reminderEventName').textContent=e.name||'Event';$('reminderEventMeta').textContent=`${formatEventDate(e.date)} · ${e.time||'Time TBC'} · ${e.venue==='showdome'?'Showdome':'Pavilion'}`;$('reminderModal').classList.add('open')}
 
 function isoToday(){
  const d=new Date();
@@ -2435,7 +2462,7 @@ function render(){
       ${searchAllMode&&search?`<div class="eventSearchDate">${esc(formatEventDate(e.date))}</div>`:''}
       ${(t==='live'||t==='soon')&&e.description&&!expanded?`<div class="eventTeaser">${esc(e.description)}</div>`:''}
     </div>
-    <button class="fav" data-key="${encodeURIComponent(key)}" aria-label="Favourite">${fav?'★':'☆'}</button>
+    <div class="eventActions"><button class="remind eventAction" data-key="${encodeURIComponent(key)}" aria-label="Add reminder" title="Add reminder">🔔</button><button class="share eventAction" data-key="${encodeURIComponent(key)}" aria-label="Share event" title="Share event">↗</button><button class="fav" data-key="${encodeURIComponent(key)}" aria-label="Favourite">${fav?'★':'☆'}</button></div>
    </div>
    ${e.description?`<div class="eventDetails"><div class="eventDetailsInner"><div class="desc">${esc(e.description)}</div></div></div>`:''}
   </article>`;
@@ -2613,6 +2640,7 @@ $('search').oninput=e=>{
 $('search').onkeydown=e=>{
  if(e.key==='Enter'){
   e.preventDefault();
+  saveSearchTerm(e.target.value);
   $('searchModal').classList.remove('open');
   $('search').blur();
   setTimeout(()=>scrollToCurrentMarker(),50);
@@ -2657,6 +2685,8 @@ document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>{
  setTimeout(()=>scrollToCurrentMarker(),80);
 });
 $('list').onclick=e=>{
+ const reminderBtn=e.target.closest('.remind');if(reminderBtn){e.stopPropagation();const ev=findEventByKey(decodeURIComponent(reminderBtn.dataset.key));if(ev)openReminderForEvent(ev);return}
+ const shareBtn=e.target.closest('.share');if(shareBtn){e.stopPropagation();const ev=findEventByKey(decodeURIComponent(shareBtn.dataset.key));if(ev)shareEvent(ev);return}
  const favBtn=e.target.closest('.fav');
  if(favBtn){
   e.stopPropagation();
@@ -2701,6 +2731,12 @@ function checkFavouriteAlert(){
 }
 
 
+$('searchAssist').onclick=e=>{const b=e.target.closest('[data-search-term]');if(!b)return;applySearchTerm(b.dataset.searchTerm);$('searchModal').classList.remove('open');setTimeout(()=>scrollToCurrentMarker(),50)};
+$('clearSearchHistory').onclick=()=>{localStorage.removeItem(SEARCHHISTORYKEY);renderSearchAssist()};
+$('closeReminder').onclick=()=>{$('reminderModal').classList.remove('open');currentReminderEvent=null};
+$('reminderModal').onclick=e=>{if(e.target.id==='reminderModal'){$('reminderModal').classList.remove('open');currentReminderEvent=null;return}const b=e.target.closest('.reminderChoice');if(!b||!currentReminderEvent)return;const ev=currentReminderEvent;$('reminderModal').classList.remove('open');currentReminderEvent=null;addCalendarReminder(ev,Number(b.dataset.minutes)||30)};
+renderSearchAssist();
+
 $('closeSearch').onclick=()=>$('searchModal').classList.remove('open');
 $('searchModal').onclick=e=>{if(e.target.id==='searchModal')$('searchModal').classList.remove('open')};
 $('closeSettings').onclick=()=>$('settingsModal').classList.remove('open');
@@ -2740,7 +2776,7 @@ setInterval(()=>{render();if(weather)renderWeather();checkFavouriteAlert()},6000
 
 document.addEventListener('pointerdown',e=>{
  const card=e.target.closest('.event');
- if(!card || e.target.closest('.fav'))return;
+ if(!card || e.target.closest('.eventActions'))return;
  card.classList.add('event-press');
 },{passive:true});
 

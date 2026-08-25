@@ -2018,6 +2018,32 @@ html body .event.welshWrestling .countdownInline{
 
 
 
+
+/* Version 6.7 — All Events catalogue on Search page */
+#searchModal .searchSheet{
+  max-height:calc(100dvh - 92px);
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.allEventsCatalogue{margin-top:16px;border-top:1px solid #d7e0ea;padding-top:12px}
+.allEventsHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 2px 9px}
+.allEventsHeader h3{margin:0;color:#062b55;font-size:16px;font-weight:900}
+.allEventsTotal{font-size:12px;font-weight:850;color:#65758a;white-space:nowrap}
+.allEventsList{display:grid;gap:8px}
+.allEventItem{border:1px solid #d6e0eb;border-radius:14px;background:#fff;overflow:hidden}
+.allEventToggle{width:100%;min-height:48px;border:0;background:#fff;color:#10223a;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:9px;padding:10px 12px;text-align:left;cursor:pointer}
+.allEventName{font-size:15px;font-weight:900;min-width:0;overflow-wrap:anywhere}
+.allEventCount{min-width:30px;height:30px;padding:0 8px;border-radius:999px;background:#ffd400;color:#062b55;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:950}
+.allEventChevron{font-size:22px;line-height:1;color:#60748c;transition:transform .18s ease}
+.allEventItem.open .allEventChevron{transform:rotate(90deg)}
+.allEventOccurrences{display:none;border-top:1px solid #e2e8f0;background:#f7f9fc;padding:4px 12px 8px}
+.allEventItem.open .allEventOccurrences{display:block}
+.allEventOccurrence{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:9px 0;border-bottom:1px solid #e2e8f0;color:#23364b}
+.allEventOccurrence:last-child{border-bottom:0}
+.allEventOccurrenceDate{font-size:13px;font-weight:850}
+.allEventOccurrenceMeta{font-size:12px;font-weight:800;color:#65758a;text-align:right}
+.allEventsEmpty{padding:14px 6px;color:#65758a;font-size:13px;text-align:center}
+@media(max-width:380px){.allEventOccurrence{grid-template-columns:1fr}.allEventOccurrenceMeta{text-align:left}}
 /* Version 6.6 — event reminders, sharing and search history */
 .event{padding-right:16px !important}
 .event{padding-right:132px !important;}
@@ -2115,7 +2141,7 @@ html body .event.welshWrestling .countdownInline{
       <button class="iconbtn" id="closeSearch" aria-label="Close search">×</button>
     </div>
     <div class="searchwrap searchModalBox"><input id="search" type="search" placeholder="Search entertainers or events"><span class="searchicon">⌕</span></div>
-    <div class="searchAssist" id="searchAssist"><div class="searchAssistTitle">Quick searches</div><div class="searchChips" id="quickSearchChips"></div><div id="historyBlock"><div class="searchAssistTitle">Recent searches</div><div class="searchChips" id="historySearchChips"></div><button class="searchClear" id="clearSearchHistory">Clear search history</button></div></div>
+    <div class="searchAssist" id="searchAssist"><div class="searchAssistTitle">Quick searches</div><div class="searchChips" id="quickSearchChips"></div><div id="historyBlock"><div class="searchAssistTitle">Recent searches</div><div class="searchChips" id="historySearchChips"></div><button class="searchClear" id="clearSearchHistory">Clear search history</button></div></div><section class="allEventsCatalogue" id="allEventsCatalogue"><div class="allEventsHeader"><h3>All events</h3><div class="allEventsTotal" id="allEventsTotal"></div></div><div class="allEventsList" id="allEventsList"></div></section>
   </div>
 </div>
 <div class="modal" id="reminderModal"><div class="sheet reminderSheet"><h2>Add reminder</h2><div id="reminderEventName" class="reminderEventName"></div><div id="reminderEventMeta" class="reminderEventMeta"></div><div class="reminderChoices"><button class="reminderChoice" data-minutes="10">10 minutes before</button><button class="reminderChoice" data-minutes="20">20 minutes before</button><button class="reminderChoice" data-minutes="30">30 minutes before</button><button class="reminderChoice" data-minutes="60">1 hour before</button></div><button class="reminderCancel" id="closeReminder">Cancel</button></div></div><div id="toastV66" class="toastV66"></div>
@@ -2179,6 +2205,36 @@ function getSearchHistory(){try{const h=JSON.parse(localStorage.getItem(SEARCHHI
 function saveSearchTerm(term){term=String(term||'').trim();if(!term)return;const h=getSearchHistory().filter(x=>x.toLowerCase()!==term.toLowerCase());h.unshift(term);localStorage.setItem(SEARCHHISTORYKEY,JSON.stringify(h.slice(0,6)));renderSearchAssist()}
 function applySearchTerm(term){search=String(term||'').trim();$('search').value=search;searchAllMode=true;document.body.classList.add('searchMode');saveSearchTerm(search);render()}
 function renderSearchAssist(){const q=$('quickSearchChips'),h=$('historySearchChips'),block=$('historyBlock');if(!q||!h)return;q.innerHTML=QUICK_SEARCHES.map(x=>`<button class="searchChip" data-search-term="${esc(x)}">${esc(x)}</button>`).join('');const hist=getSearchHistory();h.innerHTML=hist.map(x=>`<button class="searchChip history" data-search-term="${esc(x)}">${esc(x)}</button>`).join('');if(block)block.style.display=hist.length?'block':'none'}
+function catalogueEventKey(name){return String(name||'').trim().replace(/\s+/g,' ').toLowerCase()}
+function buildEventCatalogue(){
+ const groups=new Map();
+ for(const e of events){
+  const name=String(e.name||'Untitled event').trim()||'Untitled event';
+  const key=catalogueEventKey(name);
+  if(!groups.has(key))groups.set(key,{name,occurrences:[]});
+  groups.get(key).occurrences.push(e);
+ }
+ return [...groups.values()].map(group=>{
+  group.occurrences.sort((a,b)=>(a.date||'9999-99-99').localeCompare(b.date||'9999-99-99')||(a.time||'99:99').localeCompare(b.time||'99:99')||(a.venue||'').localeCompare(b.venue||''));
+  return group;
+ }).sort((a,b)=>a.name.localeCompare(b.name,'en',{sensitivity:'base'}));
+}
+function renderAllEventsCatalogue(filter=''){
+ const list=$('allEventsList'),total=$('allEventsTotal');
+ if(!list||!total)return;
+ const q=String(filter||'').trim().toLowerCase();
+ const all=buildEventCatalogue();
+ const groups=q?all.filter(g=>g.name.toLowerCase().includes(q)):all;
+ total.textContent=q?`${groups.length} of ${all.length}`:`${all.length} unique`;
+ if(!groups.length){list.innerHTML='<div class="allEventsEmpty">No event names match this search.</div>';return}
+ list.innerHTML=groups.map(group=>{
+  const occ=group.occurrences.map(e=>{
+   const venueName=e.venue==='showdome'?'Showdome':'Pavilion';
+   return `<div class="allEventOccurrence"><div class="allEventOccurrenceDate">${esc(formatEventDate(e.date)||e.date||'Date TBC')}</div><div class="allEventOccurrenceMeta">${esc(e.time||'Time TBC')} · ${venueName}</div></div>`;
+  }).join('');
+  return `<div class="allEventItem"><button type="button" class="allEventToggle" aria-expanded="false"><span class="allEventName">${esc(group.name)}</span><span class="allEventCount" aria-label="${group.occurrences.length} occurrences">${group.occurrences.length}</span><span class="allEventChevron" aria-hidden="true">›</span></button><div class="allEventOccurrences">${occ}</div></div>`;
+ }).join('');
+}
 function showToastV66(message){const t=$('toastV66');if(!t)return;t.textContent=message;t.classList.add('show');clearTimeout(showToastV66._timer);showToastV66._timer=setTimeout(()=>t.classList.remove('show'),2600)}
 function findEventByKey(key){return events.find(e=>eventKey(e)===key)||null}
 function eventDateTime(e){const m=String(e.time||'').match(/^(\d{1,2}):(\d{2})/);if(!e.date||!m)return null;const [y,mo,d]=e.date.split('-').map(Number);return new Date(y,mo-1,d,Number(m[1]),Number(m[2]),0)}
@@ -2523,6 +2579,7 @@ async function load(force=false){
   localStorage.setItem('trecco-cache-events',JSON.stringify(events));
   localStorage.setItem('trecco-cache-meta',JSON.stringify(meta));
   setHeaderStatus(extractUpdateTime(meta.updated_at),pageRefreshTime(),'fresh');
+  renderAllEventsCatalogue($('search')?.value||'');
   render();
   setTimeout(()=>scrollToCurrentMarker({behavior:'auto'}),0);
  }catch(e){
@@ -2534,6 +2591,7 @@ async function load(force=false){
    meta=cachedMeta&&typeof cachedMeta==='object'&&!Array.isArray(cachedMeta)?cachedMeta:{};
    usingOfflineCache=true;
    setHeaderStatus(extractUpdateTime(meta.updated_at),pageRefreshTime(),'error');
+   renderAllEventsCatalogue($('search')?.value||'');
    render();
    setTimeout(()=>scrollToCurrentMarker({behavior:'auto'}),0);
   }catch{
@@ -2592,6 +2650,7 @@ $('topSearch').onclick=()=>{
  searchAllMode=true;
  document.body.classList.add('searchMode');
  $('searchModal').classList.add('open');
+ renderAllEventsCatalogue($('search').value);
  setTimeout(()=>$('search').focus(),120);
 };
 
@@ -2638,6 +2697,7 @@ $('search').oninput=e=>{
  search=e.target.value;
  searchAllMode=true;
  document.body.classList.add('searchMode');
+ renderAllEventsCatalogue(search);
  render();
 };
 $('search').onkeydown=e=>{
@@ -2735,10 +2795,19 @@ function checkFavouriteAlert(){
 
 
 $('searchAssist').onclick=e=>{const b=e.target.closest('[data-search-term]');if(!b)return;applySearchTerm(b.dataset.searchTerm);$('searchModal').classList.remove('open');setTimeout(()=>scrollToCurrentMarker(),50)};
+$('allEventsList').onclick=e=>{
+ const toggle=e.target.closest('.allEventToggle');
+ if(!toggle)return;
+ const item=toggle.closest('.allEventItem');
+ const open=!item.classList.contains('open');
+ item.classList.toggle('open',open);
+ toggle.setAttribute('aria-expanded',open?'true':'false');
+};
 $('clearSearchHistory').onclick=()=>{localStorage.removeItem(SEARCHHISTORYKEY);renderSearchAssist()};
 $('closeReminder').onclick=()=>{$('reminderModal').classList.remove('open');currentReminderEvent=null};
 $('reminderModal').onclick=e=>{if(e.target.id==='reminderModal'){$('reminderModal').classList.remove('open');currentReminderEvent=null;return}const b=e.target.closest('.reminderChoice');if(!b||!currentReminderEvent)return;const ev=currentReminderEvent;$('reminderModal').classList.remove('open');currentReminderEvent=null;addCalendarReminder(ev,Number(b.dataset.minutes)||30)};
 renderSearchAssist();
+renderAllEventsCatalogue();
 
 $('closeSearch').onclick=()=>$('searchModal').classList.remove('open');
 $('searchModal').onclick=e=>{if(e.target.id==='searchModal')$('searchModal').classList.remove('open')};

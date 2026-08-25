@@ -2019,13 +2019,14 @@ html body .event.welshWrestling .countdownInline{
 
 
 /* Version 6.6 — event reminders, sharing and search history */
+.event{padding-right:16px !important}
 .event{padding-right:132px !important;}
-.eventActions{position:absolute;top:10px;right:10px;z-index:6;display:flex;gap:6px;align-items:center}
+.eventTitleRow{display:flex;align-items:center;gap:8px;width:100%;min-width:0}.eventTitleRow .title{flex:1 1 auto;min-width:0;margin-right:2px !important}.eventActions{position:static !important;z-index:6;display:flex;gap:6px;align-items:center;flex:0 0 auto;margin-left:auto}
 .eventActions button{width:36px;height:36px;border:0;border-radius:11px;margin:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.10);font-size:18px;font-weight:900;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .eventActions button:active{transform:scale(.94)}
 .event .eventActions .fav{position:static !important;top:auto !important;right:auto !important;width:36px !important;height:36px !important;margin:0 !important}
 .eventAction{color:inherit}.searchAssist{margin-top:14px}.searchAssistTitle{font-size:12px;font-weight:900;color:#51647b;margin:10px 2px 7px;text-transform:uppercase;letter-spacing:.04em}.searchChips{display:flex;flex-wrap:wrap;gap:8px}.searchChip{border:0;border-radius:999px;padding:9px 12px;background:#e9eef4;color:#062b55;font-size:13px;font-weight:850;cursor:pointer}.searchChip.history::before{content:'↻ ';opacity:.65}.searchClear{border:0;background:transparent;color:#66788e;font-size:12px;font-weight:800;padding:8px 2px;margin-top:4px}.reminderSheet{max-width:430px}.reminderEventName{font-size:16px;font-weight:900;color:#062b55;margin:0 0 4px}.reminderEventMeta{font-size:13px;color:#65758a;margin:0 0 16px}.reminderChoices{display:grid;gap:9px}.reminderChoice{width:100%;min-height:50px;border:0;border-radius:14px;background:#ffd400;color:#062b55;font-size:16px;font-weight:900}.reminderCancel{width:100%;min-height:48px;margin-top:10px;border:0;border-radius:14px;background:#e8edf3;color:#23364b;font-weight:850}.toastV66{position:fixed;left:50%;bottom:92px;transform:translate(-50%,20px);background:#062b55;color:#fff;border:2px solid #ffd400;border-radius:14px;padding:11px 15px;font-weight:850;font-size:13px;z-index:100005;opacity:0;pointer-events:none;transition:.22s ease;max-width:88vw;text-align:center}.toastV66.show{opacity:1;transform:translate(-50%,0)}
-@media(max-width:390px){.event{padding-right:116px !important}.eventActions{gap:4px}.eventActions button,.event .eventActions .fav{width:32px !important;height:32px !important;font-size:16px}}
+@media(max-width:390px){.event{padding-right:16px !important}.eventTitleRow{gap:5px}.eventActions{gap:4px}.eventActions button,.event .eventActions .fav{width:32px !important;height:32px !important;font-size:16px}}
 
 </style>
 </head>
@@ -2458,11 +2459,13 @@ function render(){
         ${e.date===isoToday()&&countdown&&countdown!=='Finished'
           ?`<span class="countdownInline ${t}">${esc(countdown)}</span>`:''}
       </div>
-      <div class="title">${esc(e.name)}</div>
+      <div class="eventTitleRow">
+        <div class="title">${esc(e.name)}</div>
+        <div class="eventActions"><button class="remind eventAction" data-key="${encodeURIComponent(key)}" aria-label="Add reminder" title="Add reminder">🔔</button><button class="share eventAction" data-key="${encodeURIComponent(key)}" aria-label="Share event" title="Share event">↗</button><button class="fav" data-key="${encodeURIComponent(key)}" aria-label="Favourite">${fav?'★':'☆'}</button></div>
+      </div>
       ${searchAllMode&&search?`<div class="eventSearchDate">${esc(formatEventDate(e.date))}</div>`:''}
       ${(t==='live'||t==='soon')&&e.description&&!expanded?`<div class="eventTeaser">${esc(e.description)}</div>`:''}
     </div>
-    <div class="eventActions"><button class="remind eventAction" data-key="${encodeURIComponent(key)}" aria-label="Add reminder" title="Add reminder">🔔</button><button class="share eventAction" data-key="${encodeURIComponent(key)}" aria-label="Share event" title="Share event">↗</button><button class="fav" data-key="${encodeURIComponent(key)}" aria-label="Favourite">${fav?'★':'☆'}</button></div>
    </div>
    ${e.description?`<div class="eventDetails"><div class="eventDetailsInner"><div class="desc">${esc(e.description)}</div></div></div>`:''}
   </article>`;

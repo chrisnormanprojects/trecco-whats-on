@@ -2217,7 +2217,7 @@ function buildEventCatalogue(){
  return [...groups.values()].map(group=>{
   group.occurrences.sort((a,b)=>(a.date||'9999-99-99').localeCompare(b.date||'9999-99-99')||(a.time||'99:99').localeCompare(b.time||'99:99')||(a.venue||'').localeCompare(b.venue||''));
   return group;
- }).sort((a,b)=>a.name.localeCompare(b.name,'en',{sensitivity:'base'}));
+ }).sort((a,b)=>b.occurrences.length-a.occurrences.length || a.name.localeCompare(b.name,'en',{sensitivity:'base'}));
 }
 function renderAllEventsCatalogue(filter=''){
  const list=$('allEventsList'),total=$('allEventsTotal');

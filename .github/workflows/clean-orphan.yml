@@ -1,0 +1,71 @@
+name: Clean Orphan
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  clean-orphan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Force cancel and delete Cleanup Old Workflow Runs #3
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const targetRunNumber = 3;
+            const targetWorkflowName = 'Cleanup Old Workflow Runs';
+
+            core.info(`Looking for ${targetWorkflowName} #${targetRunNumber}...`);
+
+            const runs = await github.paginate(
+              github.rest.actions.listWorkflowRunsForRepo,
+              { owner, repo, per_page: 100 }
+            );
+
+            const target = runs.find(run =>
+              run.run_number === targetRunNumber &&
+              run.name === targetWorkflowName
+            );
+
+            if (!target) {
+              core.setFailed(`Could not find ${targetWorkflowName} #${targetRunNumber}.`);
+              return;
+            }
+
+            core.info(`Found run ID ${target.id}`);
+            core.info(`Status: ${target.status}`);
+
+            try {
+              core.info('Attempting FORCE cancel...');
+              await github.request(
+                'POST /repos/{owner}/{repo}/actions/runs/{run_id}/force-cancel',
+                {
+                  owner,
+                  repo,
+                  run_id: target.id,
+                  headers: { 'X-GitHub-Api-Version': '2022-11-28' }
+                }
+              );
+              core.info('Force-cancel request accepted.');
+            } catch (error) {
+              core.warning(`Force cancel returned ${error.status || ''}: ${error.message}`);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 8000));
+
+            try {
+              core.info('Attempting to delete the orphaned run...');
+              await github.rest.actions.deleteWorkflowRun({
+                owner,
+                repo,
+                run_id: target.id
+              });
+              core.info('Orphaned run deleted successfully.');
+            } catch (error) {
+              core.setFailed(`Delete failed ${error.status || ''}: ${error.message}`);
+            }

@@ -1,0 +1,57 @@
+name: Apply Links Layout v6.10.3
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-links-layout-v6103.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Update Links page layout
+        shell: python
+        run: |
+          from pathlib import Path
+
+          p = Path('index.html')
+          t = p.read_text(encoding='utf-8')
+
+          old_html = '''<div id="qrChoiceOverlay" class="qrChoiceOverlay" aria-hidden="true"><div class="qrChoiceCard"><h2>QR Codes</h2><button id="openPassPrices" class="qrChoiceBtn">Entertainment Pass Prices</button><button id="openNormalQr" class="qrChoiceBtn">Trecco QR Code</button><button id="openTripQr" class="qrChoiceBtn">Trip Advisor QR Code</button><button id="openTripAdvisorLink" class="qrChoiceBtn">Trecco Trip Advisor link</button><button id="open19AcornsQr" class="qrChoiceBtn">19 Acorns QR Code</button><button id="open19AcornsFacebook" class="qrChoiceBtn">19 Acorns Facebook</button><button id="openKaraokePoster" class="qrChoiceBtn">Karaoke with Chris &amp; Sarah</button><button id="closeQrChoice" class="qrChoiceClose">Back to App</button><div class="parkdeanDisclaimerInline">This app is an independent creation and is not associated with Parkdean</div></div></div>'''
+
+          new_html = '''<div id="qrChoiceOverlay" class="qrChoiceOverlay" aria-hidden="true"><div class="qrChoiceCard"><h2>Links</h2><div class="qrChoiceGroup qrChoiceGroup-tight"><button id="openTripQr" class="qrChoiceBtn">Trecco Bay TripAdvisor QR Code</button><button id="openTripAdvisorLink" class="qrChoiceBtn">Trecco Bay TripAdvisor Link</button></div><div class="qrChoiceGroup qrChoiceGroup-single"><button id="openPassPrices" class="qrChoiceBtn">Entertainment Pass Prices</button></div><div class="qrChoiceGroup qrChoiceGroup-rest"><button id="openNormalQr" class="qrChoiceBtn">Trecco QR Code</button><button id="open19AcornsQr" class="qrChoiceBtn">19 Acorns QR Code</button><button id="open19AcornsFacebook" class="qrChoiceBtn">19 Acorns Facebook</button><button id="openKaraokePoster" class="qrChoiceBtn">Karaoke with Chris &amp; Sarah</button></div><button id="closeQrChoice" class="qrChoiceClose">Back to App</button><div class="parkdeanDisclaimerInline">This app is an independent creation and is not associated with Parkdean</div></div></div>'''
+
+          old_css = '''.qrChoiceCard{width:min(92vw,430px);background:#fff;border-radius:24px;padding:24px 18px 18px;box-shadow:0 18px 55px rgba(0,0,0,.35);text-align:center}.qrChoiceCard h2{margin:0 0 20px;color:#062b55;font-size:28px}.qrChoiceBtn,.qrChoiceClose{width:100%;min-height:58px;margin:8px 0;border:0;border-radius:16px;font-weight:800;font-size:18px}.qrChoiceBtn{background:#ffd400;color:#062b55}.qrChoiceClose{background:#e8edf3;color:#23364b}'''
+
+          new_css = '''.qrChoiceCard{width:min(92vw,430px);background:#fff;border-radius:22px;padding:16px 14px 14px;box-shadow:0 18px 55px rgba(0,0,0,.35);text-align:center}.qrChoiceCard h2{margin:0 0 12px;color:#062b55;font-size:25px}.qrChoiceGroup{display:grid;gap:5px;margin:0 0 16px}.qrChoiceGroup-tight{margin-bottom:18px}.qrChoiceGroup-single{margin-bottom:18px}.qrChoiceGroup-rest{margin-bottom:14px}.qrChoiceBtn,.qrChoiceClose{width:100%;min-height:46px;margin:0;border:0;border-radius:14px;font-weight:800;font-size:16px;padding:8px 10px}.qrChoiceBtn{background:#ffd400;color:#062b55}.qrChoiceClose{background:#e8edf3;color:#23364b;margin-top:2px}'''
+
+          if old_html not in t:
+              raise SystemExit('Expected Links HTML block not found; refusing unsafe edit')
+          if old_css not in t:
+              raise SystemExit('Expected Links CSS block not found; refusing unsafe edit')
+
+          t = t.replace(old_html, new_html, 1).replace(old_css, new_css, 1)
+          p.write_text(t, encoding='utf-8')
+
+      - name: Commit update
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes required"
+            exit 0
+          fi
+          git commit -m "Reorder and compact Links page"
+          git pull --rebase origin main
+          git push origin HEAD:main

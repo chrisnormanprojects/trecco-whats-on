@@ -2,15 +2,25 @@ name: Update Trecco listings
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update.yml'
+      - 'scripts/validate_listings.py'
   schedule:
     - cron: "4,17,29,42,54 * * * *"
 
 permissions:
   contents: write
 
+concurrency:
+  group: trecco-listings-update
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -19,24 +29,23 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p data
+          STAGING=$(mktemp -d)
+          trap 'rm -rf "$STAGING"' EXIT
           TODAY=$(TZ=Europe/London date +%d-%m-%Y)
+          START_DATE=$(TZ=Europe/London date +%Y-%m-%d)
           FETCH_DAYS=365
 
-          curl --fail --silent --show-error --location             "https://trouper.parkdean-resorts.com/cabaret/booking-feed-web.php?park_id=11&date=${TODAY}&days=${FETCH_DAYS}"             -o data/showdome.json
+          curl --fail --silent --show-error --location --retry 3 --retry-delay 5 --connect-timeout 15 --max-time 90 \
+            "https://trouper.parkdean-resorts.com/cabaret/booking-feed-web.php?park_id=11&date=${TODAY}&days=${FETCH_DAYS}" -o "$STAGING/showdome.json"
+          curl --fail --silent --show-error --location --retry 3 --retry-delay 5 --connect-timeout 15 --max-time 90 \
+            "https://trouper.parkdean-resorts.com/cabaret/booking-feed-web.php?park_id=111&date=${TODAY}&days=${FETCH_DAYS}" -o "$STAGING/pavilion.json"
 
-          curl --fail --silent --show-error --location             "https://trouper.parkdean-resorts.com/cabaret/booking-feed-web.php?park_id=111&date=${TODAY}&days=${FETCH_DAYS}"             -o data/pavilion.json
-
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-          for p in (Path("data/showdome.json"), Path("data/pavilion.json")):
-              with p.open(encoding="utf-8") as f:
-                  data = json.load(f)
-              if not isinstance(data, dict) or data.get("status") != "OK":
-                  raise SystemExit(f"Unexpected Parkdean response in {p}")
-          PY
-
-          printf '{"updated_at":"%s","start_date":"%s","days_requested":%s}\n'             "$(TZ=Europe/London date '+%d %B %Y at %H:%M')"             "$(TZ=Europe/London date '+%Y-%m-%d')"             "${FETCH_DAYS}"             > data/meta.json
+          python3 scripts/validate_listings.py "$STAGING" "$START_DATE" "$FETCH_DAYS"
+          printf '{"updated_at":"%s","updated_at_utc":"%s","start_date":"%s","days_requested":%s}\n' \
+            "$(TZ=Europe/London date '+%d %B %Y at %H:%M')" \
+            "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$START_DATE" "$FETCH_DAYS" > "$STAGING/meta.json"
+          cp "$STAGING/"*.json data/
+          echo "Both feeds validated successfully; checked at $(date -u '+%Y-%m-%d %H:%M UTC')." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Commit refreshed data
         shell: bash

@@ -1,0 +1,50 @@
+name: Apply Trecco App QR Label
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-trecco-app-qr-label.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Update Trecco app QR label
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          t = p.read_text(encoding='utf-8')
+
+          old = '<button id="openNormalQr" class="qrChoiceBtn">Trecco QR Code</button>'
+          new = '<button id="openNormalQr" class="qrChoiceBtn"><span class="qrChoiceBtnTitle">Trecco App QR Code</span><span class="qrChoiceBtnSub">(QR code for this app)</span></button>'
+          if old not in t:
+              raise SystemExit('Expected Trecco QR button not found; refusing unsafe edit')
+          t = t.replace(old, new, 1)
+
+          css_anchor = '.qrChoiceBtn{background:#ffd400;color:#062b55}'
+          css_new = css_anchor + '.qrChoiceBtnTitle,.qrChoiceBtnSub{display:block}.qrChoiceBtnSub{font-size:11px;font-weight:700;line-height:1.15;margin-top:2px;opacity:.78}'
+          if css_anchor not in t:
+              raise SystemExit('Expected QR button CSS not found; refusing unsafe edit')
+          t = t.replace(css_anchor, css_new, 1)
+
+          p.write_text(t, encoding='utf-8')
+
+      - name: Commit update
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Clarify Trecco app QR code link"
+          git pull --rebase origin main
+          git push origin HEAD:main

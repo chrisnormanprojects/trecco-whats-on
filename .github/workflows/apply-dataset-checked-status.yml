@@ -1,0 +1,36 @@
+name: Apply Dataset Checked Status
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-dataset-checked-status.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add dataset checked time to status box
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          old = "function pageRefreshTime(){return new Date(pageLoadedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});}function setHeaderStatus(dataText,pageText,state=''){const el=$('headerUpdated');const fc=state==='error'?'bad':freshnessClass(),pc=pageFreshnessClass();el.innerHTML=`<div><span class=\"statusLight ${fc}\" aria-hidden=\"true\">●</span>Data ${dataText}</div><div><span class=\"statusLight ${pc}\" aria-hidden=\"true\">●</span>Page ${pageText}</div>`;el.className='headerUpdated'+(state?' '+state:'');}async function load(force=false){setHeaderStatus('…','refreshing');"
+          new = "function pageRefreshTime(){return new Date(pageLoadedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});}let dataCheckedAt=null;function dataCheckedTime(){return dataCheckedAt?new Date(dataCheckedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'—';}function setHeaderStatus(dataText,pageText,state=''){const el=$('headerUpdated');const fc=state==='error'?'bad':freshnessClass(),cc=state==='error'?'bad':'good',pc=pageFreshnessClass();el.innerHTML=`<div><span class=\"statusLight ${fc}\" aria-hidden=\"true\">●</span>Data ${dataText}</div><div><span class=\"statusLight ${cc}\" aria-hidden=\"true\">●</span>Checked ${dataCheckedTime()}</div><div><span class=\"statusLight ${pc}\" aria-hidden=\"true\">●</span>Page ${pageText}</div>`;el.className='headerUpdated'+(state?' '+state:'');}async function load(force=false){dataCheckedAt=Date.now();setHeaderStatus('…','refreshing');"
+          if old not in s:
+              raise SystemExit('Target status code not found; refusing to patch')
+          s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Show dataset last checked time" || exit 0
+          git push

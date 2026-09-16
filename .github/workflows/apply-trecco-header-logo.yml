@@ -1,0 +1,41 @@
+name: Apply Trecco header logo
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-trecco-header-logo.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Replace text header with responsive logo
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          s=p.read_text()
+          assert Path('Trecco-logo.jpeg').is_file(), 'Uploaded logo missing'
+          pattern=r'<h1\b[^>]*>\s*Trecco(?:\s|&nbsp;|&#39;|’|\x27|<[^>]+>)*What(?:\s|&nbsp;|&#39;|’|\x27|<[^>]+>)*s\s+On\s*</h1>'
+          matches=list(re.finditer(pattern,s,re.I))
+          if len(matches)!=1:
+              matches=list(re.finditer(r'<h1\b[^>]*>.*?</h1>',s,re.I|re.S))
+              matches=[m for m in matches if 'Trecco' in re.sub(r'<[^>]*>','',m.group()) and 'What' in m.group()]
+          assert len(matches)==1, f'Expected exactly one header heading, found {len(matches)}'
+          logo='<img src="Trecco-logo.jpeg" alt="Trecco What’s On" class="treccoHeaderLogo" width="360" height="110" decoding="async">'
+          s=s[:matches[0].start()]+logo+s[matches[0].end():]
+          css='.treccoHeaderLogo{display:block;width:clamp(130px,42vw,240px);height:auto;max-height:72px;object-fit:contain;object-position:left center}.brandTitle{display:flex;align-items:center;min-width:0}@media(max-width:390px){.treccoHeaderLogo{width:clamp(120px,39vw,175px);max-height:60px}}'
+          assert '</style>' in s
+          s=s.replace('</style>',css+'</style>',1)
+          p.write_text(s)
+          PY
+      - name: Commit only updated page
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || (git commit -m 'Display Trecco logo in page header' && git push)

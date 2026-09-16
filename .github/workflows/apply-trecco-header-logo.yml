@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Maximise Trecco logo size in index.html
+      - name: Reduce Trecco logo size by 20 percent in index.html
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -18,13 +18,11 @@ jobs:
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
           assert Path('Trecco-logo.jpeg').is_file(), 'Logo missing'
-          # Replace the previously-installed logo CSS with a much larger responsive size.
-          new_css='<style id="trecco-logo-style">.treccoHeaderLogo{display:block;width:clamp(250px,72vw,480px)!important;max-width:min(72vw,480px)!important;height:auto!important;max-height:150px!important;object-fit:contain;object-position:left center}.treccoLogoHost{display:flex!important;align-items:center!important;min-width:0!important}</style>'
+          new_css='<style id="trecco-logo-style">.treccoHeaderLogo{display:block;width:clamp(200px,57.6vw,384px)!important;max-width:min(57.6vw,384px)!important;height:auto!important;max-height:120px!important;object-fit:contain;object-position:left center}.treccoLogoHost{display:flex!important;align-items:center!important;min-width:0!important}</style>'
           s,n=re.subn(r'<style id="trecco-logo-style">.*?</style>',new_css,s,count=1,flags=re.S)
           assert n==1, f'Expected existing Trecco logo style, found {n}'
-          # Double the intrinsic dimensions as well.
-          s=s.replace("image.width=360;image.height=110;", "image.width=720;image.height=220;", 1)
-          assert 'width:clamp(250px,72vw,480px)' in s
+          s=s.replace("image.width=720;image.height=220;", "image.width=576;image.height=176;", 1)
+          assert 'width:clamp(200px,57.6vw,384px)' in s
           p.write_text(s,encoding='utf-8')
           PY
       - name: Commit updated index.html
@@ -32,4 +30,4 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git diff --cached --quiet || (git commit -m 'Double Trecco header logo size' && git push)
+          git diff --cached --quiet || (git commit -m 'Reduce Trecco header logo by 20 percent' && git push)

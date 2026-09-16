@@ -12,30 +12,38 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
-      - name: Insert responsive logo into existing brand container
+      - name: Replace existing brand heading with uploaded logo
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
-          assert Path('Trecco-logo.jpeg').is_file(), 'Uploaded logo missing'
-          assert s.count('</style>')>=1, 'Stylesheet not found'
+          assert Path('Trecco-logo.jpeg').is_file(), 'Trecco-logo.jpeg missing'
+          assert '</style>' in s, 'CSS style block missing'
+          logo='<img src="Trecco-logo.jpeg" alt="Trecco What’s On" class="treccoHeaderLogo" decoding="async">'
           if 'class="treccoHeaderLogo"' not in s:
-              pattern=r'(<(?:div|span)\b[^>]*\bclass=["\'][^"\']*\bbrandTitle\b[^"\']*["\'][^>]*>)'
-              matches=list(re.finditer(pattern,s,re.I))
-              assert len(matches)==1, f'Expected one brandTitle container, found {len(matches)}'
-              logo='<img src="Trecco-logo.jpeg" alt="Trecco What’s On" class="treccoHeaderLogo" width="360" height="110" decoding="async">'
-              s=s[:matches[0].end()]+logo+s[matches[0].end():]
-          css='.brandTitle>.treccoHeaderLogo{display:block;width:clamp(125px,42vw,240px);max-width:100%;height:auto;max-height:72px;object-fit:contain;object-position:left center}.brandTitle:has(>.treccoHeaderLogo)>:not(.treccoHeaderLogo){display:none!important}.brandTitle{min-width:0;flex:1}@media(max-width:390px){.brandTitle>.treccoHeaderLogo{width:clamp(115px,39vw,175px);max-height:60px}}'
-          if '.brandTitle>.treccoHeaderLogo{' not in s:
+              # Find the first real brand element after the stylesheet, never a CSS selector.
+              html=s.split('</style>',1)[1]
+              matches=list(re.finditer(r'<(?:div|span|a)\b[^>]*\bclass\s*=\s*["\'][^"\']*\bbrandTitle\b[^"\']*["\'][^>]*>',html,re.I))
+              if len(matches)==1:
+                  pos=s.index('</style>')+len('</style>')+matches[0].end()
+                  s=s[:pos]+logo+s[pos:]
+                  css='.brandTitle>.treccoHeaderLogo{display:block;width:clamp(125px,42vw,240px);max-width:100%;height:auto;max-height:72px;object-fit:contain;object-position:left center}.brandTitle:has(>.treccoHeaderLogo)>:not(.treccoHeaderLogo){display:none!important}'
+              else:
+                  # The actual title can be rendered by JavaScript: insert in header brand itself.
+                  matches=list(re.finditer(r'<(?:div|span|a)\b[^>]*\bclass\s*=\s*["\'][^"\']*\bbrand\b[^"\']*["\'][^>]*>',html,re.I))
+                  assert len(matches)==1, f'Cannot safely locate unique brand element: {len(matches)}'
+                  pos=s.index('</style>')+len('</style>')+matches[0].end()
+                  s=s[:pos]+logo+s[pos:]
+                  css='.brand>.treccoHeaderLogo{display:block;width:clamp(125px,42vw,240px);max-width:100%;height:auto;max-height:72px;object-fit:contain;object-position:left center}.brand:has(>.treccoHeaderLogo) h1{display:none!important}'
               s=s.replace('</style>',css+'</style>',1)
-          assert 'src="Trecco-logo.jpeg"' in s and '.brandTitle>.treccoHeaderLogo{' in s
+          assert 'src="Trecco-logo.jpeg"' in s
           p.write_text(s,encoding='utf-8')
           PY
-      - name: Commit only updated page
+      - name: Commit updated index.html
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git diff --cached --quiet || (git commit -m 'Display uploaded Trecco logo in header' && git push)
+          git diff --cached --quiet || (git commit -m 'Show Trecco logo in site header' && git push)

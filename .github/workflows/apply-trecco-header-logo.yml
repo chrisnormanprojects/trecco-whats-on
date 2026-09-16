@@ -10,21 +10,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Move eight pixels of Trecco Moves spacing from below to above
+      - name: Correct spacing between Links buttons without changing button padding
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
-          assert '</body>' in s
-          script='''<script id="trecco-moves-spacing">(function(){function adjust(){const nodes=document.querySelectorAll('a,button,[role="link"]');for(const el of nodes){if(!/trecco\\s*moves/i.test(el.textContent||''))continue;if(el.dataset.treccoMovesSpacing==='done')continue;const style=getComputedStyle(el);const top=parseFloat(style.paddingTop)||0;const bottom=parseFloat(style.paddingBottom)||0;const shift=Math.min(8,bottom);if(!shift)continue;el.style.paddingTop=(top+shift)+'px';el.style.paddingBottom=(bottom-shift)+'px';el.dataset.treccoMovesSpacing='done';}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',adjust);else adjust();new MutationObserver(adjust).observe(document.documentElement,{childList:true,subtree:true});})();</script>'''
-          if 'id="trecco-moves-spacing"' in s:
-              import re
-              s,n=re.subn(r'<script id="trecco-moves-spacing">.*?</script>',lambda _:script,s,count=1,flags=re.S)
-              assert n==1
-          else:
-              s=s.replace('</body>',script+'</body>',1)
-          assert s.count('id="trecco-moves-spacing"')==1
+          assert s.count('id="trecco-moves-spacing"')==1, 'Expected previous spacing script exactly once'
+          # Relative positioning shifts the entire button visually, transferring 8px
+          # of the gap below it to the gap above it without modifying its internal padding.
+          script='''<script id="trecco-moves-spacing">(function(){function adjust(){for(const el of document.querySelectorAll('a,button,[role="link"]')){if(!/^trecco\\s*moves$/i.test((el.textContent||'').trim()))continue;if(el.dataset.treccoMovesSpacing==='done')continue;el.style.position='relative';el.style.top='8px';el.dataset.treccoMovesSpacing='done';}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',adjust);else adjust();new MutationObserver(adjust).observe(document.documentElement,{childList:true,subtree:true});})();</script>'''
+          s,n=re.subn(r'<script id="trecco-moves-spacing">.*?</script>',lambda _:script,s,count=1,flags=re.S)
+          assert n==1 and s.count('id="trecco-moves-spacing"')==1
           p.write_text(s,encoding='utf-8')
           PY
       - name: Commit updated index.html
@@ -32,4 +30,4 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git diff --cached --quiet || (git commit -m 'Move Trecco Moves link padding above label' && git push)
+          git diff --cached --quiet || (git commit -m 'Correct spacing around Trecco Moves button' && git push)

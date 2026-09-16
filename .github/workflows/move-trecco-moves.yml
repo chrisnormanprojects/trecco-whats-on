@@ -1,0 +1,41 @@
+name: Move Trecco Moves link
+on:
+  push:
+    paths:
+      - '.github/workflows/move-trecco-moves.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  move:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Reposition Trecco Moves
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          s=p.read_text()
+          # Locate the existing Trecco Moves control without changing its URL or handler.
+          matches=list(re.finditer(r'<(?:a|button)\b[^>]*>\s*Trecco Moves\s*</(?:a|button)>',s,re.I))
+          if len(matches)!=1:
+              raise SystemExit(f'Expected exactly one Trecco Moves link, found {len(matches)}')
+          item=matches[0].group()
+          s=s[:matches[0].start()]+s[matches[0].end():]
+          target='<button id="openPassPrices" class="qrChoiceBtn">Entertainment Pass Prices</button>'
+          if s.count(target)!=1:
+              raise SystemExit('Entertainment Pass Prices button not found exactly once')
+          s=s.replace(target,target+item,1)
+          p.write_text(s)
+          print('Moved Trecco Moves immediately below Entertainment Pass Prices')
+          PY
+      - name: Commit change
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || (git commit -m 'Move Trecco Moves below pass prices' && git push)

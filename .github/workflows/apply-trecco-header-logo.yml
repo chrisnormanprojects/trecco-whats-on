@@ -10,24 +10,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Reduce Trecco logo size by 20 percent in index.html
+      - name: Install image colour sampler
+        run: python3 -m pip install --user Pillow
+      - name: Match page and header background to logo background
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          from PIL import Image
           import re
+          logo=Path('Trecco-logo.jpeg')
+          assert logo.is_file(), 'Trecco logo missing'
+          im=Image.open(logo).convert('RGB')
+          w,h=im.size
+          # Sample the logo's outermost background corners, avoiding lettering.
+          points=[(max(0,int(w*x)),max(0,int(h*y))) for x,y in [(0.01,0.01),(0.99,0.01),(0.01,0.99),(0.99,0.99)]]
+          pixels=[im.getpixel(pt) for pt in points]
+          rgb=tuple(sorted(p[i] for p in pixels)[len(pixels)//2] for i in range(3))
+          color='#%02X%02X%02X'%rgb
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
-          assert Path('Trecco-logo.jpeg').is_file(), 'Logo missing'
-          new_css='<style id="trecco-logo-style">.treccoHeaderLogo{display:block;width:clamp(200px,57.6vw,384px)!important;max-width:min(57.6vw,384px)!important;height:auto!important;max-height:120px!important;object-fit:contain;object-position:left center}.treccoLogoHost{display:flex!important;align-items:center!important;min-width:0!important}</style>'
-          s,n=re.subn(r'<style id="trecco-logo-style">.*?</style>',new_css,s,count=1,flags=re.S)
-          assert n==1, f'Expected existing Trecco logo style, found {n}'
-          s=s.replace("image.width=720;image.height=220;", "image.width=576;image.height=176;", 1)
-          assert 'width:clamp(200px,57.6vw,384px)' in s
+          assert '</head>' in s, 'HTML head missing'
+          css='<style id="trecco-logo-background-match">:root{--navy:'+color+'!important}html,body{background:'+color+'!important}header{background:'+color+'!important}</style>'
+          if 'id="trecco-logo-background-match"' in s:
+              s,n=re.subn(r'<style id="trecco-logo-background-match">.*?</style>',css,s,count=1,flags=re.S)
+              assert n==1
+          else:
+              s=s.replace('</head>',css+'</head>',1)
+          assert s.count('id="trecco-logo-background-match"')==1
           p.write_text(s,encoding='utf-8')
+          print('Logo corner samples:',pixels,'matching background:',color)
           PY
       - name: Commit updated index.html
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git diff --cached --quiet || (git commit -m 'Reduce Trecco header logo by 20 percent' && git push)
+          git diff --cached --quiet || (git commit -m 'Match site background to Trecco logo colour' && git push)

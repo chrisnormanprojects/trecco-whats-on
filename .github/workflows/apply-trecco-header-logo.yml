@@ -10,39 +10,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install image colour sampler
-        run: python3 -m pip install --user Pillow
-      - name: Match page and header background to logo background
+      - name: Move eight pixels of Trecco Moves spacing from below to above
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          from PIL import Image
-          import re
-          logo=Path('Trecco-logo.jpeg')
-          assert logo.is_file(), 'Trecco logo missing'
-          im=Image.open(logo).convert('RGB')
-          w,h=im.size
-          # Sample the logo's outermost background corners, avoiding lettering.
-          points=[(max(0,int(w*x)),max(0,int(h*y))) for x,y in [(0.01,0.01),(0.99,0.01),(0.01,0.99),(0.99,0.99)]]
-          pixels=[im.getpixel(pt) for pt in points]
-          rgb=tuple(sorted(p[i] for p in pixels)[len(pixels)//2] for i in range(3))
-          color='#%02X%02X%02X'%rgb
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
-          assert '</head>' in s, 'HTML head missing'
-          css='<style id="trecco-logo-background-match">:root{--navy:'+color+'!important}html,body{background:'+color+'!important}header{background:'+color+'!important}</style>'
-          if 'id="trecco-logo-background-match"' in s:
-              s,n=re.subn(r'<style id="trecco-logo-background-match">.*?</style>',css,s,count=1,flags=re.S)
+          assert '</body>' in s
+          script='''<script id="trecco-moves-spacing">(function(){function adjust(){const nodes=document.querySelectorAll('a,button,[role="link"]');for(const el of nodes){if(!/trecco\\s*moves/i.test(el.textContent||''))continue;if(el.dataset.treccoMovesSpacing==='done')continue;const style=getComputedStyle(el);const top=parseFloat(style.paddingTop)||0;const bottom=parseFloat(style.paddingBottom)||0;const shift=Math.min(8,bottom);if(!shift)continue;el.style.paddingTop=(top+shift)+'px';el.style.paddingBottom=(bottom-shift)+'px';el.dataset.treccoMovesSpacing='done';}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',adjust);else adjust();new MutationObserver(adjust).observe(document.documentElement,{childList:true,subtree:true});})();</script>'''
+          if 'id="trecco-moves-spacing"' in s:
+              import re
+              s,n=re.subn(r'<script id="trecco-moves-spacing">.*?</script>',lambda _:script,s,count=1,flags=re.S)
               assert n==1
           else:
-              s=s.replace('</head>',css+'</head>',1)
-          assert s.count('id="trecco-logo-background-match"')==1
+              s=s.replace('</body>',script+'</body>',1)
+          assert s.count('id="trecco-moves-spacing"')==1
           p.write_text(s,encoding='utf-8')
-          print('Logo corner samples:',pixels,'matching background:',color)
           PY
       - name: Commit updated index.html
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git diff --cached --quiet || (git commit -m 'Match site background to Trecco logo colour' && git push)
+          git diff --cached --quiet || (git commit -m 'Move Trecco Moves link padding above label' && git push)

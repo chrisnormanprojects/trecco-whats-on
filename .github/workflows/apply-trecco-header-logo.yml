@@ -10,35 +10,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: true
-      - name: Replace existing brand heading with uploaded logo
+      - name: Insert logo into actual page without brittle heading selectors
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
-          assert Path('Trecco-logo.jpeg').is_file(), 'Trecco-logo.jpeg missing'
-          assert '</style>' in s, 'CSS style block missing'
-          logo='<img src="Trecco-logo.jpeg" alt="Trecco What’s On" class="treccoHeaderLogo" decoding="async">'
-          if 'class="treccoHeaderLogo"' not in s:
-              # Find the first real brand element after the stylesheet, never a CSS selector.
-              html=s.split('</style>',1)[1]
-              matches=list(re.finditer(r'<(?:div|span|a)\b[^>]*\bclass\s*=\s*["\'][^"\']*\bbrandTitle\b[^"\']*["\'][^>]*>',html,re.I))
-              if len(matches)==1:
-                  pos=s.index('</style>')+len('</style>')+matches[0].end()
-                  s=s[:pos]+logo+s[pos:]
-                  css='.brandTitle>.treccoHeaderLogo{display:block;width:clamp(125px,42vw,240px);max-width:100%;height:auto;max-height:72px;object-fit:contain;object-position:left center}.brandTitle:has(>.treccoHeaderLogo)>:not(.treccoHeaderLogo){display:none!important}'
-              else:
-                  # The actual title can be rendered by JavaScript: insert in header brand itself.
-                  matches=list(re.finditer(r'<(?:div|span|a)\b[^>]*\bclass\s*=\s*["\'][^"\']*\bbrand\b[^"\']*["\'][^>]*>',html,re.I))
-                  assert len(matches)==1, f'Cannot safely locate unique brand element: {len(matches)}'
-                  pos=s.index('</style>')+len('</style>')+matches[0].end()
-                  s=s[:pos]+logo+s[pos:]
-                  css='.brand>.treccoHeaderLogo{display:block;width:clamp(125px,42vw,240px);max-width:100%;height:auto;max-height:72px;object-fit:contain;object-position:left center}.brand:has(>.treccoHeaderLogo) h1{display:none!important}'
-              s=s.replace('</style>',css+'</style>',1)
-          assert 'src="Trecco-logo.jpeg"' in s
+          assert Path('Trecco-logo.jpeg').is_file(), 'Logo missing'
+          assert '</head>' in s and '</body>' in s, 'HTML structure missing'
+          marker='trecco-logo-runtime-v1'
+          if marker not in s:
+              css='<style id="trecco-logo-style">.treccoHeaderLogo{display:block;width:clamp(125px,42vw,240px);max-width:100%;height:auto;max-height:75px;object-fit:contain;object-position:left center}.treccoLogoHost{display:flex!important;align-items:center!important;min-width:0!important}</style>'
+              s=s.replace('</head>',css+'</head>',1)
+              script='''<script id="trecco-logo-runtime-v1">(function(){function apply(){var header=document.querySelector('header');if(!header)return;var nodes=Array.from(header.querySelectorAll('h1,.brandTitle,.brand,[class*=brand],a,div,span'));var target=nodes.find(function(n){return n.tagName==='H1'&&/Trecco/i.test(n.textContent)&&/What/i.test(n.textContent)})||nodes.find(function(n){return n.children.length===0&&/Trecco\\s*What/i.test(n.textContent)});if(!target){target=header.querySelector('.brandTitle')||header.querySelector('.brand');}if(!target||header.querySelector('.treccoHeaderLogo'))return;var image=document.createElement('img');image.src='Trecco-logo.jpeg';image.alt='Trecco What’s On';image.className='treccoHeaderLogo';image.width=360;image.height=110;image.style.height='auto';if(target.tagName==='H1'||/Trecco/i.test(target.textContent)){target.replaceWith(image)}else{target.prepend(image);target.classList.add('treccoLogoHost');Array.from(target.children).forEach(function(child){if(child!==image&&/Trecco/i.test(child.textContent))child.style.display='none'})}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply);else apply();})();</script>'''
+              s=s.replace('</body>',script+'</body>',1)
+          assert s.count(marker)==1 and 'Trecco-logo.jpeg' in s
           p.write_text(s,encoding='utf-8')
           PY
       - name: Commit updated index.html
@@ -46,4 +32,4 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git diff --cached --quiet || (git commit -m 'Show Trecco logo in site header' && git push)
+          git diff --cached --quiet || (git commit -m 'Install responsive Trecco logo in header' && git push)

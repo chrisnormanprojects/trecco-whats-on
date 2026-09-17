@@ -12,7 +12,7 @@ def validate(path, start, days):
     groups = data.get("results")
     if not isinstance(groups, list) or len(groups) != days:
         raise ValueError(f"{path.name}: expected {days} day groups")
-    occurrences, ids = set(), set()
+    occurrences, ids = {}, {}
     count = 0
     for offset, group in enumerate(groups):
         if not isinstance(group, list):
@@ -46,11 +46,23 @@ def validate(path, start, days):
             datetime.strptime(time, "%H:%M")
             key = (expected, time, event["name"], event.get("location", ""))
             booking = str(event.get("booking_id", ""))
-            if key in occurrences or (booking and booking in ids):
-                raise ValueError(f"{path.name}: duplicate event")
-            occurrences.add(key)
+            previous = occurrences.get(key)
+            reason = "same date, time, name and location"
+            if previous is None and booking:
+                previous = ids.get(booking)
+                reason = "same booking ID"
+            if previous is not None:
+                raise ValueError(
+                    f"{path.name}: duplicate event ({reason}; "
+                    f"first_group_index={previous['group_index']}, "
+                    f"first_event={json.dumps(previous['event'], ensure_ascii=False, sort_keys=True)}, "
+                    f"duplicate_group_index={offset}, "
+                    f"duplicate_event={json.dumps(event, ensure_ascii=False, sort_keys=True)})"
+                )
+            record = {"group_index": offset, "event": event}
+            occurrences[key] = record
             if booking:
-                ids.add(booking)
+                ids[booking] = record
             count += 1
     if not count:
         raise ValueError(f"{path.name}: empty feed; retaining the previous snapshot for review")

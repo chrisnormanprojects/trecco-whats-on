@@ -1,4 +1,4 @@
-name: Apply Trecco header logo
+name: Optimise Trecco header logo
 on:
   push:
     paths:
@@ -6,28 +6,34 @@ on:
 permissions:
   contents: write
 jobs:
-  apply:
+  optimise:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Correct spacing between Links buttons without changing button padding
+      - name: Install image optimiser
+        run: python3 -m pip install Pillow
+      - name: Resize logo to maximum rendered width and optimise JPEG
         run: |
           python3 - <<'PY'
+          from PIL import Image, ImageOps
           from pathlib import Path
-          import re
-          p=Path('index.html')
-          s=p.read_text(encoding='utf-8')
-          assert s.count('id="trecco-moves-spacing"')==1, 'Expected previous spacing script exactly once'
-          # Relative positioning shifts the entire button visually, transferring 8px
-          # of the gap below it to the gap above it without modifying its internal padding.
-          script='''<script id="trecco-moves-spacing">(function(){function adjust(){for(const el of document.querySelectorAll('a,button,[role="link"]')){if(!/^trecco\\s*moves$/i.test((el.textContent||'').trim()))continue;if(el.dataset.treccoMovesSpacing==='done')continue;el.style.position='relative';el.style.top='8px';el.dataset.treccoMovesSpacing='done';}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',adjust);else adjust();new MutationObserver(adjust).observe(document.documentElement,{childList:true,subtree:true});})();</script>'''
-          s,n=re.subn(r'<script id="trecco-moves-spacing">.*?</script>',lambda _:script,s,count=1,flags=re.S)
-          assert n==1 and s.count('id="trecco-moves-spacing"')==1
-          p.write_text(s,encoding='utf-8')
+          p=Path('Trecco-logo.jpeg')
+          assert p.is_file(), 'Logo not found'
+          original_size=p.stat().st_size
+          with Image.open(p) as source:
+              image=ImageOps.exif_transpose(source).convert('RGB')
+              print('Original dimensions:', image.size, 'bytes:', original_size)
+              if image.width>384:
+                  height=round(image.height*384/image.width)
+                  image=image.resize((384,height), Image.Resampling.LANCZOS)
+              print('Optimised dimensions:', image.size)
+              image.save(p,format='JPEG',quality=82,optimize=True,progressive=True,subsampling=0)
+          print('Optimised bytes:',p.stat().st_size)
+          assert p.stat().st_size<original_size, 'Optimisation did not reduce file size'
           PY
-      - name: Commit updated index.html
+      - name: Commit optimised logo
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html
-          git diff --cached --quiet || (git commit -m 'Correct spacing around Trecco Moves button' && git push)
+          git add Trecco-logo.jpeg
+          git diff --cached --quiet || (git commit -m 'Resize and optimise Trecco logo for web' && git push)

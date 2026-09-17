@@ -1,4 +1,4 @@
-"""Validate both downloaded feeds before replacing the published snapshot."""
+"""Validate fresh Parkdean feeds and remove only identical duplicate listings."""
 import argparse
 import json
 from datetime import date, datetime, timedelta
@@ -13,11 +13,12 @@ def validate(path, start, days):
     if not isinstance(groups, list) or len(groups) != days:
         raise ValueError(f"{path.name}: expected {days} day groups")
     occurrences, ids = {}, {}
-    count = 0
+    count = removed = 0
     for offset, group in enumerate(groups):
         if not isinstance(group, list):
             raise ValueError(f"{path.name}: invalid day group {offset}")
         expected = (start + timedelta(days=offset)).isoformat()
+        unique_group = []
         for event in group:
             if not isinstance(event, dict) or not str(event.get("name", "")).strip():
                 raise ValueError(f"{path.name}: event is missing its name")
@@ -52,20 +53,40 @@ def validate(path, start, days):
                 previous = ids.get(booking)
                 reason = "same booking ID"
             if previous is not None:
+                original = previous["event"]
+                # Parkdean sometimes supplies two booking IDs for the exact same
+                # listing. Remove only when every other field is identical.
+                without_id = lambda item: {k: v for k, v in item.items() if k != "booking_id"}
+                if key == previous["key"] and without_id(event) == without_id(original):
+                    removed += 1
+                    print(
+                        f"{path.name}: removed identical duplicate "
+                        f"(date={expected}, name={event['name']!r}, "
+                        f"kept_booking_id={original.get('booking_id')!r}, "
+                        f"removed_booking_id={event.get('booking_id')!r})",
+                        flush=True,
+                    )
+                    continue
                 raise ValueError(
-                    f"{path.name}: duplicate event ({reason}; "
+                    f"{path.name}: conflicting duplicate event ({reason}; "
                     f"first_group_index={previous['group_index']}, "
-                    f"first_event={json.dumps(previous['event'], ensure_ascii=False, sort_keys=True)}, "
+                    f"first_event={json.dumps(original, ensure_ascii=False, sort_keys=True)}, "
                     f"duplicate_group_index={offset}, "
                     f"duplicate_event={json.dumps(event, ensure_ascii=False, sort_keys=True)})"
                 )
-            record = {"group_index": offset, "event": event}
+            record = {"group_index": offset, "key": key, "event": event}
             occurrences[key] = record
             if booking:
                 ids[booking] = record
+            unique_group.append(event)
             count += 1
+        groups[offset] = unique_group
     if not count:
         raise ValueError(f"{path.name}: empty feed; retaining the previous snapshot for review")
+    # The caller writes only staged feeds to data/ after BOTH venues validate.
+    if removed:
+        path.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+    print(f"{path.name}: validated {count} unique events; removed {removed} identical duplicates", flush=True)
     return count
 
 

@@ -1,0 +1,42 @@
+name: Match page backgrounds
+on:
+  push:
+    paths:
+      - '.github/workflows/unify-page-backgrounds.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Match QR, weather and search backgrounds
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          html = p.read_text()
+          marker = '<style id="unified-page-backgrounds">'
+          css = '''<style id="unified-page-backgrounds">html,body{background:#000834!important}body.weatherMode,body.searchMode,#weatherView{background:#000834!important}.qrOverlay{background:#000834!important}#searchModal{background:#000834!important}#searchModal .searchSheet{background:#000834!important;border-color:rgba(255,212,0,.55)!important}#searchModal .searchModalTop{background:#000834!important}#searchModal .searchModalTop h2{color:#ffd42a!important}#searchModal .searchAssistTitle{color:#10223a!important}</style>'''
+          if marker in html:
+              import re
+              html, count = re.subn(r'<style id="unified-page-backgrounds">.*?</style>', css, html, count=1, flags=re.S)
+              assert count == 1
+          else:
+              assert '</head>' in html
+              html = html.replace('</head>', css + '</head>', 1)
+          assert html.count(marker) == 1
+          assert '<div class="qrOverlay"' in html and 'id="weatherView"' in html and 'id="searchModal"' in html
+          p.write_text(html)
+          print('Unified QR, weather and search page backgrounds with main page (#000834).')
+          PY
+      - name: Commit updated index
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          if git diff --cached --quiet; then echo 'Already up to date'; exit 0; fi
+          git commit -m 'Use main page background on QR weather and search views'
+          git pull --rebase origin main
+          git push origin HEAD:main

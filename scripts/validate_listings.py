@@ -22,11 +22,20 @@ def validate(path, start, days):
             if not isinstance(event, dict) or not str(event.get("name", "")).strip():
                 raise ValueError(f"{path.name}: event is missing its name")
             actual_datetime = event.get("datetime")
-            expected_datetime = expected + " 00:00"
-            if actual_datetime != expected_datetime:
+            try:
+                actual_date = datetime.strptime(actual_datetime, "%Y-%m-%d %H:%M").date().isoformat()
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"{path.name}: invalid event datetime "
+                    f"(group_index={offset}, expected_date={expected!r}, "
+                    f"actual_datetime={actual_datetime!r}, event_name={event['name']!r}, "
+                    f"booking_id={event.get('booking_id')!r}, "
+                    f"event_time={event.get('time')!r}, location={event.get('location')!r})"
+                ) from None
+            if actual_date != expected:
                 raise ValueError(
                     f"{path.name}: event is in the wrong date group "
-                    f"(group_index={offset}, expected_datetime={expected_datetime!r}, "
+                    f"(group_index={offset}, expected_date={expected!r}, "
                     f"actual_datetime={actual_datetime!r}, "
                     f"event_name={event['name']!r}, booking_id={event.get('booking_id')!r}, "
                     f"event_time={event.get('time')!r}, location={event.get('location')!r})"

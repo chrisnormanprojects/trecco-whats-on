@@ -1,0 +1,51 @@
+name: Match Trecco app QR background to image
+on:
+  push:
+    paths:
+      - '.github/workflows/match-trecco-qr-background.yml'
+permissions:
+  contents: write
+jobs:
+  match-qr-background:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Pillow
+        run: python3 -m pip install Pillow
+      - name: Sample QR image background and update only Trecco QR overlay
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          image_path = Path('trecco-qr-code.jpeg')
+          page_path = Path('index.html')
+          assert image_path.is_file(), 'Trecco QR image not found'
+          assert page_path.is_file(), 'index.html not found'
+          with Image.open(image_path) as source:
+              image = source.convert('RGB')
+              w, h = image.size
+              # Sample the flat blue image margin, away from JPEG edge artefacts.
+              points = [(max(2, w // 50), max(2, h // 50)),
+                        (w - max(3, w // 50) - 1, max(2, h // 50)),
+                        (max(2, w // 50), h - max(3, h // 50) - 1),
+                        (w - max(3, w // 50) - 1, h - max(3, h // 50) - 1)]
+              samples = [image.getpixel(point) for point in points]
+          spread = max(max(rgb[channel] for rgb in samples) - min(rgb[channel] for rgb in samples) for channel in range(3))
+          assert spread <= 18, f'QR image corners differ; refusing to guess background colour: {samples}'
+          rgb = tuple(sorted(sample[channel] for sample in samples)[len(samples)//2] for channel in range(3))
+          colour = '#%02X%02X%02X' % rgb
+          page = page_path.read_text(encoding='utf-8')
+          import re
+          pattern = r'(\.qrOverlay\{[^}]*?background:)#[0-9a-fA-F]{6}(;cursor:pointer\})'
+          changed, count = re.subn(pattern, lambda match: match.group(1) + colour + match.group(2), page, count=1)
+          assert count == 1, 'Expected exactly one Trecco QR overlay background rule'
+          page_path.write_text(changed, encoding='utf-8')
+          print('Trecco QR image corner samples:', samples)
+          print('Trecco QR overlay background:', colour)
+          PY
+      - name: Commit matched background
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || (git commit -m 'Match Trecco QR overlay blue to image background' && git push)

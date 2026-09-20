@@ -1,0 +1,45 @@
+name: Remove quick searches from search screen
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/remove-quick-searches.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  remove-quick-searches:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove quick searches without affecting recent searches
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          old = '<div class="searchAssistTitle">Quick searches</div><div class="searchChips" id="quickSearchChips"></div>'
+          assert s.count(old) == 1, 'Expected exactly one quick searches section'
+          s = s.replace(old, '', 1)
+          old_guard = 'if(!q||!h)return;'
+          assert s.count(old_guard) == 1, 'Expected exactly one search-assist guard'
+          s = s.replace(old_guard, 'if(!h)return;', 1)
+          old_render = 'q.innerHTML=QUICK_SEARCHES.map('
+          assert s.count(old_render) == 1, 'Expected exactly one quick-search renderer'
+          s = s.replace(old_render, 'if(q)q.innerHTML=QUICK_SEARCHES.map(', 1)
+          p.write_text(s)
+          print('Removed quick-search heading and chips; recent search history remains functional.')
+          PY
+      - name: Commit and push
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Remove quick searches from search page'
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main && exit 0
+            sleep $((attempt * 3))
+          done
+          exit 1

@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Force cancel and delete Cleanup Old Workflow Runs #3
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const { owner, repo } = context.repo;

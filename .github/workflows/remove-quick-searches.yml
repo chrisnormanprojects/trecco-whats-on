@@ -10,7 +10,7 @@ jobs:
   remove-quick-searches:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Remove quick searches without affecting recent searches
         run: |
           python3 - <<'PY'

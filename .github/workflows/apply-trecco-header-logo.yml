@@ -9,7 +9,7 @@ jobs:
   optimise:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install image optimiser
         run: python3 -m pip install Pillow
       - name: Resize logo to maximum rendered width and optimise JPEG

@@ -35,7 +35,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
 }
 .stationTop{
   max-width:900px;margin:auto;display:grid;
-  grid-template-columns:58px minmax(0,1fr) auto;align-items:center;gap:10px;
+  grid-template-columns:58px minmax(0,1fr);align-items:center;gap:10px;
 }
 .stnBadge{
   display:flex;align-items:center;justify-content:center;
@@ -69,6 +69,10 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
 }
 .updated.error{color:#ff8b90}
 .board{max-width:900px;margin:0 auto;padding:0 9px}
+.boardHint{
+  padding:7px 4px 5px;color:#65727a;text-align:right;
+  font:800 10px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
 .notice{
   margin:10px 0;border:1px solid #51431e;background:#17130a;color:#ffd96d;
   border-radius:10px;padding:9px 10px;font:700 12px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -236,7 +240,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   .stationGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media (max-width:365px){
-  .stationTop{grid-template-columns:52px minmax(0,1fr) 82px;gap:7px}
+  .stationTop{grid-template-columns:52px minmax(0,1fr);gap:7px}
   .stnBadge{height:42px;font-size:14px}
   .stationCodeLine{font-size:20px}.clock{font-size:16px}
   .time,.dest{font-size:20px}.statusLine{font-size:18px}
@@ -256,16 +260,14 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
         <span class="stationCodeLine"><span id="stationCode">NBE DEPT</span><span class="chevron">▼</span></span>
         <span id="stationFullName" class="stationFullName">Newbridge · tap to choose station</span>
       </span>
-      <span class="clockBlock">
-        <span id="clock" class="clock">--:--:--</span>
-        <span id="updated" class="updated">Loading…</span>
-      </span>
+
     </div>
   </button>
 </header>
 
 <main>
   <div class="board">
+    <div class="boardHint">Tap a train to show stops</div>
     <div id="notice" class="notice" hidden></div>
     <div id="services" aria-live="polite">
       <div class="loading"><span class="spinner"></span>Loading departures…</div>
@@ -401,13 +403,17 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   }
 
   function updateClock(){
-    el('clock').textContent = new Intl.DateTimeFormat('en-GB',{
+    var clockEl=el('clock');
+    if(!clockEl) return;
+    clockEl.textContent = new Intl.DateTimeFormat('en-GB',{
       timeZone:'Europe/London',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
     }).format(new Date());
   }
   function setUpdated(text,isError){
-    el('updated').textContent=text;
-    el('updated').classList.toggle('error',!!isError);
+    var updatedEl=el('updated');
+    if(!updatedEl) return;
+    updatedEl.textContent=text;
+    updatedEl.classList.toggle('error',!!isError);
   }
   function updateHeader(){
     var s=currentStation();
@@ -493,7 +499,6 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
           '<span class="routeLine"><span class="time">'+esc(s.std||'--:--')+'</span><span class="dest">'+esc(destination(s))+'</span></span>'+
           '<span class="statusLine"><span class="platformText">Plat '+esc(s.platform||'-')+'</span><span class="status '+status.cls+'">'+esc(status.label)+'</span></span>'+
           tickerMarkup+
-          '<span class="expandHint">Tap train for full calling points</span>'+
         '</button>'+
         '<div class="expandedPanel" id="expanded-'+index+'">'+expandedContent+'</div>'+
       '</article>';
@@ -637,8 +642,6 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   window.addEventListener('resize',prepareTickers);
 
   updateHeader();
-  updateClock();
-  setInterval(updateClock,1000);
   loadDepartures(false);
   setInterval(function(){loadDepartures(false);},REFRESH_MS);
   document.addEventListener('visibilitychange',function(){

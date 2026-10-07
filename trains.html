@@ -115,6 +115,18 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .status.delay{color:var(--yellow)}
 .status.cancelled{color:var(--red)}
 .status.other{color:#fff}
+.serviceTypeLine{
+  display:flex;align-items:baseline;gap:8px;margin-top:5px;
+  font-size:clamp(15px,4.3vw,20px);font-weight:950;line-height:1.05;white-space:nowrap;
+}
+.serviceKind{color:var(--yellow)}
+.replacementText{color:var(--cyan)}
+.dayDivider{
+  margin:8px 0 0;padding:7px 4px 6px;border-top:1px solid #44505a;border-bottom:1px solid #252b30;
+  color:var(--yellow);text-align:center;text-transform:uppercase;letter-spacing:.06em;
+  font:900 10px/1.15 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:#090b0d;
+}
 .tickerLine{
   display:flex;align-items:center;min-width:0;margin-top:7px;
   color:var(--cyan);font-size:13px;font-weight:900;line-height:1.2;
@@ -264,6 +276,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   .clockBlock{right:10px;top:4px;min-width:82px}
   .clock{font-size:16px}
   .time,.dest{font-size:20px}.statusLine{font-size:18px}
+  .serviceTypeLine{font-size:14px;gap:5px}
   .tickerLine{font-size:11px}
 }
 @media (prefers-reduced-motion:reduce){
@@ -378,6 +391,27 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     }).format(d);
   }
 
+  function ukDateKey(value){
+    if(!value) return '';
+    var d=new Date(value);
+    if(Number.isNaN(d.getTime())) return '';
+    var parts=new Intl.DateTimeFormat('en-GB',{
+      timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit'
+    }).formatToParts(d);
+    var out={};
+    parts.forEach(function(p){out[p.type]=p.value;});
+    return (out.year||'')+'-'+(out.month||'')+'-'+(out.day||'');
+  }
+
+  function ukDateLabel(value){
+    if(!value) return '';
+    var d=new Date(value);
+    if(Number.isNaN(d.getTime())) return '';
+    return new Intl.DateTimeFormat('en-GB',{
+      timeZone:'Europe/London',weekday:'long',day:'numeric',month:'long'
+    }).format(d);
+  }
+
   function estimateLabel(time){
     var e=time && time.estimate ? time.estimate : {type:'no_information'};
     if(e.type==='cancelled') return 'Cancelled';
@@ -417,6 +451,10 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     var points=Array.isArray(d.calling_points)?d.calling_points.map(normalizePoint):[];
     return {
       std:clockIso(dep.scheduled),
+      scheduledIso:dep.scheduled || '',
+      dateKey:ukDateKey(dep.scheduled),
+      dateLabel:ukDateLabel(dep.scheduled),
+      serviceClass:d.service_class || 'passenger',
       destination:[{
         locationName:(d.destination && d.destination.name) || 'Destination unavailable',
         crs:(d.destination && d.destination.crs) || ''
@@ -455,6 +493,12 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     if(!etd || /^null$/i.test(etd)) return {label:'—',cls:'other'};
     return {label:etd,cls:'delay'};
   }
+  function serviceTypeInfo(s){
+    var cls=String(s.serviceClass||'passenger').toLowerCase();
+    if(cls==='bus') return {isReplacement:true,label:'BUS',description:'Rail replacement'};
+    return {isReplacement:false,label:'',description:''};
+  }
+
   function destination(s){
     return (s.destination && s.destination[0] && (s.destination[0].locationName || s.destination[0].crs)) || 'Destination unavailable';
   }
@@ -501,10 +545,12 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
       el('services').innerHTML='<div class="empty"><strong>No departures returned</strong>There may be no trains in the current live-board window.</div>';
       return;
     }
+    var previousDateKey='';
     el('services').innerHTML=services.map(function(s,index){
       var key=serviceKey(s,index);
       var open=expandedIds.has(key);
       var status=statusInfo(s);
+      var typeInfo=serviceTypeInfo(s);
       var points=getCallingPoints(s);
       var ticker=tickerText(points);
       var duration=Math.max(16,Math.min(42,Math.round(ticker.length*0.23)));
@@ -517,11 +563,31 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
           '</span>'+
         '</span>'+
       '</div>';
+
+      var divider='';
+      if(index>0 && s.dateKey && previousDateKey && s.dateKey!==previousDateKey){
+        divider='<div class="dayDivider">Next day · '+esc(s.dateLabel||s.dateKey)+'</div>';
+      }
+      if(s.dateKey) previousDateKey=s.dateKey;
+
+      var statusMarkup;
+      if(typeInfo.isReplacement){
+        statusMarkup='<span class="serviceTypeLine">'+
+          '<span class="serviceKind">'+esc(typeInfo.label)+'</span>'+
+          '<span class="replacementText">· '+esc(typeInfo.description)+' ·</span>'+
+          '<span class="status '+status.cls+'">'+esc(status.label)+'</span>'+
+        '</span>';
+      }else{
+        statusMarkup='<span class="statusLine"><span class="platformText">Plat '+esc(s.platform||'-')+'</span><span class="status '+status.cls+'">'+esc(status.label)+'</span></span>';
+      }
+
       var expandedContent=open?expandedHtml(points):'';
-      return '<article class="service '+(open?'open':'')+'" data-index="'+index+'" data-key="'+esc(key)+'">'+
-        '<button class="serviceMain" type="button" aria-expanded="'+(open?'true':'false')+'" aria-label="'+esc((s.std||'')+' to '+destination(s)+'. '+status.label+'. Tap for calling points.')+'">'+
+      var ariaType=typeInfo.isReplacement?'Rail replacement bus. ':'';
+      return divider+
+        '<article class="service '+(open?'open':'')+'" data-index="'+index+'" data-key="'+esc(key)+'">'+
+        '<button class="serviceMain" type="button" aria-expanded="'+(open?'true':'false')+'" aria-label="'+esc((s.std||'')+' to '+destination(s)+'. '+ariaType+status.label+'. Tap for calling points.')+'">'+
           '<span class="routeLine"><span class="time">'+esc(s.std||'--:--')+'</span><span class="dest">'+esc(destination(s))+'</span></span>'+
-          '<span class="statusLine"><span class="platformText">Plat '+esc(s.platform||'-')+'</span><span class="status '+status.cls+'">'+esc(status.label)+'</span></span>'+
+          statusMarkup+
           tickerMarkup+
         '</button>'+
         '<div class="expandedPanel" id="expanded-'+index+'">'+expandedContent+'</div>'+

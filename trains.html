@@ -35,7 +35,14 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
 }
 .stationTop{
   max-width:900px;margin:auto;display:grid;
-  grid-template-columns:58px minmax(0,1fr) auto;align-items:center;gap:10px;
+  grid-template-columns:auto 58px minmax(0,1fr) auto;align-items:center;gap:8px;
+}
+.treccoBack{
+  display:flex;align-items:center;justify-content:center;
+  min-height:40px;padding:0 9px;border:1px solid #36506b;border-radius:8px;
+  background:#101923;color:#fff;text-decoration:none;
+  font:850 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  white-space:nowrap;
 }
 .stnBadge{
   display:flex;align-items:center;justify-content:center;
@@ -244,7 +251,8 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   .stationGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
 @media (max-width:365px){
-  .stationTop{grid-template-columns:52px minmax(0,1fr) 82px;gap:7px}
+  .stationTop{grid-template-columns:auto 52px minmax(0,1fr) 82px;gap:5px}
+  .treccoBack{min-height:38px;padding:0 7px;font-size:11px}
   .stnBadge{height:42px;font-size:14px}
   .stationCodeLine{font-size:20px}.clock{font-size:16px}
   .time,.dest{font-size:20px}.statusLine{font-size:18px}
@@ -259,6 +267,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
 <header class="top">
   <button id="stationButton" class="stationButton" type="button" aria-haspopup="dialog" aria-controls="stationSheet">
     <div class="stationTop">
+      <a class="treccoBack" href="index.html" aria-label="Back to Trecco What's On">← Trecco</a>
       <span class="stnBadge">STN</span>
       <span class="stationIdentity">
         <span class="stationCodeLine"><span id="stationCode">NBE DEPT</span><span class="chevron">▼</span></span>
@@ -282,7 +291,6 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   </div>
   <div class="actions">
     <button id="refreshButton" class="action" type="button">↻ Refresh</button>
-    <a class="action homeLink" href="index.html">Back</a>
   </div>
 </main>
 

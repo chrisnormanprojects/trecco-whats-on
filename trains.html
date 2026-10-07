@@ -273,7 +273,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   </div>
   <div class="actions">
     <button id="refreshButton" class="action" type="button">↻ Refresh</button>
-    <button id="tokenButton" class="action" type="button">Data key</button>
+    <a class="action homeLink" href="trains-1.0.html">Trains 1.0</a>
     <a class="action homeLink" href="index.html">Back</a>
   </div>
 </main>
@@ -292,29 +292,9 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   </div>
 </div>
 
-<div id="tokenSheet" class="sheetBackdrop" role="dialog" aria-modal="true" aria-labelledby="tokenSheetTitle">
-  <div class="sheet">
-    <div class="sheetHandle"></div>
-    <div class="sheetHeader">
-      <div class="sheetHeaderText">
-        <h2 id="tokenSheetTitle">LIVE DATA KEY</h2>
-        <p>Stored only on this device.</p>
-      </div>
-      <button id="closeToken" class="closeBtn" type="button" aria-label="Close data key settings">×</button>
-    </div>
-    <div class="tokenHelp">Huxley now expects a National Rail / Darwin access token for live departure requests. Paste it here; it is kept in this browser only and is not saved to the public GitHub repository.</div>
-    <input id="tokenInput" class="tokenInput" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Paste access token">
-    <div class="tokenButtons">
-      <button id="clearToken" type="button">Clear key</button>
-      <button id="saveToken" class="saveToken" type="button">Save &amp; retry</button>
-    </div>
-    <div id="tokenState" class="tokenState"></div>
-  </div>
-</div>
-
 <script>
 (function(){
-  var API = 'https://huxley2.azurewebsites.net';
+  var API = 'https://api.traini.ac/v1';
   var BOARD_ROWS = 50;
   var REFRESH_MS = 60000;
   var STATIONS = [
@@ -333,10 +313,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   ];
   var STORAGE_KEY = 'trecco-trains-station-v3';
   var OLD_STORAGE_KEY = 'trecco-trains-station-v1';
-  var CACHE_PREFIX = 'trecco-trains-cache-v2-';
-  var TOKEN_KEY = 'trecco-trains-huxley-token-v1';
-  var accessToken = localStorage.getItem(TOKEN_KEY) || '';
-  var detailCache = new Map();
+  var CACHE_PREFIX = 'trecco-trains-trainiac-cache-v1-';
   var expandedIds = new Set();
   var services = [];
   var lastUpdatedAt = null;
@@ -360,20 +337,67 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
 
   function currentStation(){ return stationByCode(currentCRS); }
 
-  function withToken(url){
-    if(!accessToken) return url;
-    return url+(url.indexOf('?')>=0?'&':'?')+'accessToken='+encodeURIComponent(accessToken);
+  function clockIso(value){
+    if(!value) return '--:--';
+    var d=new Date(value);
+    if(Number.isNaN(d.getTime())) return String(value).slice(11,16) || '--:--';
+    return new Intl.DateTimeFormat('en-GB',{
+      timeZone:'Europe/London',hour:'2-digit',minute:'2-digit',hour12:false
+    }).format(d);
   }
-  function openTokenSheet(){
-    el('tokenInput').value=accessToken;
-    el('tokenState').textContent=accessToken?'A data key is saved on this device.':'No data key is saved on this device.';
-    el('tokenSheet').classList.add('open');
-    document.body.style.overflow='hidden';
-    setTimeout(function(){el('tokenInput').focus();},100);
+
+  function estimateLabel(time){
+    var e=time && time.estimate ? time.estimate : {type:'no_information'};
+    if(e.type==='cancelled') return 'Cancelled';
+    if(e.type==='delayed_no_estimate') return 'Delayed';
+    if(e.type==='actual' || e.type==='forecast'){
+      if(typeof time.delay_minutes==='number' && time.delay_minutes>0) return clockIso(e.at);
+      return 'On time';
+    }
+    return 'No info';
   }
-  function closeTokenSheet(){
-    el('tokenSheet').classList.remove('open');
-    document.body.style.overflow='';
+
+  function platformNumber(platform){
+    return platform && platform.type==='known' && platform.number ? String(platform.number) : '-';
+  }
+
+  function normalizePoint(cp){
+    var t=cp && cp.time ? cp.time : {};
+    var e=t.estimate || {type:'no_information'};
+    var expected='';
+    if(e.type==='cancelled') expected='Cancelled';
+    else if(e.type==='delayed_no_estimate') expected='Delayed';
+    else if((e.type==='actual' || e.type==='forecast') && typeof t.delay_minutes==='number' && t.delay_minutes>0) expected=clockIso(e.at);
+    return {
+      locationName:(cp && cp.station && cp.station.name) || 'Station',
+      crs:(cp && cp.station && cp.station.crs) || '',
+      st:clockIso(t.scheduled),
+      et:expected,
+      isCancelled:e.type==='cancelled'
+    };
+  }
+
+  function normalizeDeparture(d,index){
+    var dep=d.departs || {};
+    var estimate=dep.estimate || {type:'no_information'};
+    var train=d.train || {};
+    var id=train.id || train.uid || [train.headcode||'train',dep.scheduled||'',index].join('-');
+    var points=Array.isArray(d.calling_points)?d.calling_points.map(normalizePoint):[];
+    return {
+      std:clockIso(dep.scheduled),
+      destination:[{
+        locationName:(d.destination && d.destination.name) || 'Destination unavailable',
+        crs:(d.destination && d.destination.crs) || ''
+      }],
+      platform:platformNumber(d.platform),
+      etd:estimateLabel(dep),
+      isCancelled:estimate.type==='cancelled',
+      serviceID:id,
+      serviceIdUrlSafe:encodeURIComponent(id),
+      subsequentCallingPoints:[{callingPoint:points}],
+      operator:train.operator || null,
+      headcode:train.headcode || ''
+    };
   }
 
   function updateClock(){
@@ -396,6 +420,8 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     var etd=String(s.etd||'').trim();
     if(s.isCancelled || /cancel/i.test(etd)) return {label:'CANC',cls:'cancelled'};
     if(/^on time$/i.test(etd)) return {label:'On time',cls:'ontime'};
+    if(/^no info$/i.test(etd)) return {label:'No info',cls:'other'};
+    if(/^delayed$/i.test(etd)) return {label:'Delayed',cls:'delay'};
     if(!etd || /^null$/i.test(etd)) return {label:'—',cls:'other'};
     return {label:etd,cls:'delay'};
   }
@@ -403,13 +429,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     return (s.destination && s.destination[0] && (s.destination[0].locationName || s.destination[0].crs)) || 'Destination unavailable';
   }
   function serviceKey(s,index){
-    return s.serviceIdUrlSafe || s.serviceIdPercentEncoded || s.serviceID || ((s.std||'')+'-'+destination(s)+'-'+index);
-  }
-  function servicePathId(s){
-    if(s.serviceIdUrlSafe) return s.serviceIdUrlSafe;
-    if(s.serviceIdPercentEncoded) return s.serviceIdPercentEncoded;
-    if(s.serviceID) return encodeURIComponent(s.serviceID);
-    return '';
+    return s.serviceIdUrlSafe || s.serviceID || ((s.std||'')+'-'+destination(s)+'-'+index);
   }
   function getCallingPoints(obj){
     var groups = obj && obj.subsequentCallingPoints;
@@ -418,15 +438,11 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   }
   function pointName(cp){ return cp.locationName || cp.crs || 'Station'; }
   function tickerText(points){
-    if(!points.length) return 'Loading calling points…';
+    if(!points.length) return 'No onward calling points';
     return points.map(pointName).join('  •  ');
   }
-  function pointTime(cp){
-    return cp.st || cp.sta || cp.std || '--:--';
-  }
-  function pointExpected(cp){
-    return cp.et || cp.eta || cp.etd || '';
-  }
+  function pointTime(cp){ return cp.st || cp.sta || cp.std || '--:--'; }
+  function pointExpected(cp){ return cp.et || cp.eta || cp.etd || ''; }
 
   function expandedHtml(points){
     if(!points || !points.length){
@@ -460,7 +476,6 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
       var open=expandedIds.has(key);
       var status=statusInfo(s);
       var points=getCallingPoints(s);
-      if(!points.length && detailCache.has(key)) points=getCallingPoints(detailCache.get(key));
       var ticker=tickerText(points);
       var duration=Math.max(16,Math.min(42,Math.round(ticker.length*0.23)));
       var tickerMarkup='<div class="tickerLine">'+
@@ -472,11 +487,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
           '</span>'+
         '</span>'+
       '</div>';
-      var expandedContent='';
-      if(open){
-        if(points.length) expandedContent=expandedHtml(points);
-        else expandedContent='<div class="inlineLoading"><span class="spinner"></span>Loading calling points…</div>';
-      }
+      var expandedContent=open?expandedHtml(points):'';
       return '<article class="service '+(open?'open':'')+'" data-index="'+index+'" data-key="'+esc(key)+'">'+
         '<button class="serviceMain" type="button" aria-expanded="'+(open?'true':'false')+'" aria-label="'+esc((s.std||'')+' to '+destination(s)+'. '+status.label+'. Tap for calling points.')+'">'+
           '<span class="routeLine"><span class="time">'+esc(s.std||'--:--')+'</span><span class="dest">'+esc(destination(s))+'</span></span>'+
@@ -496,12 +507,11 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
       var viewport=track.parentElement;
       var first=track.querySelector('.tickerGroup');
       if(!viewport || !first) return;
+      var duplicate=track.querySelectorAll('.tickerGroup')[1];
+      if(duplicate) duplicate.style.display='';
       var shouldScroll=first.scrollWidth > viewport.clientWidth-8;
       track.classList.toggle('scrolling',shouldScroll);
-      if(!shouldScroll){
-        var duplicate=track.querySelectorAll('.tickerGroup')[1];
-        if(duplicate) duplicate.style.display='none';
-      }
+      if(!shouldScroll && duplicate) duplicate.style.display='none';
     });
   }
 
@@ -529,107 +539,42 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     setUpdated('Updating…',false);
     showNotice('');
     try{
-      // First use the exact request pattern proven on the working CYD:
-      // /departures/{CRS}/5?expand=true&accessToken=...
-      var provenUrl=withToken(API+'/departures/'+encodeURIComponent(currentCRS)+'/5?expand=true');
-      var response=await fetch(provenUrl,{cache:'no-store'});
-      if(!response.ok){
-        var errorBody='';
-        try{ errorBody=(await response.text()).trim(); }catch(_){}
-        throw new Error('HTTP '+response.status+(errorBody?' · '+errorBody.slice(0,180):''));
+      var url=API+'/departures/'+encodeURIComponent(currentCRS)+'?limit='+BOARD_ROWS;
+      var response=await fetch(url,{cache:'no-store'});
+      var body=await response.json().catch(function(){return null;});
+      if(!response.ok || !body || body.type!=='ok'){
+        var msg=body && body.error && body.error.message ? body.error.message : 'HTTP '+response.status;
+        throw new Error(msg);
       }
 
-      var data=await response.json();
-      services=Array.isArray(data.trainServices)?data.trainServices:[];
-      lastUpdatedAt=new Date(data.generatedAt||Date.now());
-      saveCache(data);
+      var raw=Array.isArray(body.data)?body.data:[];
+      services=raw
+        .filter(function(d){return d && d.advertised!==false;})
+        .map(normalizeDeparture);
+
+      lastUpdatedAt=new Date(body.generated_at||Date.now());
+      var normalized={generatedAt:lastUpdatedAt.toISOString(),trainServices:services};
+      saveCache(normalized);
       renderServices();
-      hydrateCallingPoints();
-      setUpdated('Updated '+lastUpdatedAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),false);
-
-      // Once the known-good five-row request succeeds, try to extend the
-      // phone board. If this larger request fails we deliberately keep
-      // the five live departures already on screen.
-      if(BOARD_ROWS>5){
-        try{
-          var extendedUrl=withToken(API+'/departures/'+encodeURIComponent(currentCRS)+'/'+BOARD_ROWS+'?expand=true');
-          var extendedResponse=await fetch(extendedUrl,{cache:'no-store'});
-          if(extendedResponse.ok){
-            var extendedData=await extendedResponse.json();
-            var extendedServices=Array.isArray(extendedData.trainServices)?extendedData.trainServices:[];
-            if(extendedServices.length>=services.length){
-              services=extendedServices;
-              lastUpdatedAt=new Date(extendedData.generatedAt||Date.now());
-              saveCache(extendedData);
-              renderServices();
-              hydrateCallingPoints();
-              setUpdated('Updated '+lastUpdatedAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),false);
-            }
-          }
-        }catch(_){
-          // Keep the successfully loaded five-row CYD-compatible board.
-        }
-      }
+      setUpdated('Trainiac · '+lastUpdatedAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),false);
     }catch(err){
       var cached=loadCache();
       if(cached){
         services=cached.data.trainServices||[];
         renderServices();
-        hydrateCallingPoints();
         var t=new Date(cached.savedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
         setUpdated('Cached '+t,true);
-        showNotice('Live train data is temporarily unavailable. Showing the most recently saved departures for this station.',true);
+        showNotice('Trainiac is temporarily unavailable. Showing the most recently saved departures for this station. Use Trains 1.0 below for the Huxley fallback.',true);
       }else{
         services=[];
         renderServices();
-        setUpdated('Live data unavailable',true);
-        showNotice((!accessToken?'The public Huxley live-departure feed is currently failing. Tap Data key to add your National Rail/Darwin access token. ':'Live railway request failed. ')+(err && err.message ? err.message : 'Unknown network error')+'.',true);
+        setUpdated('Trainiac unavailable',true);
+        showNotice('Trainiac live data could not be reached. '+(err && err.message ? err.message : 'Unknown network error')+'. You can use Trains 1.0 below as the working Huxley fallback.',true);
       }
     }finally{
       refreshing=false;
-      el('refreshButton').textContent='↻ Refresh trains';
+      el('refreshButton').textContent='↻ Refresh';
     }
-  }
-
-  async function hydrateCallingPoints(){
-    var queue=services.map(function(s,index){return {s:s,index:index,key:serviceKey(s,index)};})
-      .filter(function(item){return !getCallingPoints(item.s).length && !detailCache.has(item.key) && servicePathId(item.s);});
-    var cursor=0;
-    var workerCount=Math.min(5,queue.length);
-    async function worker(){
-      while(cursor<queue.length){
-        var item=queue[cursor++];
-        var id=servicePathId(item.s);
-        try{
-          var response=await fetch(withToken(API+'/service/'+id),{cache:'no-store'});
-          if(!response.ok) continue;
-          var detail=await response.json();
-          detailCache.set(item.key,detail);
-          updateServiceCallingPoints(item.index,item.key,detail);
-        }catch(_){}
-      }
-    }
-    var workers=[];
-    for(var i=0;i<workerCount;i++) workers.push(worker());
-    await Promise.all(workers);
-  }
-
-  function updateServiceCallingPoints(index,key,detail){
-    var article=document.querySelector('.service[data-index="'+index+'"]');
-    if(!article || article.dataset.key!==key) return;
-    var points=getCallingPoints(detail);
-    var ticker=tickerText(points);
-    var duration=Math.max(16,Math.min(42,Math.round(ticker.length*0.23)));
-    var track=article.querySelector('.tickerTrack');
-    if(track){
-      track.style.setProperty('--ticker-duration',duration+'s');
-      track.innerHTML='<span class="tickerGroup">'+esc(ticker)+'</span><span class="tickerGroup" aria-hidden="true">'+esc(ticker)+'</span>';
-    }
-    if(article.classList.contains('open')){
-      var panel=article.querySelector('.expandedPanel');
-      if(panel) panel.innerHTML=expandedHtml(points);
-    }
-    requestAnimationFrame(prepareTickers);
   }
 
   function renderStationChoices(){
@@ -650,27 +595,6 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     document.body.style.overflow='';
   }
 
-  async function loadDetail(index,key){
-    var s=services[index];
-    if(!s) return;
-    var id=servicePathId(s);
-    if(!id){
-      var panel=el('expanded-'+index);
-      if(panel) panel.innerHTML='<div class="inlineLoading">This departure did not include a service identifier.</div>';
-      return;
-    }
-    try{
-      var response=await fetch(API+'/service/'+id,{cache:'no-store'});
-      if(!response.ok) throw new Error('Service detail returned '+response.status);
-      var detail=await response.json();
-      detailCache.set(key,detail);
-      if(expandedIds.has(key)) renderServices();
-    }catch(err){
-      var panel=el('expanded-'+index);
-      if(panel) panel.innerHTML='<div class="inlineLoading callingCancelled">Calling points could not be loaded. Tap the train to close it, then try again.</div>';
-    }
-  }
-
   el('stationButton').addEventListener('click',openStationSheet);
   el('closeStation').addEventListener('click',closeStationSheet);
   el('stationSheet').addEventListener('click',function(e){
@@ -683,7 +607,6 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     if(!STATIONS.some(function(s){return s.crs===crs;})) return;
     currentCRS=crs;
     localStorage.setItem(STORAGE_KEY,currentCRS);
-    detailCache.clear();
     expandedIds.clear();
     services=[];
     updateHeader();
@@ -702,42 +625,14 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     var s=services[index];
     if(!s) return;
     var key=serviceKey(s,index);
-    if(expandedIds.has(key)){
-      expandedIds.delete(key);
-      renderServices();
-      return;
-    }
-    expandedIds.add(key);
+    if(expandedIds.has(key)) expandedIds.delete(key);
+    else expandedIds.add(key);
     renderServices();
-    var points=getCallingPoints(s);
-    if(!points.length && detailCache.has(key)) points=getCallingPoints(detailCache.get(key));
-    if(!points.length) loadDetail(index,key);
   });
 
-  el('tokenButton').addEventListener('click',openTokenSheet);
-  el('closeToken').addEventListener('click',closeTokenSheet);
-  el('tokenSheet').addEventListener('click',function(e){
-    if(e.target===el('tokenSheet')) closeTokenSheet();
-  });
-  el('saveToken').addEventListener('click',function(){
-    accessToken=el('tokenInput').value.trim();
-    if(accessToken) localStorage.setItem(TOKEN_KEY,accessToken);
-    else localStorage.removeItem(TOKEN_KEY);
-    el('tokenState').textContent=accessToken?'Key saved on this device. Retrying live data…':'No key entered.';
-    closeTokenSheet();
-    loadDepartures(true);
-  });
-  el('clearToken').addEventListener('click',function(){
-    accessToken='';
-    localStorage.removeItem(TOKEN_KEY);
-    el('tokenInput').value='';
-    el('tokenState').textContent='Saved key cleared from this device.';
-  });
   el('refreshButton').addEventListener('click',function(){loadDepartures(true);});
   document.addEventListener('keydown',function(e){
-    if(e.key!=='Escape') return;
-    if(el('tokenSheet').classList.contains('open')) closeTokenSheet();
-    else if(el('stationSheet').classList.contains('open')) closeStationSheet();
+    if(e.key==='Escape' && el('stationSheet').classList.contains('open')) closeStationSheet();
   });
   window.addEventListener('resize',prepareTickers);
 

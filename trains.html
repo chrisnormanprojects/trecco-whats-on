@@ -529,13 +529,16 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     setUpdated('Updating…',false);
     showNotice('');
     try{
-      var url=withToken(API+'/departures/'+encodeURIComponent(currentCRS)+'/'+BOARD_ROWS);
-      var response=await fetch(url,{cache:'no-store'});
+      // First use the exact request pattern proven on the working CYD:
+      // /departures/{CRS}/5?expand=true&accessToken=...
+      var provenUrl=withToken(API+'/departures/'+encodeURIComponent(currentCRS)+'/5?expand=true');
+      var response=await fetch(provenUrl,{cache:'no-store'});
       if(!response.ok){
         var errorBody='';
         try{ errorBody=(await response.text()).trim(); }catch(_){}
         throw new Error('HTTP '+response.status+(errorBody?' · '+errorBody.slice(0,180):''));
       }
+
       var data=await response.json();
       services=Array.isArray(data.trainServices)?data.trainServices:[];
       lastUpdatedAt=new Date(data.generatedAt||Date.now());
@@ -543,6 +546,30 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
       renderServices();
       hydrateCallingPoints();
       setUpdated('Updated '+lastUpdatedAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),false);
+
+      // Once the known-good five-row request succeeds, try to extend the
+      // phone board. If this larger request fails we deliberately keep
+      // the five live departures already on screen.
+      if(BOARD_ROWS>5){
+        try{
+          var extendedUrl=withToken(API+'/departures/'+encodeURIComponent(currentCRS)+'/'+BOARD_ROWS+'?expand=true');
+          var extendedResponse=await fetch(extendedUrl,{cache:'no-store'});
+          if(extendedResponse.ok){
+            var extendedData=await extendedResponse.json();
+            var extendedServices=Array.isArray(extendedData.trainServices)?extendedData.trainServices:[];
+            if(extendedServices.length>=services.length){
+              services=extendedServices;
+              lastUpdatedAt=new Date(extendedData.generatedAt||Date.now());
+              saveCache(extendedData);
+              renderServices();
+              hydrateCallingPoints();
+              setUpdated('Updated '+lastUpdatedAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),false);
+            }
+          }
+        }catch(_){
+          // Keep the successfully loaded five-row CYD-compatible board.
+        }
+      }
     }catch(err){
       var cached=loadCache();
       if(cached){

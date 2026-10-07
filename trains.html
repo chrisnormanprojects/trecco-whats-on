@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Trecco Trains</title>
+<style>
+:root{
+  --black:#050505;--panel:#0c0c0c;--panel2:#151515;--line:#292929;
+  --amber:#ffad21;--amber2:#ffc85a;--green:#4de275;--red:#ff5a5f;
+  --white:#f6f6f6;--muted:#a7a7a7;--navy:#082e58;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--black);color:var(--white);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+body{padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+button{font:inherit}
+button,a{-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.top{
+  position:sticky;top:0;z-index:30;
+  padding-top:env(safe-area-inset-top);
+  background:rgba(5,5,5,.96);backdrop-filter:blur(16px);
+  border-bottom:1px solid #252525;
+}
+.stationButton{
+  width:100%;border:0;background:linear-gradient(180deg,#113f71,#082e58);
+  color:#fff;padding:12px 14px 10px;text-align:left;cursor:pointer;
+  box-shadow:inset 0 -1px rgba(255,255,255,.08);
+}
+.stationTop{display:flex;align-items:center;gap:10px;max-width:900px;margin:auto}
+.stationMain{min-width:0;flex:1}
+.stationEyebrow{display:block;color:#b9d6ef;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.stationName{display:flex;align-items:center;gap:7px;min-width:0;font-size:clamp(22px,6vw,31px);font-weight:950;line-height:1.05;letter-spacing:-.03em}
+.stationNameText{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chevron{font-size:15px;color:#dceafb}
+.clockBlock{flex:0 0 auto;text-align:right}
+.clock{color:#ffe16a;font-variant-numeric:tabular-nums;font-size:18px;font-weight:900;letter-spacing:.04em}
+.updated{margin-top:3px;color:#c3d2e2;font-size:10px;font-weight:700;white-space:nowrap}
+.updated.error{color:#ffb3b3}
+.columns{
+  max-width:900px;margin:auto;display:grid;
+  grid-template-columns:64px minmax(0,1fr) 46px 82px;
+  gap:7px;padding:8px 12px 7px;color:#818181;background:#090909;
+  font-size:10px;font-weight:900;letter-spacing:.08em;border-top:1px solid rgba(255,255,255,.04);
+}
+.columns span:nth-child(3),.columns span:nth-child(4){text-align:right}
+.board{max-width:900px;margin:0 auto;padding:0 10px}
+.notice{margin:12px 2px;border:1px solid #3c3118;background:#19140a;color:#ffd27b;border-radius:12px;padding:10px 12px;font-size:12px;font-weight:750;line-height:1.35}
+.notice.error{border-color:#593034;background:#1c0d0f;color:#ffb8ba}
+.notice[hidden]{display:none}
+.service{
+  display:grid;grid-template-columns:64px minmax(0,1fr) 46px 82px;
+  gap:7px;width:100%;border:0;border-bottom:1px solid var(--line);
+  background:var(--black);color:#fff;text-align:left;padding:13px 2px 12px;
+  cursor:pointer;min-height:68px;
+}
+.service:active{background:#111}
+.time{color:var(--amber);font-size:19px;font-weight:950;font-variant-numeric:tabular-nums}
+.destWrap{min-width:0}
+.dest{color:var(--amber2);font-size:17px;font-weight:900;line-height:1.15;overflow-wrap:anywhere}
+.via{margin-top:3px;color:#858585;font-size:11px;line-height:1.2}
+.operator{margin-top:4px;color:#717171;font-size:10px;line-height:1.15}
+.platform{align-self:start;text-align:right;color:#fff;font-size:16px;font-weight:900}
+.status{align-self:start;text-align:right;font-size:12px;font-weight:950;line-height:1.15;overflow-wrap:anywhere}
+.status.ontime{color:var(--green)}
+.status.delay{color:var(--amber)}
+.status.cancelled{color:var(--red)}
+.status.other{color:#ddd}
+.empty{padding:56px 16px;text-align:center;color:#8d8d8d}
+.empty strong{display:block;color:#ddd;font-size:18px;margin-bottom:6px}
+.actions{max-width:900px;margin:16px auto 0;padding:0 12px;display:flex;gap:10px}
+.action{
+  flex:1;min-height:48px;border:1px solid #333;border-radius:13px;
+  background:#111;color:#fff;font-weight:850;cursor:pointer
+}
+.homeLink{display:flex;align-items:center;justify-content:center;text-decoration:none}
+.sheetBackdrop{
+  position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.68);
+  display:none;align-items:flex-end;justify-content:center;
+}
+.sheetBackdrop.open{display:flex}
+.sheet{
+  width:100%;max-width:900px;max-height:86%;overflow:auto;
+  background:#111;color:#fff;border-radius:24px 24px 0 0;
+  padding:14px 14px calc(20px + env(safe-area-inset-bottom));
+  box-shadow:0 -14px 50px rgba(0,0,0,.5);
+}
+.sheetHandle{width:44px;height:5px;border-radius:999px;background:#555;margin:0 auto 12px}
+.sheetHeader{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sheetHeaderText{min-width:0;flex:1}
+.sheetHeader h2{margin:0;color:var(--amber2);font-size:22px}
+.sheetHeader p{margin:3px 0 0;color:#999;font-size:12px}
+.closeBtn{width:44px;height:44px;border:1px solid #3b3b3b;border-radius:12px;background:#222;color:#fff;font-size:22px;cursor:pointer}
+.stationList{display:grid;gap:8px}
+.stationChoice{
+  width:100%;min-height:58px;border:1px solid #333;border-radius:14px;
+  background:#181818;color:#fff;padding:9px 12px;text-align:left;cursor:pointer;
+  display:flex;align-items:center;gap:12px
+}
+.stationChoice.active{border-color:var(--amber);background:#2a210f}
+.stationChoiceName{font-size:17px;font-weight:900;flex:1}
+.stationChoiceCode{color:var(--amber);font-size:13px;font-weight:950;letter-spacing:.08em}
+.detailSummary{border:1px solid #343434;background:#181818;border-radius:14px;padding:12px;margin-bottom:10px}
+.detailRoute{font-size:20px;font-weight:950;color:var(--amber2);line-height:1.15}
+.detailMeta{margin-top:5px;color:#aaa;font-size:12px}
+.callingList{display:grid}
+.calling{
+  display:grid;grid-template-columns:58px 14px minmax(0,1fr);gap:7px;align-items:start;
+  padding:9px 2px;border-bottom:1px solid #292929
+}
+.callingTime{color:var(--amber);font-weight:900;font-variant-numeric:tabular-nums}
+.callingDot{position:relative;width:14px;min-height:28px}
+.callingDot::before{content:"";position:absolute;left:6px;top:-10px;bottom:-10px;width:2px;background:#4b4b4b}
+.callingDot::after{content:"";position:absolute;left:2px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--amber)}
+.calling:first-child .callingDot::before{top:9px}
+.calling:last-child .callingDot::before{bottom:13px}
+.callingName{font-weight:800;line-height:1.2}
+.callingExpected{display:block;margin-top:2px;color:#8d8d8d;font-size:11px}
+.loading{padding:28px;text-align:center;color:#999}
+.spinner{display:inline-block;width:19px;height:19px;border:2px solid #444;border-top-color:var(--amber);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-4px;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (max-width:420px){
+  .columns,.service{grid-template-columns:57px minmax(0,1fr) 39px 72px;gap:5px}
+  .board{padding:0 8px}
+  .columns{padding-left:10px;padding-right:10px}
+  .time{font-size:17px}.dest{font-size:16px}.platform{font-size:14px}.status{font-size:11px}
+}
+@media (prefers-reduced-motion:reduce){.spinner{animation:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <button id="stationButton" class="stationButton" type="button" aria-haspopup="dialog" aria-controls="stationSheet">
+    <div class="stationTop">
+      <div class="stationMain">
+        <span class="stationEyebrow">Tap to change station</span>
+        <div class="stationName"><span id="stationName" class="stationNameText">Newbridge</span><span class="chevron">▼</span></div>
+      </div>
+      <div class="clockBlock">
+        <div id="clock" class="clock">--:--:--</div>
+        <div id="updated" class="updated">Loading live trains…</div>
+      </div>
+    </div>
+  </button>
+  <div class="columns" aria-hidden="true"><span>EXP</span><span>DESTINATION</span><span>PLT</span><span>STATUS</span></div>
+</header>
+
+<main>
+  <div class="board">
+    <div id="notice" class="notice" hidden></div>
+    <div id="services" aria-live="polite"><div class="loading"><span class="spinner"></span>Loading departures…</div></div>
+  </div>
+  <div class="actions">
+    <button id="refreshButton" class="action" type="button">↻ Refresh trains</button>
+    <a class="action homeLink" href="index.html">Back to Trecco</a>
+  </div>
+</main>
+
+<div id="stationSheet" class="sheetBackdrop" role="dialog" aria-modal="true" aria-labelledby="stationSheetTitle">
+  <div class="sheet">
+    <div class="sheetHandle"></div>
+    <div class="sheetHeader">
+      <div class="sheetHeaderText">
+        <h2 id="stationSheetTitle">Choose station</h2>
+        <p>Your selection is remembered on this phone.</p>
+      </div>
+      <button id="closeStation" class="closeBtn" type="button" aria-label="Close station chooser">×</button>
+    </div>
+    <div id="stationList" class="stationList"></div>
+  </div>
+</div>
+
+<div id="detailSheet" class="sheetBackdrop" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+  <div class="sheet">
+    <div class="sheetHandle"></div>
+    <div class="sheetHeader">
+      <div class="sheetHeaderText">
+        <h2 id="detailTitle">Calling points</h2>
+        <p id="detailSubtitle">Live service detail</p>
+      </div>
+      <button id="closeDetail" class="closeBtn" type="button" aria-label="Close service details">×</button>
+    </div>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const API = 'https://huxley2.azurewebsites.net';
+  const BOARD_ROWS = 50;
+  const REFRESH_MS = 60000;
+  const STATIONS = [
+    {name:'Newbridge', crs:'NWB'},
+    {name:'Cardiff Central', crs:'CDF'},
+    {name:'Ebbw Vale Town', crs:'EBB'},
+    {name:'Newport', crs:'NWP'},
+    {name:'Bristol Temple Meads', crs:'BRI'},
+    {name:'Crosskeys', crs:'CKY'}
+  ];
+  const STORAGE_KEY = 'trecco-trains-station-v1';
+  const CACHE_PREFIX = 'trecco-trains-cache-v1-';
+
+  const $ = id => document.getElementById(id);
+  let currentCRS = localStorage.getItem(STORAGE_KEY) || 'NWB';
+  if (!STATIONS.some(s => s.crs === currentCRS)) currentCRS = 'NWB';
+  let services = [];
+  let lastUpdatedAt = null;
+  let refreshing = false;
+  let refreshTimer = null;
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function station() {
+    return STATIONS.find(s => s.crs === currentCRS) || STATIONS[0];
+  }
+
+  function updateClock() {
+    $('clock').textContent = new Intl.DateTimeFormat('en-GB', {
+      timeZone:'Europe/London', hour:'2-digit', minute:'2-digit', second:'2-digit',
+      hour12:false
+    }).format(new Date());
+  }
+
+  function setUpdated(text, isError=false) {
+    $('updated').textContent = text;
+    $('updated').classList.toggle('error', isError);
+  }
+
+  function updateHeader() {
+    $('stationName').textContent = station().name;
+    document.title = station().name + ' Trains · Trecco';
+  }
+
+  function statusInfo(s) {
+    const etd = String(s.etd || '').trim();
+    const cancelled = !!s.isCancelled || /cancel/i.test(etd);
+    if (cancelled) return {label:'CANC', cls:'cancelled'};
+    if (/^on time$/i.test(etd)) return {label:'ON TIME', cls:'ontime'};
+    if (!etd || /^null$/i.test(etd)) return {label:'—', cls:'other'};
+    return {label:etd.toUpperCase(), cls:'delay'};
+  }
+
+  function serviceDestination(s) {
+    return s?.destination?.[0]?.locationName || s?.destination?.[0]?.crs || 'Destination unavailable';
+  }
+
+  function serviceVia(s) {
+    return s?.destination?.[0]?.via || '';
+  }
+
+  function renderServices() {
+    if (!services.length) {
+      $('services').innerHTML = '<div class="empty"><strong>No departures returned</strong>There may be no trains in the current live-board window.</div>';
+      return;
+    }
+
+    $('services').innerHTML = services.map((s, i) => {
+      const status = statusInfo(s);
+      const serviceId = s.serviceIdUrlSafe || s.serviceID || s.serviceIdPercentEncoded || '';
+      const dest = serviceDestination(s);
+      const operator = s.operator || '';
+      const via = serviceVia(s);
+      return `<button class="service" type="button" data-index="${i}" data-service-id="${escapeHtml(serviceId)}" aria-label="${escapeHtml((s.std || '') + ' to ' + dest + ', ' + status.label)}">
+        <span class="time">${escapeHtml(s.std || '--:--')}</span>
+        <span class="destWrap">
+          <span class="dest">${escapeHtml(dest)}</span>
+          ${via ? `<span class="via">${escapeHtml(via)}</span>` : ''}
+          ${operator ? `<span class="operator">${escapeHtml(operator)}</span>` : ''}
+        </span>
+        <span class="platform">${escapeHtml(s.platform || '-')}</span>
+        <span class="status ${status.cls}">${escapeHtml(status.label)}</span>
+      </button>`;
+    }).join('');
+  }
+
+  function showNotice(message, error=false) {
+    const n = $('notice');
+    if (!message) { n.hidden = true; n.textContent = ''; return; }
+    n.hidden = false;
+    n.textContent = message;
+    n.classList.toggle('error', error);
+  }
+
+  function cacheKey() { return CACHE_PREFIX + currentCRS; }
+
+  function saveCache(data) {
+    try {
+      localStorage.setItem(cacheKey(), JSON.stringify({savedAt:Date.now(), data}));
+    } catch (_) {}
+  }
+
+  function loadCache() {
+    try {
+      const cached = JSON.parse(localStorage.getItem(cacheKey()) || 'null');
+      if (cached && cached.data && Array.isArray(cached.data.trainServices)) return cached;
+    } catch (_) {}
+    return null;
+  }
+
+  async function loadDepartures({manual=false}={}) {
+    if (refreshing) return;
+    refreshing = true;
+    if (manual) $('refreshButton').textContent = 'Refreshing…';
+    setUpdated('Updating…');
+    showNotice('');
+    try {
+      const url = `${API}/departures/${encodeURIComponent(currentCRS)}/${BOARD_ROWS}`;
+      const response = await fetch(url, {cache:'no-store'});
+      if (!response.ok) throw new Error('Live train service returned ' + response.status);
+      const data = await response.json();
+      services = Array.isArray(data.trainServices) ? data.trainServices : [];
+      lastUpdatedAt = new Date(data.generatedAt || Date.now());
+      saveCache(data);
+      renderServices();
+      setUpdated('Updated ' + lastUpdatedAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}));
+    } catch (err) {
+      const cached = loadCache();
+      if (cached) {
+        services = cached.data.trainServices || [];
+        renderServices();
+        const t = new Date(cached.savedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+        setUpdated('Cached ' + t, true);
+        showNotice('Live train data is temporarily unavailable. Showing the most recently saved departures for this station.', true);
+      } else {
+        services = [];
+        renderServices();
+        setUpdated('Live data unavailable', true);
+        showNotice('I could not reach the live railway feed. Tap Refresh trains to try again.', true);
+      }
+    } finally {
+      refreshing = false;
+      $('refreshButton').textContent = '↻ Refresh trains';
+    }
+  }
+
+  function renderStationChoices() {
+    $('stationList').innerHTML = STATIONS.map(s => `
+      <button class="stationChoice ${s.crs === currentCRS ? 'active' : ''}" type="button" data-crs="${escapeHtml(s.crs)}">
+        <span class="stationChoiceName">${escapeHtml(s.name)}</span>
+        <span class="stationChoiceCode">${escapeHtml(s.crs)}</span>
+      </button>
+    `).join('');
+  }
+
+  function openStationSheet() {
+    renderStationChoices();
+    $('stationSheet').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeStationSheet() {
+    $('stationSheet').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function openDetailShell(s) {
+    const dest = serviceDestination(s);
+    $('detailTitle').textContent = 'Calling points';
+    $('detailSubtitle').textContent = (s.std || '') + ' to ' + dest;
+    $('detailContent').innerHTML = '<div class="loading"><span class="spinner"></span>Loading calling points…</div>';
+    $('detailSheet').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeDetailSheet() {
+    $('detailSheet').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function getCallingPoints(detail) {
+    const later = detail?.subsequentCallingPoints?.[0]?.callingPoint;
+    if (Array.isArray(later)) return later;
+    const earlier = detail?.previousCallingPoints?.[0]?.callingPoint;
+    if (Array.isArray(earlier)) return earlier;
+    return [];
+  }
+
+  async function openServiceDetail(index) {
+    const s = services[index];
+    if (!s) return;
+    const serviceId = s.serviceIdUrlSafe || s.serviceID || s.serviceIdPercentEncoded;
+    openDetailShell(s);
+    if (!serviceId) {
+      $('detailContent').innerHTML = '<div class="notice error">This departure did not include a service identifier, so calling points cannot be loaded.</div>';
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API}/service/${encodeURIComponent(serviceId)}`, {cache:'no-store'});
+      if (!response.ok) throw new Error('Service detail returned ' + response.status);
+      const detail = await response.json();
+      const points = getCallingPoints(detail);
+      const dest = serviceDestination(s);
+      const status = statusInfo(s);
+      const summary = `<div class="detailSummary">
+        <div class="detailRoute">${escapeHtml(s.std || '--:--')} → ${escapeHtml(dest)}</div>
+        <div class="detailMeta">Platform ${escapeHtml(s.platform || '-')} · ${escapeHtml(status.label)}${s.operator ? ' · ' + escapeHtml(s.operator) : ''}</div>
+      </div>`;
+      if (!points.length) {
+        $('detailContent').innerHTML = summary + '<div class="empty"><strong>No calling points returned</strong>The live feed has not supplied an onward calling-point list for this service.</div>';
+        return;
+      }
+      $('detailContent').innerHTML = summary + '<div class="callingList">' + points.map(cp => {
+        const sched = cp.st || cp.sta || cp.std || '--:--';
+        const expected = cp.et || cp.eta || cp.etd || '';
+        const extra = expected && !/^on time$/i.test(expected) && expected !== sched ? `<span class="callingExpected">Expected ${escapeHtml(expected)}</span>` : '';
+        return `<div class="calling"><span class="callingTime">${escapeHtml(sched)}</span><span class="callingDot" aria-hidden="true"></span><span class="callingName">${escapeHtml(cp.locationName || cp.crs || 'Station')}${extra}</span></div>`;
+      }).join('') + '</div>';
+    } catch (err) {
+      $('detailContent').innerHTML = '<div class="notice error">Calling points could not be loaded from the live railway feed. Close this panel and try the train again.</div>';
+    }
+  }
+
+  $('stationButton').addEventListener('click', openStationSheet);
+  $('closeStation').addEventListener('click', closeStationSheet);
+  $('stationSheet').addEventListener('click', e => { if (e.target === $('stationSheet')) closeStationSheet(); });
+  $('stationList').addEventListener('click', async e => {
+    const b = e.target.closest('.stationChoice');
+    if (!b) return;
+    const crs = b.dataset.crs;
+    if (!STATIONS.some(s => s.crs === crs)) return;
+    currentCRS = crs;
+    localStorage.setItem(STORAGE_KEY, currentCRS);
+    updateHeader();
+    closeStationSheet();
+    services = [];
+    $('services').innerHTML = '<div class="loading"><span class="spinner"></span>Loading departures…</div>';
+    window.scrollTo({top:0,behavior:'smooth'});
+    await loadDepartures();
+  });
+
+  $('services').addEventListener('click', e => {
+    const row = e.target.closest('.service');
+    if (!row) return;
+    openServiceDetail(Number(row.dataset.index));
+  });
+  $('closeDetail').addEventListener('click', closeDetailSheet);
+  $('detailSheet').addEventListener('click', e => { if (e.target === $('detailSheet')) closeDetailSheet(); });
+  $('refreshButton').addEventListener('click', () => loadDepartures({manual:true}));
+
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if ($('detailSheet').classList.contains('open')) closeDetailSheet();
+    else if ($('stationSheet').classList.contains('open')) closeStationSheet();
+  });
+
+  updateHeader();
+  updateClock();
+  setInterval(updateClock, 1000);
+  loadDepartures();
+  refreshTimer = setInterval(loadDepartures, REFRESH_MS);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && lastUpdatedAt && Date.now() - lastUpdatedAt.getTime() > REFRESH_MS) loadDepartures();
+  });
+})();
+</script>
+</body>
+</html>

@@ -35,7 +35,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
 }
 .stationTop{
   max-width:900px;margin:auto;display:grid;
-  grid-template-columns:58px minmax(0,1fr);align-items:center;gap:10px;
+  grid-template-columns:58px minmax(0,1fr) auto;align-items:center;gap:10px;
 }
 .stnBadge{
   display:flex;align-items:center;justify-content:center;
@@ -240,7 +240,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   .stationGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media (max-width:365px){
-  .stationTop{grid-template-columns:52px minmax(0,1fr);gap:7px}
+  .stationTop{grid-template-columns:52px minmax(0,1fr) 82px;gap:7px}
   .stnBadge{height:42px;font-size:14px}
   .stationCodeLine{font-size:20px}.clock{font-size:16px}
   .time,.dest{font-size:20px}.statusLine{font-size:18px}
@@ -259,6 +259,9 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
       <span class="stationIdentity">
         <span class="stationCodeLine"><span id="stationCode">NBE DEPT</span><span class="chevron">▼</span></span>
         <span id="stationFullName" class="stationFullName">Newbridge · tap to choose station</span>
+      </span>
+      <span class="clockBlock">
+        <span id="clock" class="clock">--:--:--</span>
       </span>
 
     </div>
@@ -642,6 +645,8 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   window.addEventListener('resize',prepareTickers);
 
   updateHeader();
+  updateClock();
+  setInterval(updateClock,1000);
   loadDepartures(false);
   setInterval(function(){loadDepartures(false);},REFRESH_MS);
   document.addEventListener('visibilitychange',function(){

@@ -174,6 +174,17 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   background:#111;color:#fff;font-weight:850;cursor:pointer
 }
 .homeLink{display:flex;align-items:center;justify-content:center;text-decoration:none}
+.tokenHelp{
+  margin:2px 0 10px;color:#aab4bb;font:700 12px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.tokenInput{
+  width:100%;min-height:48px;border:1px solid #3d464d;border-radius:10px;
+  background:#11161a;color:#fff;padding:10px 12px;font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.tokenButtons{display:flex;gap:8px;margin-top:10px}
+.tokenButtons button{flex:1;min-height:46px;border:1px solid #3c444a;border-radius:10px;background:#15191d;color:#fff;font-weight:850}
+.tokenButtons .saveToken{background:#075b9e;border-color:#1888dc}
+.tokenState{margin-top:9px;color:#87939b;font:700 11px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .sheetBackdrop{
   position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.76);
   display:none;align-items:flex-end;justify-content:center;
@@ -261,8 +272,9 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     </div>
   </div>
   <div class="actions">
-    <button id="refreshButton" class="action" type="button">↻ Refresh trains</button>
-    <a class="action homeLink" href="index.html">Back to Trecco</a>
+    <button id="refreshButton" class="action" type="button">↻ Refresh</button>
+    <button id="tokenButton" class="action" type="button">Data key</button>
+    <a class="action homeLink" href="index.html">Back</a>
   </div>
 </main>
 
@@ -277,6 +289,26 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
       <button id="closeStation" class="closeBtn" type="button" aria-label="Close station chooser">×</button>
     </div>
     <div id="stationList" class="stationGrid"></div>
+  </div>
+</div>
+
+<div id="tokenSheet" class="sheetBackdrop" role="dialog" aria-modal="true" aria-labelledby="tokenSheetTitle">
+  <div class="sheet">
+    <div class="sheetHandle"></div>
+    <div class="sheetHeader">
+      <div class="sheetHeaderText">
+        <h2 id="tokenSheetTitle">LIVE DATA KEY</h2>
+        <p>Stored only on this device.</p>
+      </div>
+      <button id="closeToken" class="closeBtn" type="button" aria-label="Close data key settings">×</button>
+    </div>
+    <div class="tokenHelp">Huxley now expects a National Rail / Darwin access token for live departure requests. Paste it here; it is kept in this browser only and is not saved to the public GitHub repository.</div>
+    <input id="tokenInput" class="tokenInput" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Paste access token">
+    <div class="tokenButtons">
+      <button id="clearToken" type="button">Clear key</button>
+      <button id="saveToken" class="saveToken" type="button">Save &amp; retry</button>
+    </div>
+    <div id="tokenState" class="tokenState"></div>
   </div>
 </div>
 
@@ -302,6 +334,8 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   var STORAGE_KEY = 'trecco-trains-station-v3';
   var OLD_STORAGE_KEY = 'trecco-trains-station-v1';
   var CACHE_PREFIX = 'trecco-trains-cache-v2-';
+  var TOKEN_KEY = 'trecco-trains-huxley-token-v1';
+  var accessToken = localStorage.getItem(TOKEN_KEY) || '';
   var detailCache = new Map();
   var expandedIds = new Set();
   var services = [];
@@ -325,6 +359,22 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   localStorage.setItem(STORAGE_KEY,currentCRS);
 
   function currentStation(){ return stationByCode(currentCRS); }
+
+  function withToken(url){
+    if(!accessToken) return url;
+    return url+(url.indexOf('?')>=0?'&':'?')+'accessToken='+encodeURIComponent(accessToken);
+  }
+  function openTokenSheet(){
+    el('tokenInput').value=accessToken;
+    el('tokenState').textContent=accessToken?'A data key is saved on this device.':'No data key is saved on this device.';
+    el('tokenSheet').classList.add('open');
+    document.body.style.overflow='hidden';
+    setTimeout(function(){el('tokenInput').focus();},100);
+  }
+  function closeTokenSheet(){
+    el('tokenSheet').classList.remove('open');
+    document.body.style.overflow='';
+  }
 
   function updateClock(){
     el('clock').textContent = new Intl.DateTimeFormat('en-GB',{
@@ -479,7 +529,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     setUpdated('Updating…',false);
     showNotice('');
     try{
-      var url=API+'/departures/'+encodeURIComponent(currentCRS)+'/'+BOARD_ROWS;
+      var url=withToken(API+'/departures/'+encodeURIComponent(currentCRS)+'/'+BOARD_ROWS);
       var response=await fetch(url,{cache:'no-store'});
       if(!response.ok){
         var errorBody='';
@@ -506,7 +556,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
         services=[];
         renderServices();
         setUpdated('Live data unavailable',true);
-        showNotice('Live railway request failed: '+(err && err.message ? err.message : 'Unknown network error')+'.',true);
+        showNotice((!accessToken?'The public Huxley live-departure feed is currently failing. Tap Data key to add your National Rail/Darwin access token. ':'Live railway request failed. ')+(err && err.message ? err.message : 'Unknown network error')+'.',true);
       }
     }finally{
       refreshing=false;
@@ -524,7 +574,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
         var item=queue[cursor++];
         var id=servicePathId(item.s);
         try{
-          var response=await fetch(API+'/service/'+id,{cache:'no-store'});
+          var response=await fetch(withToken(API+'/service/'+id),{cache:'no-store'});
           if(!response.ok) continue;
           var detail=await response.json();
           detailCache.set(item.key,detail);
@@ -637,9 +687,30 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     if(!points.length) loadDetail(index,key);
   });
 
+  el('tokenButton').addEventListener('click',openTokenSheet);
+  el('closeToken').addEventListener('click',closeTokenSheet);
+  el('tokenSheet').addEventListener('click',function(e){
+    if(e.target===el('tokenSheet')) closeTokenSheet();
+  });
+  el('saveToken').addEventListener('click',function(){
+    accessToken=el('tokenInput').value.trim();
+    if(accessToken) localStorage.setItem(TOKEN_KEY,accessToken);
+    else localStorage.removeItem(TOKEN_KEY);
+    el('tokenState').textContent=accessToken?'Key saved on this device. Retrying live data…':'No key entered.';
+    closeTokenSheet();
+    loadDepartures(true);
+  });
+  el('clearToken').addEventListener('click',function(){
+    accessToken='';
+    localStorage.removeItem(TOKEN_KEY);
+    el('tokenInput').value='';
+    el('tokenState').textContent='Saved key cleared from this device.';
+  });
   el('refreshButton').addEventListener('click',function(){loadDepartures(true);});
   document.addEventListener('keydown',function(e){
-    if(e.key==='Escape' && el('stationSheet').classList.contains('open')) closeStationSheet();
+    if(e.key!=='Escape') return;
+    if(el('tokenSheet').classList.contains('open')) closeTokenSheet();
+    else if(el('stationSheet').classList.contains('open')) closeStationSheet();
   });
   window.addEventListener('resize',prepareTickers);
 

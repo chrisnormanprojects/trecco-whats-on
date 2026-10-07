@@ -242,7 +242,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     <div class="stationTop">
       <span class="stnBadge">STN</span>
       <span class="stationIdentity">
-        <span class="stationCodeLine"><span id="stationCode">NWB DEPT</span><span class="chevron">▼</span></span>
+        <span class="stationCodeLine"><span id="stationCode">NBE DEPT</span><span class="chevron">▼</span></span>
         <span id="stationFullName" class="stationFullName">Newbridge · tap to choose station</span>
       </span>
       <span class="clockBlock">
@@ -286,20 +286,20 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   var BOARD_ROWS = 50;
   var REFRESH_MS = 60000;
   var STATIONS = [
-    {name:'Newbridge', short:'Newbridge', crs:'NWB'},
-    {name:'Newport', short:'Newport', crs:'NWP'},
+    {name:'Newbridge', short:'Newbridge', crs:'NBE'},
     {name:'Cardiff Central', short:'Cardiff Cen', crs:'CDF'},
-    {name:'Reading', short:'Reading', crs:'RDG'},
-    {name:'Paddington', short:'Paddington', crs:'PAD'},
-    {name:'Swansea', short:'Swansea', crs:'SWA'},
-    {name:'Waterloo', short:'Waterloo', crs:'WAT'},
-    {name:'Bath Spa', short:'Bath Spa', crs:'BTH'},
-    {name:'Hull', short:'Hull', crs:'HUL'},
+    {name:'Ebbw Vale Town', short:'Ebbw Vale', crs:'EBB'},
+    {name:'Newport (South Wales)', short:'Newport', crs:'NWP'},
+    {name:'Bristol Temple Meads', short:'Bristol T.M.', crs:'BRI'},
     {name:'Crosskeys', short:'Crosskeys', crs:'CKY'},
-    {name:'Bristol Temple Meads', short:'Bristol TM', crs:'BRI'},
-    {name:'Risca & Pontymister', short:'Risca', crs:'RCA'}
+    {name:'London Waterloo', short:'Waterloo', crs:'WAT'},
+    {name:'London Paddington', short:'Paddington', crs:'PAD'},
+    {name:'Birmingham New Street', short:'Birmingham N.St', crs:'BHM'},
+    {name:'Manchester Piccadilly', short:'Manchester Pic', crs:'MAN'},
+    {name:'Swansea', short:'Swansea', crs:'SWA'},
+    {name:'Bath Spa', short:'Bath Spa', crs:'BTH'}
   ];
-  var STORAGE_KEY = 'trecco-trains-station-v2';
+  var STORAGE_KEY = 'trecco-trains-station-v3';
   var OLD_STORAGE_KEY = 'trecco-trains-station-v1';
   var CACHE_PREFIX = 'trecco-trains-cache-v2-';
   var detailCache = new Map();
@@ -319,8 +319,9 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     return STATIONS[0];
   }
 
-  var currentCRS = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY) || 'NWB';
-  if(!STATIONS.some(function(s){return s.crs===currentCRS;})) currentCRS='NWB';
+  var currentCRS = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY) || 'NBE';
+  if(currentCRS==='NWB') currentCRS='NBE';
+  if(!STATIONS.some(function(s){return s.crs===currentCRS;})) currentCRS='NBE';
   localStorage.setItem(STORAGE_KEY,currentCRS);
 
   function currentStation(){ return stationByCode(currentCRS); }
@@ -480,7 +481,11 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     try{
       var url=API+'/departures/'+encodeURIComponent(currentCRS)+'/'+BOARD_ROWS;
       var response=await fetch(url,{cache:'no-store'});
-      if(!response.ok) throw new Error('Live train service returned '+response.status);
+      if(!response.ok){
+        var errorBody='';
+        try{ errorBody=(await response.text()).trim(); }catch(_){}
+        throw new Error('HTTP '+response.status+(errorBody?' · '+errorBody.slice(0,180):''));
+      }
       var data=await response.json();
       services=Array.isArray(data.trainServices)?data.trainServices:[];
       lastUpdatedAt=new Date(data.generatedAt||Date.now());
@@ -501,7 +506,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
         services=[];
         renderServices();
         setUpdated('Live data unavailable',true);
-        showNotice('The live railway feed could not be reached. Tap Refresh trains to try again.',true);
+        showNotice('Live railway request failed: '+(err && err.message ? err.message : 'Unknown network error')+'.',true);
       }
     }finally{
       refreshing=false;

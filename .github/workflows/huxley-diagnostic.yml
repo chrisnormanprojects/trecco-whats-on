@@ -9,17 +9,22 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Test exact CYD Huxley request
+      - name: Test Huxley endpoints
         shell: bash
         run: |
           set +e
-          URL="https://huxley2.azurewebsites.net/departures/NBE/5?expand=true"
-          echo "Testing: $URL"
-          curl -sS --connect-timeout 15 --max-time 30 -D /tmp/headers.txt -o /tmp/body.txt -w "HTTP_STATUS=%{http_code}\n" "$URL"
-          CURL_EXIT=$?
-          echo "CURL_EXIT=$CURL_EXIT"
-          echo "--- RESPONSE HEADERS ---"
-          cat /tmp/headers.txt || true
-          echo "--- RESPONSE BODY (first 2000 bytes) ---"
-          head -c 2000 /tmp/body.txt || true
-          echo
+          test_url () {
+            URL="$1"
+            echo
+            echo "===== $URL ====="
+            curl -sS --connect-timeout 15 --max-time 30 -H "Origin: https://chrisnormanprojects.github.io" -D /tmp/headers.txt -o /tmp/body.txt -w "HTTP_STATUS=%{http_code}\n" "$URL"
+            echo "CURL_EXIT=$?"
+            grep -Ei "^(HTTP/|access-control-allow-origin:|content-type:|content-length:)" /tmp/headers.txt || true
+            echo "BODY:"
+            head -c 1000 /tmp/body.txt || true
+            echo
+          }
+          test_url "https://huxley2.azurewebsites.net/departures/NBE/5?expand=true"
+          test_url "https://huxley2.azurewebsites.net/departures/PAD/5?expand=true"
+          test_url "https://huxley2.azurewebsites.net/departures/CLJ/5"
+          test_url "https://huxley2.azurewebsites.net/crs/NBE"

@@ -62,12 +62,6 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   color:#fff;font-size:clamp(17px,4.8vw,23px);font-weight:950;
   font-variant-numeric:tabular-nums;white-space:nowrap;
 }
-.updated{
-  margin-top:4px;color:#77838b;font-size:9px;font-weight:800;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  white-space:nowrap;
-}
-.updated.error{color:#ff8b90}
 .board{max-width:900px;margin:0 auto;padding:0 9px}
 .boardHint{
   padding:7px 4px 5px;color:#65727a;text-align:right;
@@ -127,15 +121,11 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .tickerTrack.scrolling{animation:ticker var(--ticker-duration,24s) linear infinite}
 .tickerGroup{display:inline-block;padding-right:52px}
 @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.expandHint{
-  margin-top:4px;text-align:right;color:#5f6a71;font-size:9px;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-weight:800;
-}
 .expandedPanel{
   display:none;margin-top:10px;border-top:1px solid #273038;padding-top:8px;
 }
 .service.open .expandedPanel{display:block}
-.service.open .tickerLine,.service.open .expandHint{display:none}
+.service.open .tickerLine{display:none}
 .expandedTitle{
   color:var(--yellow);font-size:13px;font-weight:950;margin-bottom:4px;
   text-transform:uppercase;letter-spacing:.05em;
@@ -178,17 +168,6 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   background:#111;color:#fff;font-weight:850;cursor:pointer
 }
 .homeLink{display:flex;align-items:center;justify-content:center;text-decoration:none}
-.tokenHelp{
-  margin:2px 0 10px;color:#aab4bb;font:700 12px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-}
-.tokenInput{
-  width:100%;min-height:48px;border:1px solid #3d464d;border-radius:10px;
-  background:#11161a;color:#fff;padding:10px 12px;font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-}
-.tokenButtons{display:flex;gap:8px;margin-top:10px}
-.tokenButtons button{flex:1;min-height:46px;border:1px solid #3c444a;border-radius:10px;background:#15191d;color:#fff;font-weight:850}
-.tokenButtons .saveToken{background:#075b9e;border-color:#1888dc}
-.tokenState{margin-top:9px;color:#87939b;font:700 11px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .sheetBackdrop{
   position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.76);
   display:none;align-items:flex-end;justify-content:center;
@@ -278,7 +257,6 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   </div>
   <div class="actions">
     <button id="refreshButton" class="action" type="button">↻ Refresh</button>
-    <a class="action homeLink" href="trains-1.0.html">Trains 1.0</a>
     <a class="action homeLink" href="index.html">Back</a>
   </div>
 </main>
@@ -412,12 +390,6 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
       timeZone:'Europe/London',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
     }).format(new Date());
   }
-  function setUpdated(text,isError){
-    var updatedEl=el('updated');
-    if(!updatedEl) return;
-    updatedEl.textContent=text;
-    updatedEl.classList.toggle('error',!!isError);
-  }
   function updateHeader(){
     var s=currentStation();
     el('stationCode').textContent=s.crs+' DEPT';
@@ -544,7 +516,6 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     if(refreshing) return;
     refreshing=true;
     if(manual) el('refreshButton').textContent='Refreshing…';
-    setUpdated('Updating…',false);
     showNotice('');
     try{
       var url=API+'/departures/'+encodeURIComponent(currentCRS)+'?limit='+BOARD_ROWS;
@@ -564,20 +535,17 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
       var normalized={generatedAt:lastUpdatedAt.toISOString(),trainServices:services};
       saveCache(normalized);
       renderServices();
-      setUpdated('Trainiac · '+lastUpdatedAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),false);
     }catch(err){
       var cached=loadCache();
       if(cached){
         services=cached.data.trainServices||[];
         renderServices();
         var t=new Date(cached.savedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-        setUpdated('Cached '+t,true);
-        showNotice('Trainiac is temporarily unavailable. Showing the most recently saved departures for this station. Use Trains 1.0 below for the Huxley fallback.',true);
+        showNotice('Trainiac is temporarily unavailable. Showing the most recently saved departures for this station.',true);
       }else{
         services=[];
         renderServices();
-        setUpdated('Trainiac unavailable',true);
-        showNotice('Trainiac live data could not be reached. '+(err && err.message ? err.message : 'Unknown network error')+'. You can use Trains 1.0 below as the working Huxley fallback.',true);
+        showNotice('Trainiac live data could not be reached. '+(err && err.message ? err.message : 'Unknown network error')+'.',true);
       }
     }finally{
       refreshing=false;

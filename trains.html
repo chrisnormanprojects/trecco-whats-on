@@ -30,12 +30,14 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   box-shadow:0 7px 20px rgba(0,0,0,.38);
 }
 .stationButton{
-  width:100%;border:0;background:#090b0d;color:#fff;
-  padding:8px 10px 7px;text-align:left;cursor:pointer;
+  width:100%;border:0;background:transparent;color:#fff;
+  padding:0;text-align:left;cursor:pointer;display:grid;
+  grid-template-columns:58px minmax(0,1fr);align-items:center;gap:10px;
 }
 .stationTop{
   max-width:900px;margin:auto;display:grid;
-  grid-template-columns:auto 58px minmax(0,1fr) auto;align-items:center;gap:8px;
+  grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;
+  padding:8px 10px 7px;background:#090b0d;
 }
 .treccoBack{
   display:flex;align-items:center;justify-content:center;
@@ -251,7 +253,8 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   .stationGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
 @media (max-width:365px){
-  .stationTop{grid-template-columns:auto 52px minmax(0,1fr) 82px;gap:5px}
+  .stationTop{grid-template-columns:auto minmax(0,1fr) 82px;gap:5px}
+  .stationButton{grid-template-columns:52px minmax(0,1fr);gap:7px}
   .treccoBack{min-height:38px;padding:0 7px;font-size:11px}
   .stnBadge{height:42px;font-size:14px}
   .stationCodeLine{font-size:20px}.clock{font-size:16px}
@@ -265,20 +268,19 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
 </head>
 <body>
 <header class="top">
-  <button id="stationButton" class="stationButton" type="button" aria-haspopup="dialog" aria-controls="stationSheet">
-    <div class="stationTop">
-      <a class="treccoBack" href="index.html" aria-label="Back to Trecco What's On">← Trecco</a>
+  <div class="stationTop">
+    <a class="treccoBack" href="index.html" aria-label="Back to Trecco What's On">← Trecco</a>
+    <button id="stationButton" class="stationButton" type="button" aria-haspopup="dialog" aria-controls="stationSheet">
       <span class="stnBadge">STN</span>
       <span class="stationIdentity">
         <span class="stationCodeLine"><span id="stationCode">NBE DEPT</span><span class="chevron">▼</span></span>
         <span id="stationFullName" class="stationFullName">Newbridge · tap to choose station</span>
       </span>
-      <span class="clockBlock">
-        <span id="clock" class="clock">--:--:--</span>
-      </span>
-
-    </div>
-  </button>
+    </button>
+    <span class="clockBlock">
+      <span id="clock" class="clock">--:--:--</span>
+    </span>
+  </div>
 </header>
 
 <main>

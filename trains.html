@@ -367,7 +367,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   }
   function pointName(cp){ return cp.locationName || cp.crs || 'Station'; }
   function tickerText(points){
-    if(!points.length) return 'Tap train to load full calling points';
+    if(!points.length) return 'Loading calling points…';
     return points.map(pointName).join('  •  ');
   }
   function pointTime(cp){
@@ -478,7 +478,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     setUpdated('Updating…',false);
     showNotice('');
     try{
-      var url=API+'/departures/'+encodeURIComponent(currentCRS)+'/'+BOARD_ROWS+'?expand=true';
+      var url=API+'/departures/'+encodeURIComponent(currentCRS)+'/'+BOARD_ROWS;
       var response=await fetch(url,{cache:'no-store'});
       if(!response.ok) throw new Error('Live train service returned '+response.status);
       var data=await response.json();
@@ -486,12 +486,14 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
       lastUpdatedAt=new Date(data.generatedAt||Date.now());
       saveCache(data);
       renderServices();
+      hydrateCallingPoints();
       setUpdated('Updated '+lastUpdatedAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),false);
     }catch(err){
       var cached=loadCache();
       if(cached){
         services=cached.data.trainServices||[];
         renderServices();
+        hydrateCallingPoints();
         var t=new Date(cached.savedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
         setUpdated('Cached '+t,true);
         showNotice('Live train data is temporarily unavailable. Showing the most recently saved departures for this station.',true);
@@ -505,6 +507,47 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
       refreshing=false;
       el('refreshButton').textContent='↻ Refresh trains';
     }
+  }
+
+  async function hydrateCallingPoints(){
+    var queue=services.map(function(s,index){return {s:s,index:index,key:serviceKey(s,index)};})
+      .filter(function(item){return !getCallingPoints(item.s).length && !detailCache.has(item.key) && servicePathId(item.s);});
+    var cursor=0;
+    var workerCount=Math.min(5,queue.length);
+    async function worker(){
+      while(cursor<queue.length){
+        var item=queue[cursor++];
+        var id=servicePathId(item.s);
+        try{
+          var response=await fetch(API+'/service/'+id,{cache:'no-store'});
+          if(!response.ok) continue;
+          var detail=await response.json();
+          detailCache.set(item.key,detail);
+          updateServiceCallingPoints(item.index,item.key,detail);
+        }catch(_){}
+      }
+    }
+    var workers=[];
+    for(var i=0;i<workerCount;i++) workers.push(worker());
+    await Promise.all(workers);
+  }
+
+  function updateServiceCallingPoints(index,key,detail){
+    var article=document.querySelector('.service[data-index="'+index+'"]');
+    if(!article || article.dataset.key!==key) return;
+    var points=getCallingPoints(detail);
+    var ticker=tickerText(points);
+    var duration=Math.max(16,Math.min(42,Math.round(ticker.length*0.23)));
+    var track=article.querySelector('.tickerTrack');
+    if(track){
+      track.style.setProperty('--ticker-duration',duration+'s');
+      track.innerHTML='<span class="tickerGroup">'+esc(ticker)+'</span><span class="tickerGroup" aria-hidden="true">'+esc(ticker)+'</span>';
+    }
+    if(article.classList.contains('open')){
+      var panel=article.querySelector('.expandedPanel');
+      if(panel) panel.innerHTML=expandedHtml(points);
+    }
+    requestAnimationFrame(prepareTickers);
   }
 
   function renderStationChoices(){

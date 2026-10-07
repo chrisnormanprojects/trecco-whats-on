@@ -191,20 +191,45 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   width:44px;height:44px;border:1px solid #3b4146;border-radius:10px;
   background:#191d20;color:#fff;font-size:22px;cursor:pointer;
 }
-.stationGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.stationSearchWrap{margin:0 0 8px}
+.stationSearch{
+  width:100%;height:44px;border:1px solid #45515a;border-radius:9px;
+  background:#11161a;color:#fff;padding:0 12px;font:700 16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.stationSearch::placeholder{color:#7d8991}
+.stationSearchStatus{
+  min-height:18px;padding:4px 2px 0;color:#7f8b92;
+  font:700 10px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.stationGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
 .stationChoice{
-  min-width:0;min-height:59px;border:1px solid #58616a;border-radius:3px;
-  background:#11161a;color:#e8f8ff;padding:6px 7px;text-align:left;cursor:pointer;
+  min-width:0;min-height:46px;border:1px solid #58616a;border-radius:4px;
+  background:#11161a;color:#e8f8ff;padding:5px 6px;text-align:left;cursor:pointer;
 }
 .stationChoice.active{
   border-color:#31a4ff;background:#0b4f85;
   box-shadow:inset 0 0 0 1px #1888dc;
 }
 .stationChoiceName{
-  display:block;font-size:clamp(16px,4.4vw,21px);font-weight:900;
-  line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:block;font:850 12px/1.05 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.stationChoiceCode{display:block;margin-top:5px;color:var(--yellow);font-size:11px;font-weight:950}
+.stationChoiceCode{display:block;margin-top:3px;color:var(--yellow);font-size:10px;font-weight:950}
+.stationResults{display:grid;gap:4px}
+.stationResult{
+  width:100%;min-height:44px;border:1px solid #46515a;border-radius:6px;background:#11161a;
+  color:#fff;padding:7px 9px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  text-align:left;cursor:pointer;
+}
+.stationResultName{
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font:800 14px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.stationResultCode{color:var(--yellow);font-size:12px;font-weight:950;flex:0 0 auto}
+.quickLabel{
+  margin:2px 1px 6px;color:#7f8b92;text-transform:uppercase;letter-spacing:.06em;
+  font:850 9px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
 .loading{
   padding:30px;text-align:center;color:#8e999f;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -216,7 +241,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (min-width:700px){
   .time,.dest{font-size:28px}.statusLine{font-size:25px}.tickerLine{font-size:14px}
-  .stationGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .stationGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
 @media (max-width:365px){
   .stationTop{grid-template-columns:52px minmax(0,1fr) 82px;gap:7px}
@@ -271,6 +296,12 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
       </div>
       <button id="closeStation" class="closeBtn" type="button" aria-label="Close station chooser">×</button>
     </div>
+    <div class="stationSearchWrap">
+      <input id="stationSearch" class="stationSearch" type="search" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Search any UK station or CRS code">
+      <div id="stationSearchStatus" class="stationSearchStatus"></div>
+    </div>
+    <div id="stationResults" class="stationResults" hidden></div>
+    <div id="quickLabel" class="quickLabel">Quick stations</div>
     <div id="stationList" class="stationGrid"></div>
   </div>
 </div>
@@ -295,6 +326,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     {name:'Bath Spa', short:'Bath Spa', crs:'BTH'}
   ];
   var STORAGE_KEY = 'trecco-trains-station-v3';
+  var STATION_NAME_KEY = 'trecco-trains-station-name-v1';
   var OLD_STORAGE_KEY = 'trecco-trains-station-v1';
   var CACHE_PREFIX = 'trecco-trains-trainiac-cache-v1-';
   var expandedIds = new Set();
@@ -313,12 +345,14 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     return STATIONS[0];
   }
 
-  var currentCRS = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY) || 'NBE';
+  var currentCRS = (localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY) || 'NBE').toUpperCase();
   if(currentCRS==='NWB') currentCRS='NBE';
-  if(!STATIONS.some(function(s){return s.crs===currentCRS;})) currentCRS='NBE';
+  var presetStation=STATIONS.find(function(s){return s.crs===currentCRS;});
+  var currentStationName = localStorage.getItem(STATION_NAME_KEY) || (presetStation ? presetStation.name : currentCRS);
   localStorage.setItem(STORAGE_KEY,currentCRS);
+  localStorage.setItem(STATION_NAME_KEY,currentStationName);
 
-  function currentStation(){ return stationByCode(currentCRS); }
+  function currentStation(){ return {crs:currentCRS,name:currentStationName}; }
 
   function clockIso(value){
     if(!value) return '--:--';
@@ -555,34 +589,18 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
 
   function renderStationChoices(){
     el('stationList').innerHTML=STATIONS.map(function(s){
-      return '<button class="stationChoice '+(s.crs===currentCRS?'active':'')+'" type="button" data-crs="'+esc(s.crs)+'">'+
+      return '<button class="stationChoice '+(s.crs===currentCRS?'active':'')+'" type="button" data-crs="'+esc(s.crs)+'" data-name="'+esc(s.name)+'">'+
         '<span class="stationChoiceName">'+esc(s.short)+'</span>'+
         '<span class="stationChoiceCode">'+esc(s.crs)+'</span>'+
       '</button>';
     }).join('');
   }
-  function openStationSheet(){
-    renderStationChoices();
-    el('stationSheet').classList.add('open');
-    document.body.style.overflow='hidden';
-  }
-  function closeStationSheet(){
-    el('stationSheet').classList.remove('open');
-    document.body.style.overflow='';
-  }
 
-  el('stationButton').addEventListener('click',openStationSheet);
-  el('closeStation').addEventListener('click',closeStationSheet);
-  el('stationSheet').addEventListener('click',function(e){
-    if(e.target===el('stationSheet')) closeStationSheet();
-  });
-  el('stationList').addEventListener('click',async function(e){
-    var b=e.target.closest('.stationChoice');
-    if(!b) return;
-    var crs=b.dataset.crs;
-    if(!STATIONS.some(function(s){return s.crs===crs;})) return;
-    currentCRS=crs;
+  async function selectStation(crs,name){
+    currentCRS=String(crs||'').toUpperCase();
+    currentStationName=name || currentCRS;
     localStorage.setItem(STORAGE_KEY,currentCRS);
+    localStorage.setItem(STATION_NAME_KEY,currentStationName);
     expandedIds.clear();
     services=[];
     updateHeader();
@@ -590,6 +608,95 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     el('services').innerHTML='<div class="loading"><span class="spinner"></span>Loading departures…</div>';
     window.scrollTo({top:0,behavior:'smooth'});
     await loadDepartures(false);
+  }
+
+  var stationSearchTimer=null;
+  var stationSearchSeq=0;
+
+  function showQuickStations(){
+    el('stationResults').hidden=true;
+    el('stationResults').innerHTML='';
+    el('stationList').hidden=false;
+    el('quickLabel').hidden=false;
+  }
+
+  function showStationResults(matches){
+    el('stationList').hidden=true;
+    el('quickLabel').hidden=true;
+    var resultBox=el('stationResults');
+    resultBox.hidden=false;
+    if(!matches.length){
+      resultBox.innerHTML='<div class="inlineLoading">No passenger stations found.</div>';
+      return;
+    }
+    resultBox.innerHTML=matches.map(function(s){
+      return '<button class="stationResult" type="button" data-crs="'+esc(s.crs)+'" data-name="'+esc(s.name)+'">'+
+        '<span class="stationResultName">'+esc(s.name)+'</span>'+
+        '<span class="stationResultCode">'+esc(s.crs)+'</span>'+
+      '</button>';
+    }).join('');
+  }
+
+  async function searchStations(query){
+    var seq=++stationSearchSeq;
+    el('stationSearchStatus').textContent='Searching…';
+    try{
+      var response=await fetch(API+'/stations?q='+encodeURIComponent(query),{cache:'no-store'});
+      var body=await response.json().catch(function(){return null;});
+      if(seq!==stationSearchSeq) return;
+      if(!response.ok || !body || body.type!=='ok') throw new Error('Search unavailable');
+      var matches=((body.data && body.data.matches) || [])
+        .filter(function(item){return item && item.type==='station' && item.crs && item.name;})
+        .slice(0,10);
+      el('stationSearchStatus').textContent=matches.length ? 'Tap a station below' : 'No matching passenger stations';
+      showStationResults(matches);
+    }catch(_){
+      if(seq!==stationSearchSeq) return;
+      el('stationSearchStatus').textContent='Station search is temporarily unavailable';
+      showStationResults([]);
+    }
+  }
+
+  function openStationSheet(){
+    renderStationChoices();
+    el('stationSearch').value='';
+    el('stationSearchStatus').textContent='Type at least 2 letters, or a CRS code';
+    showQuickStations();
+    el('stationSheet').classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+  function closeStationSheet(){
+    el('stationSheet').classList.remove('open');
+    document.body.style.overflow='';
+    if(stationSearchTimer) clearTimeout(stationSearchTimer);
+    stationSearchSeq++;
+  }
+
+  el('stationButton').addEventListener('click',openStationSheet);
+  el('closeStation').addEventListener('click',closeStationSheet);
+  el('stationSheet').addEventListener('click',function(e){
+    if(e.target===el('stationSheet')) closeStationSheet();
+  });
+  el('stationSearch').addEventListener('input',function(){
+    var q=this.value.trim();
+    if(stationSearchTimer) clearTimeout(stationSearchTimer);
+    if(q.length<2){
+      stationSearchSeq++;
+      el('stationSearchStatus').textContent=q.length ? 'Type one more character' : 'Type at least 2 letters, or a CRS code';
+      showQuickStations();
+      return;
+    }
+    stationSearchTimer=setTimeout(function(){searchStations(q);},280);
+  });
+  el('stationList').addEventListener('click',function(e){
+    var b=e.target.closest('.stationChoice');
+    if(!b) return;
+    selectStation(b.dataset.crs,b.dataset.name);
+  });
+  el('stationResults').addEventListener('click',function(e){
+    var b=e.target.closest('.stationResult');
+    if(!b) return;
+    selectStation(b.dataset.crs,b.dataset.name);
   });
 
   el('services').addEventListener('click',function(e){

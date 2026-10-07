@@ -9,149 +9,256 @@
 <title>Trecco Trains</title>
 <style>
 :root{
-  --black:#050505;--panel:#0c0c0c;--panel2:#151515;--line:#292929;
-  --amber:#ffad21;--amber2:#ffc85a;--green:#4de275;--red:#ff5a5f;
-  --white:#f6f6f6;--muted:#a7a7a7;--navy:#082e58;
+  --black:#050505;--panel:#0d0f11;--panel2:#15191d;--line:#2a2f34;
+  --yellow:#eaff23;--cyan:#25e6ff;--green:#4cff16;--red:#ff4148;
+  --white:#f7f7f7;--muted:#8f9aa2;--blue:#0878df;--blue2:#0358a8;
 }
 *{box-sizing:border-box}
-html,body{margin:0;min-height:100%;background:var(--black);color:var(--white);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
-body{padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+html,body{margin:0;min-height:100%;background:var(--black);color:var(--white)}
+body{
+  padding-bottom:calc(18px + env(safe-area-inset-bottom));
+  font-family:ui-monospace,"SFMono-Regular",Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+}
 button{font:inherit}
 button,a{-webkit-tap-highlight-color:transparent}
 button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .top{
-  position:sticky;top:0;z-index:30;
+  position:sticky;top:0;z-index:40;
   padding-top:env(safe-area-inset-top);
-  background:rgba(5,5,5,.96);backdrop-filter:blur(16px);
-  border-bottom:1px solid #252525;
+  background:rgba(5,5,5,.97);
+  border-bottom:1px solid #272b2e;
+  box-shadow:0 7px 20px rgba(0,0,0,.38);
 }
 .stationButton{
-  width:100%;border:0;background:linear-gradient(180deg,#113f71,#082e58);
-  color:#fff;padding:12px 14px 10px;text-align:left;cursor:pointer;
-  box-shadow:inset 0 -1px rgba(255,255,255,.08);
+  width:100%;border:0;background:#090b0d;color:#fff;
+  padding:8px 10px 7px;text-align:left;cursor:pointer;
 }
-.stationTop{display:flex;align-items:center;gap:10px;max-width:900px;margin:auto}
-.stationMain{min-width:0;flex:1}
-.stationEyebrow{display:block;color:#b9d6ef;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
-.stationName{display:flex;align-items:center;gap:7px;min-width:0;font-size:clamp(22px,6vw,31px);font-weight:950;line-height:1.05;letter-spacing:-.03em}
-.stationNameText{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.chevron{font-size:15px;color:#dceafb}
-.clockBlock{flex:0 0 auto;text-align:right}
-.clock{color:#ffe16a;font-variant-numeric:tabular-nums;font-size:18px;font-weight:900;letter-spacing:.04em}
-.updated{margin-top:3px;color:#c3d2e2;font-size:10px;font-weight:700;white-space:nowrap}
-.updated.error{color:#ffb3b3}
-.columns{
+.stationTop{
   max-width:900px;margin:auto;display:grid;
-  grid-template-columns:64px minmax(0,1fr) 46px 82px;
-  gap:7px;padding:8px 12px 7px;color:#818181;background:#090909;
-  font-size:10px;font-weight:900;letter-spacing:.08em;border-top:1px solid rgba(255,255,255,.04);
+  grid-template-columns:58px minmax(0,1fr) auto;align-items:center;gap:10px;
 }
-.columns span:nth-child(3),.columns span:nth-child(4){text-align:right}
-.board{max-width:900px;margin:0 auto;padding:0 10px}
-.notice{margin:12px 2px;border:1px solid #3c3118;background:#19140a;color:#ffd27b;border-radius:12px;padding:10px 12px;font-size:12px;font-weight:750;line-height:1.35}
-.notice.error{border-color:#593034;background:#1c0d0f;color:#ffb8ba}
+.stnBadge{
+  display:flex;align-items:center;justify-content:center;
+  height:46px;border-radius:3px;
+  background:linear-gradient(180deg,#168df0,#0568cf);
+  border:1px solid #31a4ff;color:#fff;
+  font-weight:950;font-size:16px;letter-spacing:.03em;
+  box-shadow:inset 0 0 14px rgba(255,255,255,.12);
+}
+.stationIdentity{min-width:0}
+.stationCodeLine{
+  display:flex;align-items:center;gap:8px;
+  color:var(--yellow);font-size:clamp(22px,6.1vw,31px);
+  font-weight:950;line-height:1;white-space:nowrap;
+}
+.stationFullName{
+  display:block;margin-top:5px;color:#84939e;font-size:10px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.chevron{color:#a8b6c0;font-size:12px}
+.clockBlock{text-align:right;min-width:92px}
+.clock{
+  color:#fff;font-size:clamp(17px,4.8vw,23px);font-weight:950;
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.updated{
+  margin-top:4px;color:#77838b;font-size:9px;font-weight:800;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  white-space:nowrap;
+}
+.updated.error{color:#ff8b90}
+.board{max-width:900px;margin:0 auto;padding:0 9px}
+.notice{
+  margin:10px 0;border:1px solid #51431e;background:#17130a;color:#ffd96d;
+  border-radius:10px;padding:9px 10px;font:700 12px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.notice.error{border-color:#65343a;background:#200d10;color:#ffb1b5}
 .notice[hidden]{display:none}
 .service{
-  display:grid;grid-template-columns:64px minmax(0,1fr) 46px 82px;
-  gap:7px;width:100%;border:0;border-bottom:1px solid var(--line);
-  background:var(--black);color:#fff;text-align:left;padding:13px 2px 12px;
-  cursor:pointer;min-height:68px;
+  border-bottom:1px solid #3a3e42;padding:11px 4px 10px;
+  background:linear-gradient(180deg,#08090a,#050505);
 }
-.service:active{background:#111}
-.time{color:var(--amber);font-size:19px;font-weight:950;font-variant-numeric:tabular-nums}
-.destWrap{min-width:0}
-.dest{color:var(--amber2);font-size:17px;font-weight:900;line-height:1.15;overflow-wrap:anywhere}
-.via{margin-top:3px;color:#858585;font-size:11px;line-height:1.2}
-.operator{margin-top:4px;color:#717171;font-size:10px;line-height:1.15}
-.platform{align-self:start;text-align:right;color:#fff;font-size:16px;font-weight:900}
-.status{align-self:start;text-align:right;font-size:12px;font-weight:950;line-height:1.15;overflow-wrap:anywhere}
+.service.open{background:linear-gradient(180deg,#0c1114,#050505)}
+.serviceMain{
+  display:block;width:100%;border:0;background:transparent;color:#fff;
+  text-align:left;padding:0;cursor:pointer;
+}
+.routeLine{
+  display:grid;grid-template-columns:auto minmax(0,1fr);gap:13px;align-items:baseline;
+}
+.time{
+  color:#fff;font-size:clamp(22px,6vw,29px);font-weight:950;
+  line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.dest{
+  min-width:0;color:#fff;font-size:clamp(22px,6vw,29px);font-weight:950;
+  line-height:1.05;overflow-wrap:anywhere;
+}
+.statusLine{
+  display:flex;align-items:baseline;gap:12px;margin-top:5px;
+  font-size:clamp(20px,5.5vw,27px);font-weight:950;line-height:1.05;
+}
+.platformText{color:var(--cyan);white-space:nowrap}
+.status{font-weight:950}
 .status.ontime{color:var(--green)}
-.status.delay{color:var(--amber)}
+.status.delay{color:var(--yellow)}
 .status.cancelled{color:var(--red)}
-.status.other{color:#ddd}
-.empty{padding:56px 16px;text-align:center;color:#8d8d8d}
-.empty strong{display:block;color:#ddd;font-size:18px;margin-bottom:6px}
-.actions{max-width:900px;margin:16px auto 0;padding:0 12px;display:flex;gap:10px}
+.status.other{color:#fff}
+.tickerLine{
+  display:flex;align-items:center;min-width:0;margin-top:7px;
+  color:var(--cyan);font-size:13px;font-weight:900;line-height:1.2;
+  overflow:hidden;
+}
+.tickerLabel{flex:0 0 auto;margin-right:7px;color:var(--cyan)}
+.tickerViewport{
+  min-width:0;flex:1;overflow:hidden;white-space:nowrap;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 13px,#000 calc(100% - 16px),transparent 100%);
+  mask-image:linear-gradient(90deg,transparent 0,#000 13px,#000 calc(100% - 16px),transparent 100%);
+}
+.tickerTrack{
+  display:inline-flex;width:max-content;min-width:100%;
+  will-change:transform;
+}
+.tickerTrack.scrolling{animation:ticker var(--ticker-duration,24s) linear infinite}
+.tickerGroup{display:inline-block;padding-right:52px}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.expandHint{
+  margin-top:4px;text-align:right;color:#5f6a71;font-size:9px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-weight:800;
+}
+.expandedPanel{
+  display:none;margin-top:10px;border-top:1px solid #273038;padding-top:8px;
+}
+.service.open .expandedPanel{display:block}
+.service.open .tickerLine,.service.open .expandHint{display:none}
+.expandedTitle{
+  color:var(--yellow);font-size:13px;font-weight:950;margin-bottom:4px;
+  text-transform:uppercase;letter-spacing:.05em;
+}
+.callingList{display:grid}
+.calling{
+  display:grid;grid-template-columns:57px 13px minmax(0,1fr);
+  gap:8px;align-items:start;padding:7px 1px;border-bottom:1px solid #202326;
+}
+.calling:last-child{border-bottom:0}
+.callingTime{color:#fff;font-size:14px;font-weight:900;font-variant-numeric:tabular-nums}
+.callingDot{position:relative;width:13px;min-height:23px}
+.callingDot::before{
+  content:"";position:absolute;left:5px;top:-8px;bottom:-8px;width:2px;background:#29616a
+}
+.callingDot::after{
+  content:"";position:absolute;left:1px;top:3px;width:10px;height:10px;border-radius:50%;
+  background:var(--cyan);box-shadow:0 0 6px rgba(37,230,255,.42)
+}
+.calling:first-child .callingDot::before{top:8px}
+.calling:last-child .callingDot::before{bottom:12px}
+.callingName{color:#dffbff;font-size:14px;font-weight:850;line-height:1.2}
+.callingExpected{display:block;margin-top:2px;color:var(--yellow);font-size:10px}
+.callingCancelled{color:var(--red)}
+.inlineLoading{
+  padding:9px 0;color:#7f8b92;font-size:12px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.empty{
+  padding:54px 16px;text-align:center;color:#89939a;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.empty strong{display:block;color:#e8e8e8;font-size:18px;margin-bottom:6px}
+.actions{
+  max-width:900px;margin:16px auto 0;padding:0 10px;display:flex;gap:9px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
 .action{
-  flex:1;min-height:48px;border:1px solid #333;border-radius:13px;
+  flex:1;min-height:48px;border:1px solid #333;border-radius:12px;
   background:#111;color:#fff;font-weight:850;cursor:pointer
 }
 .homeLink{display:flex;align-items:center;justify-content:center;text-decoration:none}
 .sheetBackdrop{
-  position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.68);
+  position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.76);
   display:none;align-items:flex-end;justify-content:center;
 }
 .sheetBackdrop.open{display:flex}
 .sheet{
-  width:100%;max-width:900px;max-height:86%;overflow:auto;
-  background:#111;color:#fff;border-radius:24px 24px 0 0;
-  padding:14px 14px calc(20px + env(safe-area-inset-bottom));
-  box-shadow:0 -14px 50px rgba(0,0,0,.5);
+  width:100%;max-width:900px;max-height:88%;overflow:auto;
+  background:#0c0d0f;color:#fff;border-radius:22px 22px 0 0;
+  padding:13px 12px calc(18px + env(safe-area-inset-bottom));
+  box-shadow:0 -15px 55px rgba(0,0,0,.62);
 }
-.sheetHandle{width:44px;height:5px;border-radius:999px;background:#555;margin:0 auto 12px}
+.sheetHandle{width:44px;height:5px;border-radius:999px;background:#4d5358;margin:0 auto 11px}
 .sheetHeader{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .sheetHeaderText{min-width:0;flex:1}
-.sheetHeader h2{margin:0;color:var(--amber2);font-size:22px}
-.sheetHeader p{margin:3px 0 0;color:#999;font-size:12px}
-.closeBtn{width:44px;height:44px;border:1px solid #3b3b3b;border-radius:12px;background:#222;color:#fff;font-size:22px;cursor:pointer}
-.stationList{display:grid;gap:8px}
+.sheetHeader h2{margin:0;text-align:center;color:var(--yellow);font-size:23px}
+.sheetHeader p{
+  margin:3px 0 0;text-align:center;color:#87939b;font-size:11px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.closeBtn{
+  width:44px;height:44px;border:1px solid #3b4146;border-radius:10px;
+  background:#191d20;color:#fff;font-size:22px;cursor:pointer;
+}
+.stationGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 .stationChoice{
-  width:100%;min-height:58px;border:1px solid #333;border-radius:14px;
-  background:#181818;color:#fff;padding:9px 12px;text-align:left;cursor:pointer;
-  display:flex;align-items:center;gap:12px
+  min-width:0;min-height:59px;border:1px solid #58616a;border-radius:3px;
+  background:#11161a;color:#e8f8ff;padding:6px 7px;text-align:left;cursor:pointer;
 }
-.stationChoice.active{border-color:var(--amber);background:#2a210f}
-.stationChoiceName{font-size:17px;font-weight:900;flex:1}
-.stationChoiceCode{color:var(--amber);font-size:13px;font-weight:950;letter-spacing:.08em}
-.detailSummary{border:1px solid #343434;background:#181818;border-radius:14px;padding:12px;margin-bottom:10px}
-.detailRoute{font-size:20px;font-weight:950;color:var(--amber2);line-height:1.15}
-.detailMeta{margin-top:5px;color:#aaa;font-size:12px}
-.callingList{display:grid}
-.calling{
-  display:grid;grid-template-columns:58px 14px minmax(0,1fr);gap:7px;align-items:start;
-  padding:9px 2px;border-bottom:1px solid #292929
+.stationChoice.active{
+  border-color:#31a4ff;background:#0b4f85;
+  box-shadow:inset 0 0 0 1px #1888dc;
 }
-.callingTime{color:var(--amber);font-weight:900;font-variant-numeric:tabular-nums}
-.callingDot{position:relative;width:14px;min-height:28px}
-.callingDot::before{content:"";position:absolute;left:6px;top:-10px;bottom:-10px;width:2px;background:#4b4b4b}
-.callingDot::after{content:"";position:absolute;left:2px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--amber)}
-.calling:first-child .callingDot::before{top:9px}
-.calling:last-child .callingDot::before{bottom:13px}
-.callingName{font-weight:800;line-height:1.2}
-.callingExpected{display:block;margin-top:2px;color:#8d8d8d;font-size:11px}
-.loading{padding:28px;text-align:center;color:#999}
-.spinner{display:inline-block;width:19px;height:19px;border:2px solid #444;border-top-color:var(--amber);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-4px;margin-right:8px}
+.stationChoiceName{
+  display:block;font-size:clamp(16px,4.4vw,21px);font-weight:900;
+  line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.stationChoiceCode{display:block;margin-top:5px;color:var(--yellow);font-size:11px;font-weight:950}
+.loading{
+  padding:30px;text-align:center;color:#8e999f;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.spinner{
+  display:inline-block;width:18px;height:18px;border:2px solid #444;border-top-color:var(--yellow);
+  border-radius:50%;animation:spin .8s linear infinite;vertical-align:-4px;margin-right:7px
+}
 @keyframes spin{to{transform:rotate(360deg)}}
-@media (max-width:420px){
-  .columns,.service{grid-template-columns:57px minmax(0,1fr) 39px 72px;gap:5px}
-  .board{padding:0 8px}
-  .columns{padding-left:10px;padding-right:10px}
-  .time{font-size:17px}.dest{font-size:16px}.platform{font-size:14px}.status{font-size:11px}
+@media (min-width:700px){
+  .time,.dest{font-size:28px}.statusLine{font-size:25px}.tickerLine{font-size:14px}
+  .stationGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
-@media (prefers-reduced-motion:reduce){.spinner{animation:none}}
+@media (max-width:365px){
+  .stationTop{grid-template-columns:52px minmax(0,1fr) 82px;gap:7px}
+  .stnBadge{height:42px;font-size:14px}
+  .stationCodeLine{font-size:20px}.clock{font-size:16px}
+  .time,.dest{font-size:20px}.statusLine{font-size:18px}
+  .tickerLine{font-size:11px}
+}
+@media (prefers-reduced-motion:reduce){
+  .spinner{animation:none}.tickerTrack.scrolling{animation:none;transform:none}
+}
 </style>
 </head>
 <body>
 <header class="top">
   <button id="stationButton" class="stationButton" type="button" aria-haspopup="dialog" aria-controls="stationSheet">
     <div class="stationTop">
-      <div class="stationMain">
-        <span class="stationEyebrow">Tap to change station</span>
-        <div class="stationName"><span id="stationName" class="stationNameText">Newbridge</span><span class="chevron">▼</span></div>
-      </div>
-      <div class="clockBlock">
-        <div id="clock" class="clock">--:--:--</div>
-        <div id="updated" class="updated">Loading live trains…</div>
-      </div>
+      <span class="stnBadge">STN</span>
+      <span class="stationIdentity">
+        <span class="stationCodeLine"><span id="stationCode">NWB DEPT</span><span class="chevron">▼</span></span>
+        <span id="stationFullName" class="stationFullName">Newbridge · tap to choose station</span>
+      </span>
+      <span class="clockBlock">
+        <span id="clock" class="clock">--:--:--</span>
+        <span id="updated" class="updated">Loading…</span>
+      </span>
     </div>
   </button>
-  <div class="columns" aria-hidden="true"><span>EXP</span><span>DESTINATION</span><span>PLT</span><span>STATUS</span></div>
 </header>
 
 <main>
   <div class="board">
     <div id="notice" class="notice" hidden></div>
-    <div id="services" aria-live="polite"><div class="loading"><span class="spinner"></span>Loading departures…</div></div>
+    <div id="services" aria-live="polite">
+      <div class="loading"><span class="spinner"></span>Loading departures…</div>
+    </div>
   </div>
   <div class="actions">
     <button id="refreshButton" class="action" type="button">↻ Refresh trains</button>
@@ -164,296 +271,337 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
     <div class="sheetHandle"></div>
     <div class="sheetHeader">
       <div class="sheetHeaderText">
-        <h2 id="stationSheetTitle">Choose station</h2>
-        <p>Your selection is remembered on this phone.</p>
+        <h2 id="stationSheetTitle">CHOOSE STATION</h2>
+        <p>Tap a station to load its live departures.</p>
       </div>
       <button id="closeStation" class="closeBtn" type="button" aria-label="Close station chooser">×</button>
     </div>
-    <div id="stationList" class="stationList"></div>
-  </div>
-</div>
-
-<div id="detailSheet" class="sheetBackdrop" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
-  <div class="sheet">
-    <div class="sheetHandle"></div>
-    <div class="sheetHeader">
-      <div class="sheetHeaderText">
-        <h2 id="detailTitle">Calling points</h2>
-        <p id="detailSubtitle">Live service detail</p>
-      </div>
-      <button id="closeDetail" class="closeBtn" type="button" aria-label="Close service details">×</button>
-    </div>
-    <div id="detailContent"></div>
+    <div id="stationList" class="stationGrid"></div>
   </div>
 </div>
 
 <script>
-(() => {
-  const API = 'https://huxley2.azurewebsites.net';
-  const BOARD_ROWS = 50;
-  const REFRESH_MS = 60000;
-  const STATIONS = [
-    {name:'Newbridge', crs:'NWB'},
-    {name:'Cardiff Central', crs:'CDF'},
-    {name:'Ebbw Vale Town', crs:'EBB'},
-    {name:'Newport', crs:'NWP'},
-    {name:'Bristol Temple Meads', crs:'BRI'},
-    {name:'Crosskeys', crs:'CKY'}
+(function(){
+  var API = 'https://huxley2.azurewebsites.net';
+  var BOARD_ROWS = 50;
+  var REFRESH_MS = 60000;
+  var STATIONS = [
+    {name:'Newbridge', short:'Newbridge', crs:'NWB'},
+    {name:'Newport', short:'Newport', crs:'NWP'},
+    {name:'Cardiff Central', short:'Cardiff Cen', crs:'CDF'},
+    {name:'Reading', short:'Reading', crs:'RDG'},
+    {name:'Paddington', short:'Paddington', crs:'PAD'},
+    {name:'Swansea', short:'Swansea', crs:'SWA'},
+    {name:'Waterloo', short:'Waterloo', crs:'WAT'},
+    {name:'Bath Spa', short:'Bath Spa', crs:'BTH'},
+    {name:'Hull', short:'Hull', crs:'HUL'},
+    {name:'Crosskeys', short:'Crosskeys', crs:'CKY'},
+    {name:'Bristol Temple Meads', short:'Bristol TM', crs:'BRI'},
+    {name:'Risca & Pontymister', short:'Risca', crs:'RCA'}
   ];
-  const STORAGE_KEY = 'trecco-trains-station-v1';
-  const CACHE_PREFIX = 'trecco-trains-cache-v1-';
+  var STORAGE_KEY = 'trecco-trains-station-v2';
+  var OLD_STORAGE_KEY = 'trecco-trains-station-v1';
+  var CACHE_PREFIX = 'trecco-trains-cache-v2-';
+  var detailCache = new Map();
+  var expandedIds = new Set();
+  var services = [];
+  var lastUpdatedAt = null;
+  var refreshing = false;
 
-  const $ = id => document.getElementById(id);
-  let currentCRS = localStorage.getItem(STORAGE_KEY) || 'NWB';
-  if (!STATIONS.some(s => s.crs === currentCRS)) currentCRS = 'NWB';
-  let services = [];
-  let lastUpdatedAt = null;
-  let refreshing = false;
-  let refreshTimer = null;
-
-  function escapeHtml(value) {
-    return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function el(id){ return document.getElementById(id); }
+  function esc(value){
+    return String(value == null ? '' : value).replace(/[&<>"']/g,function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function stationByCode(crs){
+    for(var i=0;i<STATIONS.length;i++) if(STATIONS[i].crs===crs) return STATIONS[i];
+    return STATIONS[0];
   }
 
-  function station() {
-    return STATIONS.find(s => s.crs === currentCRS) || STATIONS[0];
-  }
+  var currentCRS = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY) || 'NWB';
+  if(!STATIONS.some(function(s){return s.crs===currentCRS;})) currentCRS='NWB';
+  localStorage.setItem(STORAGE_KEY,currentCRS);
 
-  function updateClock() {
-    $('clock').textContent = new Intl.DateTimeFormat('en-GB', {
-      timeZone:'Europe/London', hour:'2-digit', minute:'2-digit', second:'2-digit',
-      hour12:false
+  function currentStation(){ return stationByCode(currentCRS); }
+
+  function updateClock(){
+    el('clock').textContent = new Intl.DateTimeFormat('en-GB',{
+      timeZone:'Europe/London',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
     }).format(new Date());
   }
-
-  function setUpdated(text, isError=false) {
-    $('updated').textContent = text;
-    $('updated').classList.toggle('error', isError);
+  function setUpdated(text,isError){
+    el('updated').textContent=text;
+    el('updated').classList.toggle('error',!!isError);
+  }
+  function updateHeader(){
+    var s=currentStation();
+    el('stationCode').textContent=s.crs+' DEPT';
+    el('stationFullName').textContent=s.name+' · tap to choose station';
+    document.title=s.name+' Departures · Trecco Trains';
   }
 
-  function updateHeader() {
-    $('stationName').textContent = station().name;
-    document.title = station().name + ' Trains · Trecco';
+  function statusInfo(s){
+    var etd=String(s.etd||'').trim();
+    if(s.isCancelled || /cancel/i.test(etd)) return {label:'CANC',cls:'cancelled'};
+    if(/^on time$/i.test(etd)) return {label:'On time',cls:'ontime'};
+    if(!etd || /^null$/i.test(etd)) return {label:'—',cls:'other'};
+    return {label:etd,cls:'delay'};
+  }
+  function destination(s){
+    return (s.destination && s.destination[0] && (s.destination[0].locationName || s.destination[0].crs)) || 'Destination unavailable';
+  }
+  function serviceKey(s,index){
+    return s.serviceIdUrlSafe || s.serviceIdPercentEncoded || s.serviceID || ((s.std||'')+'-'+destination(s)+'-'+index);
+  }
+  function servicePathId(s){
+    if(s.serviceIdUrlSafe) return s.serviceIdUrlSafe;
+    if(s.serviceIdPercentEncoded) return s.serviceIdPercentEncoded;
+    if(s.serviceID) return encodeURIComponent(s.serviceID);
+    return '';
+  }
+  function getCallingPoints(obj){
+    var groups = obj && obj.subsequentCallingPoints;
+    if(groups && groups[0] && Array.isArray(groups[0].callingPoint)) return groups[0].callingPoint;
+    return [];
+  }
+  function pointName(cp){ return cp.locationName || cp.crs || 'Station'; }
+  function tickerText(points){
+    if(!points.length) return 'Tap train to load full calling points';
+    return points.map(pointName).join('  •  ');
+  }
+  function pointTime(cp){
+    return cp.st || cp.sta || cp.std || '--:--';
+  }
+  function pointExpected(cp){
+    return cp.et || cp.eta || cp.etd || '';
   }
 
-  function statusInfo(s) {
-    const etd = String(s.etd || '').trim();
-    const cancelled = !!s.isCancelled || /cancel/i.test(etd);
-    if (cancelled) return {label:'CANC', cls:'cancelled'};
-    if (/^on time$/i.test(etd)) return {label:'ON TIME', cls:'ontime'};
-    if (!etd || /^null$/i.test(etd)) return {label:'—', cls:'other'};
-    return {label:etd.toUpperCase(), cls:'delay'};
+  function expandedHtml(points){
+    if(!points || !points.length){
+      return '<div class="inlineLoading">No onward calling points were returned for this train.</div>';
+    }
+    var rows=points.map(function(cp){
+      var expected=pointExpected(cp);
+      var sched=pointTime(cp);
+      var cancelled=!!cp.isCancelled || /cancel/i.test(expected);
+      var extra='';
+      if(cancelled) extra='<span class="callingExpected callingCancelled">Cancelled</span>';
+      else if(expected && !/^on time$/i.test(expected) && expected!==sched){
+        extra='<span class="callingExpected">Expected '+esc(expected)+'</span>';
+      }
+      return '<div class="calling">'+
+        '<span class="callingTime">'+esc(sched)+'</span>'+
+        '<span class="callingDot" aria-hidden="true"></span>'+
+        '<span class="callingName">'+esc(pointName(cp))+extra+'</span>'+
+      '</div>';
+    }).join('');
+    return '<div class="expandedTitle">Calling at</div><div class="callingList">'+rows+'</div>';
   }
 
-  function serviceDestination(s) {
-    return s?.destination?.[0]?.locationName || s?.destination?.[0]?.crs || 'Destination unavailable';
-  }
-
-  function serviceVia(s) {
-    return s?.destination?.[0]?.via || '';
-  }
-
-  function renderServices() {
-    if (!services.length) {
-      $('services').innerHTML = '<div class="empty"><strong>No departures returned</strong>There may be no trains in the current live-board window.</div>';
+  function renderServices(){
+    if(!services.length){
+      el('services').innerHTML='<div class="empty"><strong>No departures returned</strong>There may be no trains in the current live-board window.</div>';
       return;
     }
-
-    $('services').innerHTML = services.map((s, i) => {
-      const status = statusInfo(s);
-      const serviceId = s.serviceIdUrlSafe || s.serviceID || s.serviceIdPercentEncoded || '';
-      const dest = serviceDestination(s);
-      const operator = s.operator || '';
-      const via = serviceVia(s);
-      return `<button class="service" type="button" data-index="${i}" data-service-id="${escapeHtml(serviceId)}" aria-label="${escapeHtml((s.std || '') + ' to ' + dest + ', ' + status.label)}">
-        <span class="time">${escapeHtml(s.std || '--:--')}</span>
-        <span class="destWrap">
-          <span class="dest">${escapeHtml(dest)}</span>
-          ${via ? `<span class="via">${escapeHtml(via)}</span>` : ''}
-          ${operator ? `<span class="operator">${escapeHtml(operator)}</span>` : ''}
-        </span>
-        <span class="platform">${escapeHtml(s.platform || '-')}</span>
-        <span class="status ${status.cls}">${escapeHtml(status.label)}</span>
-      </button>`;
+    el('services').innerHTML=services.map(function(s,index){
+      var key=serviceKey(s,index);
+      var open=expandedIds.has(key);
+      var status=statusInfo(s);
+      var points=getCallingPoints(s);
+      if(!points.length && detailCache.has(key)) points=getCallingPoints(detailCache.get(key));
+      var ticker=tickerText(points);
+      var duration=Math.max(16,Math.min(42,Math.round(ticker.length*0.23)));
+      var tickerMarkup='<div class="tickerLine">'+
+        '<span class="tickerLabel">Calling at:</span>'+
+        '<span class="tickerViewport">'+
+          '<span class="tickerTrack" style="--ticker-duration:'+duration+'s">'+
+            '<span class="tickerGroup">'+esc(ticker)+'</span>'+
+            '<span class="tickerGroup" aria-hidden="true">'+esc(ticker)+'</span>'+
+          '</span>'+
+        '</span>'+
+      '</div>';
+      var expandedContent='';
+      if(open){
+        if(points.length) expandedContent=expandedHtml(points);
+        else expandedContent='<div class="inlineLoading"><span class="spinner"></span>Loading calling points…</div>';
+      }
+      return '<article class="service '+(open?'open':'')+'" data-index="'+index+'" data-key="'+esc(key)+'">'+
+        '<button class="serviceMain" type="button" aria-expanded="'+(open?'true':'false')+'" aria-label="'+esc((s.std||'')+' to '+destination(s)+'. '+status.label+'. Tap for calling points.')+'">'+
+          '<span class="routeLine"><span class="time">'+esc(s.std||'--:--')+'</span><span class="dest">'+esc(destination(s))+'</span></span>'+
+          '<span class="statusLine"><span class="platformText">Plat '+esc(s.platform||'-')+'</span><span class="status '+status.cls+'">'+esc(status.label)+'</span></span>'+
+          tickerMarkup+
+          '<span class="expandHint">Tap train for full calling points</span>'+
+        '</button>'+
+        '<div class="expandedPanel" id="expanded-'+index+'">'+expandedContent+'</div>'+
+      '</article>';
     }).join('');
+    requestAnimationFrame(prepareTickers);
   }
 
-  function showNotice(message, error=false) {
-    const n = $('notice');
-    if (!message) { n.hidden = true; n.textContent = ''; return; }
-    n.hidden = false;
-    n.textContent = message;
-    n.classList.toggle('error', error);
+  function prepareTickers(){
+    var tracks=document.querySelectorAll('.tickerTrack');
+    tracks.forEach(function(track){
+      var viewport=track.parentElement;
+      var first=track.querySelector('.tickerGroup');
+      if(!viewport || !first) return;
+      var shouldScroll=first.scrollWidth > viewport.clientWidth-8;
+      track.classList.toggle('scrolling',shouldScroll);
+      if(!shouldScroll){
+        var duplicate=track.querySelectorAll('.tickerGroup')[1];
+        if(duplicate) duplicate.style.display='none';
+      }
+    });
   }
 
-  function cacheKey() { return CACHE_PREFIX + currentCRS; }
-
-  function saveCache(data) {
-    try {
-      localStorage.setItem(cacheKey(), JSON.stringify({savedAt:Date.now(), data}));
-    } catch (_) {}
+  function showNotice(message,error){
+    var n=el('notice');
+    if(!message){n.hidden=true;n.textContent='';return;}
+    n.hidden=false;n.textContent=message;n.classList.toggle('error',!!error);
   }
-
-  function loadCache() {
-    try {
-      const cached = JSON.parse(localStorage.getItem(cacheKey()) || 'null');
-      if (cached && cached.data && Array.isArray(cached.data.trainServices)) return cached;
-    } catch (_) {}
+  function cacheKey(){return CACHE_PREFIX+currentCRS;}
+  function saveCache(data){
+    try{localStorage.setItem(cacheKey(),JSON.stringify({savedAt:Date.now(),data:data}));}catch(_){}
+  }
+  function loadCache(){
+    try{
+      var cached=JSON.parse(localStorage.getItem(cacheKey())||'null');
+      if(cached && cached.data && Array.isArray(cached.data.trainServices)) return cached;
+    }catch(_){}
     return null;
   }
 
-  async function loadDepartures({manual=false}={}) {
-    if (refreshing) return;
-    refreshing = true;
-    if (manual) $('refreshButton').textContent = 'Refreshing…';
-    setUpdated('Updating…');
+  async function loadDepartures(manual){
+    if(refreshing) return;
+    refreshing=true;
+    if(manual) el('refreshButton').textContent='Refreshing…';
+    setUpdated('Updating…',false);
     showNotice('');
-    try {
-      const url = `${API}/departures/${encodeURIComponent(currentCRS)}/${BOARD_ROWS}`;
-      const response = await fetch(url, {cache:'no-store'});
-      if (!response.ok) throw new Error('Live train service returned ' + response.status);
-      const data = await response.json();
-      services = Array.isArray(data.trainServices) ? data.trainServices : [];
-      lastUpdatedAt = new Date(data.generatedAt || Date.now());
+    try{
+      var url=API+'/departures/'+encodeURIComponent(currentCRS)+'/'+BOARD_ROWS+'?expand=true';
+      var response=await fetch(url,{cache:'no-store'});
+      if(!response.ok) throw new Error('Live train service returned '+response.status);
+      var data=await response.json();
+      services=Array.isArray(data.trainServices)?data.trainServices:[];
+      lastUpdatedAt=new Date(data.generatedAt||Date.now());
       saveCache(data);
       renderServices();
-      setUpdated('Updated ' + lastUpdatedAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}));
-    } catch (err) {
-      const cached = loadCache();
-      if (cached) {
-        services = cached.data.trainServices || [];
+      setUpdated('Updated '+lastUpdatedAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),false);
+    }catch(err){
+      var cached=loadCache();
+      if(cached){
+        services=cached.data.trainServices||[];
         renderServices();
-        const t = new Date(cached.savedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-        setUpdated('Cached ' + t, true);
-        showNotice('Live train data is temporarily unavailable. Showing the most recently saved departures for this station.', true);
-      } else {
-        services = [];
+        var t=new Date(cached.savedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+        setUpdated('Cached '+t,true);
+        showNotice('Live train data is temporarily unavailable. Showing the most recently saved departures for this station.',true);
+      }else{
+        services=[];
         renderServices();
-        setUpdated('Live data unavailable', true);
-        showNotice('I could not reach the live railway feed. Tap Refresh trains to try again.', true);
+        setUpdated('Live data unavailable',true);
+        showNotice('The live railway feed could not be reached. Tap Refresh trains to try again.',true);
       }
-    } finally {
-      refreshing = false;
-      $('refreshButton').textContent = '↻ Refresh trains';
+    }finally{
+      refreshing=false;
+      el('refreshButton').textContent='↻ Refresh trains';
     }
   }
 
-  function renderStationChoices() {
-    $('stationList').innerHTML = STATIONS.map(s => `
-      <button class="stationChoice ${s.crs === currentCRS ? 'active' : ''}" type="button" data-crs="${escapeHtml(s.crs)}">
-        <span class="stationChoiceName">${escapeHtml(s.name)}</span>
-        <span class="stationChoiceCode">${escapeHtml(s.crs)}</span>
-      </button>
-    `).join('');
+  function renderStationChoices(){
+    el('stationList').innerHTML=STATIONS.map(function(s){
+      return '<button class="stationChoice '+(s.crs===currentCRS?'active':'')+'" type="button" data-crs="'+esc(s.crs)+'">'+
+        '<span class="stationChoiceName">'+esc(s.short)+'</span>'+
+        '<span class="stationChoiceCode">'+esc(s.crs)+'</span>'+
+      '</button>';
+    }).join('');
   }
-
-  function openStationSheet() {
+  function openStationSheet(){
     renderStationChoices();
-    $('stationSheet').classList.add('open');
-    document.body.style.overflow = 'hidden';
+    el('stationSheet').classList.add('open');
+    document.body.style.overflow='hidden';
   }
-  function closeStationSheet() {
-    $('stationSheet').classList.remove('open');
-    document.body.style.overflow = '';
-  }
-
-  function openDetailShell(s) {
-    const dest = serviceDestination(s);
-    $('detailTitle').textContent = 'Calling points';
-    $('detailSubtitle').textContent = (s.std || '') + ' to ' + dest;
-    $('detailContent').innerHTML = '<div class="loading"><span class="spinner"></span>Loading calling points…</div>';
-    $('detailSheet').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeDetailSheet() {
-    $('detailSheet').classList.remove('open');
-    document.body.style.overflow = '';
+  function closeStationSheet(){
+    el('stationSheet').classList.remove('open');
+    document.body.style.overflow='';
   }
 
-  function getCallingPoints(detail) {
-    const later = detail?.subsequentCallingPoints?.[0]?.callingPoint;
-    if (Array.isArray(later)) return later;
-    const earlier = detail?.previousCallingPoints?.[0]?.callingPoint;
-    if (Array.isArray(earlier)) return earlier;
-    return [];
-  }
-
-  async function openServiceDetail(index) {
-    const s = services[index];
-    if (!s) return;
-    const serviceId = s.serviceIdUrlSafe || s.serviceID || s.serviceIdPercentEncoded;
-    openDetailShell(s);
-    if (!serviceId) {
-      $('detailContent').innerHTML = '<div class="notice error">This departure did not include a service identifier, so calling points cannot be loaded.</div>';
+  async function loadDetail(index,key){
+    var s=services[index];
+    if(!s) return;
+    var id=servicePathId(s);
+    if(!id){
+      var panel=el('expanded-'+index);
+      if(panel) panel.innerHTML='<div class="inlineLoading">This departure did not include a service identifier.</div>';
       return;
     }
-
-    try {
-      const response = await fetch(`${API}/service/${encodeURIComponent(serviceId)}`, {cache:'no-store'});
-      if (!response.ok) throw new Error('Service detail returned ' + response.status);
-      const detail = await response.json();
-      const points = getCallingPoints(detail);
-      const dest = serviceDestination(s);
-      const status = statusInfo(s);
-      const summary = `<div class="detailSummary">
-        <div class="detailRoute">${escapeHtml(s.std || '--:--')} → ${escapeHtml(dest)}</div>
-        <div class="detailMeta">Platform ${escapeHtml(s.platform || '-')} · ${escapeHtml(status.label)}${s.operator ? ' · ' + escapeHtml(s.operator) : ''}</div>
-      </div>`;
-      if (!points.length) {
-        $('detailContent').innerHTML = summary + '<div class="empty"><strong>No calling points returned</strong>The live feed has not supplied an onward calling-point list for this service.</div>';
-        return;
-      }
-      $('detailContent').innerHTML = summary + '<div class="callingList">' + points.map(cp => {
-        const sched = cp.st || cp.sta || cp.std || '--:--';
-        const expected = cp.et || cp.eta || cp.etd || '';
-        const extra = expected && !/^on time$/i.test(expected) && expected !== sched ? `<span class="callingExpected">Expected ${escapeHtml(expected)}</span>` : '';
-        return `<div class="calling"><span class="callingTime">${escapeHtml(sched)}</span><span class="callingDot" aria-hidden="true"></span><span class="callingName">${escapeHtml(cp.locationName || cp.crs || 'Station')}${extra}</span></div>`;
-      }).join('') + '</div>';
-    } catch (err) {
-      $('detailContent').innerHTML = '<div class="notice error">Calling points could not be loaded from the live railway feed. Close this panel and try the train again.</div>';
+    try{
+      var response=await fetch(API+'/service/'+id,{cache:'no-store'});
+      if(!response.ok) throw new Error('Service detail returned '+response.status);
+      var detail=await response.json();
+      detailCache.set(key,detail);
+      if(expandedIds.has(key)) renderServices();
+    }catch(err){
+      var panel=el('expanded-'+index);
+      if(panel) panel.innerHTML='<div class="inlineLoading callingCancelled">Calling points could not be loaded. Tap the train to close it, then try again.</div>';
     }
   }
 
-  $('stationButton').addEventListener('click', openStationSheet);
-  $('closeStation').addEventListener('click', closeStationSheet);
-  $('stationSheet').addEventListener('click', e => { if (e.target === $('stationSheet')) closeStationSheet(); });
-  $('stationList').addEventListener('click', async e => {
-    const b = e.target.closest('.stationChoice');
-    if (!b) return;
-    const crs = b.dataset.crs;
-    if (!STATIONS.some(s => s.crs === crs)) return;
-    currentCRS = crs;
-    localStorage.setItem(STORAGE_KEY, currentCRS);
+  el('stationButton').addEventListener('click',openStationSheet);
+  el('closeStation').addEventListener('click',closeStationSheet);
+  el('stationSheet').addEventListener('click',function(e){
+    if(e.target===el('stationSheet')) closeStationSheet();
+  });
+  el('stationList').addEventListener('click',async function(e){
+    var b=e.target.closest('.stationChoice');
+    if(!b) return;
+    var crs=b.dataset.crs;
+    if(!STATIONS.some(function(s){return s.crs===crs;})) return;
+    currentCRS=crs;
+    localStorage.setItem(STORAGE_KEY,currentCRS);
+    detailCache.clear();
+    expandedIds.clear();
+    services=[];
     updateHeader();
     closeStationSheet();
-    services = [];
-    $('services').innerHTML = '<div class="loading"><span class="spinner"></span>Loading departures…</div>';
+    el('services').innerHTML='<div class="loading"><span class="spinner"></span>Loading departures…</div>';
     window.scrollTo({top:0,behavior:'smooth'});
-    await loadDepartures();
+    await loadDepartures(false);
   });
 
-  $('services').addEventListener('click', e => {
-    const row = e.target.closest('.service');
-    if (!row) return;
-    openServiceDetail(Number(row.dataset.index));
+  el('services').addEventListener('click',function(e){
+    var button=e.target.closest('.serviceMain');
+    if(!button) return;
+    var article=button.closest('.service');
+    if(!article) return;
+    var index=Number(article.dataset.index);
+    var s=services[index];
+    if(!s) return;
+    var key=serviceKey(s,index);
+    if(expandedIds.has(key)){
+      expandedIds.delete(key);
+      renderServices();
+      return;
+    }
+    expandedIds.add(key);
+    renderServices();
+    var points=getCallingPoints(s);
+    if(!points.length && detailCache.has(key)) points=getCallingPoints(detailCache.get(key));
+    if(!points.length) loadDetail(index,key);
   });
-  $('closeDetail').addEventListener('click', closeDetailSheet);
-  $('detailSheet').addEventListener('click', e => { if (e.target === $('detailSheet')) closeDetailSheet(); });
-  $('refreshButton').addEventListener('click', () => loadDepartures({manual:true}));
 
-  document.addEventListener('keydown', e => {
-    if (e.key !== 'Escape') return;
-    if ($('detailSheet').classList.contains('open')) closeDetailSheet();
-    else if ($('stationSheet').classList.contains('open')) closeStationSheet();
+  el('refreshButton').addEventListener('click',function(){loadDepartures(true);});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape' && el('stationSheet').classList.contains('open')) closeStationSheet();
   });
+  window.addEventListener('resize',prepareTickers);
 
   updateHeader();
   updateClock();
-  setInterval(updateClock, 1000);
-  loadDepartures();
-  refreshTimer = setInterval(loadDepartures, REFRESH_MS);
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && lastUpdatedAt && Date.now() - lastUpdatedAt.getTime() > REFRESH_MS) loadDepartures();
+  setInterval(updateClock,1000);
+  loadDepartures(false);
+  setInterval(function(){loadDepartures(false);},REFRESH_MS);
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden && lastUpdatedAt && Date.now()-lastUpdatedAt.getTime()>REFRESH_MS) loadDepartures(false);
   });
 })();
 </script>

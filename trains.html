@@ -279,7 +279,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
       <span class="stnBadge">STN</span>
       <span class="stationIdentity">
         <span class="stationCodeLine"><span id="stationCode">NBE</span><span class="chevron">▼</span></span>
-        <span id="stationFullName" class="stationFullName">Newbridge · tap to choose station</span>
+        <span id="stationFullName" class="stationFullName">Newbridge</span>
       </span>
     </button>
     <span class="clockBlock">
@@ -442,7 +442,7 @@ button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
   function updateHeader(){
     var s=currentStation();
     el('stationCode').textContent=s.crs;
-    el('stationFullName').textContent=s.name+' · tap to choose station';
+    el('stationFullName').textContent=s.name;
     document.title=s.name+' Departures · Trecco Trains';
   }
 

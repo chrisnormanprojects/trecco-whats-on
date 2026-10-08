@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Trecco Underground</title>
+<style>
+:root{
+  --black:#050505;--panel:#0b0d0f;--panel2:#11161a;--line:#2a3035;
+  --white:#f7f7f7;--muted:#8e9aa3;--yellow:#eaff23;--cyan:#27e2ff;
+  --green:#4cff16;--red:#ff4850;--amber:#ffd34d;--blue:#0878df;
+  --line-colour:#B36305;--line-text:#fff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--black);color:var(--white)}
+body{
+  padding-bottom:calc(18px + env(safe-area-inset-bottom));
+  font-family:ui-monospace,"SFMono-Regular",Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+}
+button,a{-webkit-tap-highlight-color:transparent}
+button{font:inherit}
+button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:2px}
+
+.top{
+  position:sticky;top:0;z-index:40;width:100%;
+  padding-top:env(safe-area-inset-top);
+  background:rgba(5,5,5,.97);border-bottom:1px solid #2d3338;
+  box-shadow:0 7px 20px rgba(0,0,0,.4);
+}
+.topInner{
+  width:100%;max-width:900px;margin:auto;display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;
+  padding:8px 10px 7px;background:#090b0d;
+}
+.treccoBack{
+  display:flex;align-items:center;justify-content:center;min-height:40px;
+  padding:0 9px;border:1px solid #36506b;border-radius:8px;background:#101923;
+  color:#fff;text-decoration:none;font:850 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  white-space:nowrap;
+}
+.lineButton{
+  min-width:0;border:0;background:transparent;color:#fff;padding:0;display:grid;
+  grid-template-columns:58px minmax(0,1fr);gap:10px;align-items:center;text-align:left;cursor:pointer;
+}
+.tubeBadge{
+  display:flex;align-items:center;justify-content:center;height:46px;border-radius:3px;
+  background:linear-gradient(180deg,#168df0,#0568cf);border:1px solid #31a4ff;
+  color:#fff;font-weight:950;font-size:15px;letter-spacing:.02em;
+}
+.lineIdentity{min-width:0}
+.lineTitleRow{display:flex;align-items:center;gap:8px;min-width:0}
+.lineDot{width:13px;height:13px;border-radius:50%;background:var(--line-colour);flex:0 0 auto;border:1px solid rgba(255,255,255,.35)}
+.lineName{
+  min-width:0;color:var(--white);font-size:clamp(18px,5.2vw,26px);font-weight:950;
+  line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.chevron{color:#a8b6c0;font-size:12px;flex:0 0 auto}
+.lineStatus{
+  display:block;margin-top:5px;color:var(--muted);font:800 10px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.lineStatus.good{color:#8cf087}.lineStatus.bad{color:#ff9298}.lineStatus.warn{color:#ffd978}
+.clockBlock{min-width:92px;text-align:right;align-self:start;padding-top:2px}
+.clock{font-size:clamp(17px,4.8vw,23px);font-weight:950;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+main{max-width:900px;margin:0 auto;padding:0 9px}
+.boardHint{
+  padding:7px 4px 5px;color:#65727a;text-align:right;
+  font:800 10px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.notice{
+  margin:8px 0;border:1px solid #51431e;background:#17130a;color:#ffd96d;
+  border-radius:10px;padding:9px 10px;font:700 12px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.notice.error{border-color:#65343a;background:#200d10;color:#ffb1b5}
+.notice[hidden]{display:none}
+
+.summary{
+  margin:3px 0 8px;padding:8px 10px;border-left:5px solid var(--line-colour);
+  background:#0c1013;border-radius:7px;color:#dce5eb;
+  font:800 11px/1.25 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.summary strong{color:#fff}
+.station{
+  border-bottom:1px solid #343a3f;padding:10px 4px 9px;background:linear-gradient(180deg,#08090a,#050505);
+}
+.stationHead{display:flex;align-items:flex-start;gap:9px}
+.stationNode{
+  position:relative;width:18px;min-height:33px;flex:0 0 18px;
+}
+.stationNode::before{
+  content:"";position:absolute;left:8px;top:-10px;bottom:-19px;width:3px;background:var(--line-colour)
+}
+.stationNode::after{
+  content:"";position:absolute;left:2px;top:5px;width:15px;height:15px;border-radius:50%;
+  background:#050505;border:4px solid var(--line-colour)
+}
+.station:first-child .stationNode::before{top:12px}
+.station:last-child .stationNode::before{bottom:17px}
+.stationName{
+  min-width:0;font-size:clamp(20px,5.4vw,27px);font-weight:950;line-height:1.05;color:#fff;
+}
+.stationMeta{
+  margin-top:3px;color:#71808a;font:750 9px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.predictions{margin:7px 0 0 27px;display:grid;gap:5px}
+.prediction{
+  padding:7px 8px;border:1px solid #263038;border-radius:7px;background:#0c1115;
+}
+.predTop{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:baseline}
+.platform{
+  min-width:0;color:var(--cyan);font-size:14px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.eta{color:var(--green);font-size:15px;font-weight:950;white-space:nowrap}
+.eta.due{color:var(--yellow)}
+.destination{
+  margin-top:3px;color:#fff;font:850 13px/1.15 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.location{
+  margin-top:3px;color:#94a2ab;font:750 11px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.location strong{color:#d8e2e8}
+.vehicle{
+  color:#65727a;font-size:9px;margin-left:5px;font-weight:750;
+}
+.noPrediction{
+  margin:6px 0 0 27px;color:#59656d;font:750 10px/1.25 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.loading,.empty{
+  padding:44px 18px;text-align:center;color:#89939a;
+  font:700 13px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.empty strong{display:block;color:#fff;font-size:18px;margin-bottom:5px}
+.spinner{
+  display:inline-block;width:18px;height:18px;border:2px solid #444;border-top-color:var(--line-colour);
+  border-radius:50%;animation:spin .8s linear infinite;vertical-align:-4px;margin-right:7px
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.actions{margin:14px 0 0;display:flex;gap:8px}
+.action{
+  flex:1;min-height:46px;border:1px solid #343b40;border-radius:10px;background:#111;color:#fff;
+  font-weight:850;cursor:pointer;
+}
+
+.sheetBackdrop{
+  position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.76);
+  display:none;align-items:flex-end;justify-content:center;
+}
+.sheetBackdrop.open{display:flex}
+.sheet{
+  width:100%;max-width:900px;max-height:88%;overflow:auto;background:#0c0d0f;color:#fff;
+  border-radius:22px 22px 0 0;padding:13px 12px calc(18px + env(safe-area-inset-bottom));
+  box-shadow:0 -15px 55px rgba(0,0,0,.62);
+}
+.sheetHandle{width:44px;height:5px;border-radius:999px;background:#4d5358;margin:0 auto 11px}
+.sheetHeader{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sheetHeaderText{min-width:0;flex:1}
+.sheetHeader h2{margin:0;text-align:center;color:var(--yellow);font-size:22px}
+.sheetHeader p{
+  margin:3px 0 0;text-align:center;color:#87939b;
+  font:700 11px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+}
+.closeBtn{
+  width:44px;height:44px;border:1px solid #3b4146;border-radius:10px;background:#191d20;color:#fff;
+  font-size:22px;cursor:pointer;
+}
+.lineGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.lineChoice{
+  min-width:0;min-height:54px;border:1px solid #4b5359;border-radius:7px;background:#11161a;color:#fff;
+  padding:7px 8px;display:grid;grid-template-columns:12px minmax(0,1fr);gap:8px;align-items:center;text-align:left;cursor:pointer
+}
+.lineChoice.active{box-shadow:inset 0 0 0 2px rgba(255,255,255,.8)}
+.choiceBar{width:12px;height:36px;border-radius:999px;background:var(--choice-colour)}
+.choiceName{
+  min-width:0;font:850 14px/1.08 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  white-space:normal
+}
+
+@media (min-width:700px){
+  .lineGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .stationName{font-size:26px}
+}
+@media (max-width:390px){
+  .topInner{grid-template-columns:auto minmax(0,1fr) 82px;gap:5px}
+  .treccoBack{min-height:38px;padding:0 7px;font-size:11px}
+  .lineButton{grid-template-columns:52px minmax(0,1fr);gap:7px}
+  .tubeBadge{height:42px;font-size:14px}
+  .lineName{font-size:19px}.clock{font-size:16px}
+  .clockBlock{min-width:82px}
+}
+@media (prefers-reduced-motion:reduce){.spinner{animation:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="topInner">
+    <a class="treccoBack" href="index.html" aria-label="Back to Trecco What's On">← Trecco</a>
+    <button id="lineButton" class="lineButton" type="button" aria-haspopup="dialog" aria-controls="lineSheet">
+      <span class="tubeBadge">TUBE</span>
+      <span class="lineIdentity">
+        <span class="lineTitleRow"><span class="lineDot"></span><span id="lineName" class="lineName">Bakerloo</span><span class="chevron">▼</span></span>
+        <span id="lineStatus" class="lineStatus">Loading status…</span>
+      </span>
+    </button>
+    <span class="clockBlock"><span id="clock" class="clock">--:--:--</span></span>
+  </div>
+</header>
+
+<main>
+  <div class="boardHint">Tap the line name to change line</div>
+  <div id="notice" class="notice" hidden></div>
+  <div id="summary" class="summary">Loading live Underground data…</div>
+  <div id="stations"><div class="loading"><span class="spinner"></span>Loading stations and trains…</div></div>
+  <div class="actions"><button id="refreshButton" class="action" type="button">↻ Refresh live data</button></div>
+</main>
+
+<div id="lineSheet" class="sheetBackdrop" role="dialog" aria-modal="true" aria-labelledby="lineSheetTitle">
+  <div class="sheet">
+    <div class="sheetHandle"></div>
+    <div class="sheetHeader">
+      <div class="sheetHeaderText">
+        <h2 id="lineSheetTitle">CHOOSE UNDERGROUND LINE</h2>
+        <p>Live data is supplied by Transport for London.</p>
+      </div>
+      <button id="closeLine" class="closeBtn" type="button" aria-label="Close line chooser">×</button>
+    </div>
+    <div id="lineList" class="lineGrid"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var API='https://api.tfl.gov.uk';
+  var REFRESH_MS=30000;
+  var LINE_KEY='trecco-underground-line-v1';
+  var LIVE_CACHE_PREFIX='trecco-underground-live-v1-';
+  var ROUTE_CACHE_PREFIX='trecco-underground-route-v1-';
+  var ROUTE_CACHE_MS=24*60*60*1000;
+
+  var LINES=[
+    {id:'bakerloo',name:'Bakerloo',colour:'#B36305',text:'#fff'},
+    {id:'central',name:'Central',colour:'#E32017',text:'#fff'},
+    {id:'circle',name:'Circle',colour:'#FFD300',text:'#111'},
+    {id:'district',name:'District',colour:'#00782A',text:'#fff'},
+    {id:'hammersmith-city',name:'Hammersmith & City',colour:'#F3A9BB',text:'#111'},
+    {id:'jubilee',name:'Jubilee',colour:'#A0A5A9',text:'#111'},
+    {id:'metropolitan',name:'Metropolitan',colour:'#9B0056',text:'#fff'},
+    {id:'northern',name:'Northern',colour:'#111111',text:'#fff'},
+    {id:'piccadilly',name:'Piccadilly',colour:'#003688',text:'#fff'},
+    {id:'victoria',name:'Victoria',colour:'#0098D4',text:'#fff'},
+    {id:'waterloo-city',name:'Waterloo & City',colour:'#95CDBA',text:'#111'}
+  ];
+
+  var currentLineId=localStorage.getItem(LINE_KEY)||'bakerloo';
+  if(!LINES.some(function(l){return l.id===currentLineId;})) currentLineId='bakerloo';
+  var stations=[];
+  var arrivals=[];
+  var refreshing=false;
+  var lastUpdated=null;
+
+  function el(id){return document.getElementById(id);}
+  function esc(v){
+    return String(v==null?'':v).replace(/[&<>"']/g,function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function currentLine(){return LINES.find(function(l){return l.id===currentLineId;})||LINES[0];}
+  function cleanStationName(name){
+    return String(name||'')
+      .replace(/ Underground Station$/i,'')
+      .replace(/ Station$/i,'')
+      .trim();
+  }
+  function stationKey(name){return cleanStationName(name).toLowerCase();}
+  function formatEta(seconds){
+    var s=Math.max(0,Number(seconds)||0);
+    if(s<=30) return {label:'Due',cls:'due'};
+    var mins=Math.max(1,Math.round(s/60));
+    return {label:mins+' min',cls:''};
+  }
+  function formatClock(value){
+    if(!value) return '';
+    var d=new Date(value);
+    if(Number.isNaN(d.getTime())) return '';
+    return new Intl.DateTimeFormat('en-GB',{
+      timeZone:'Europe/London',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
+    }).format(d);
+  }
+
+  function applyLineTheme(){
+    var line=currentLine();
+    document.documentElement.style.setProperty('--line-colour',line.colour);
+    document.documentElement.style.setProperty('--line-text',line.text);
+    el('lineName').textContent=line.name;
+    document.title=line.name+' · London Underground · Trecco';
+  }
+
+  function updateClock(){
+    el('clock').textContent=new Intl.DateTimeFormat('en-GB',{
+      timeZone:'Europe/London',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
+    }).format(new Date());
+  }
+
+  function setNotice(message,error){
+    var n=el('notice');
+    if(!message){n.hidden=true;n.textContent='';return;}
+    n.hidden=false;n.textContent=message;n.classList.toggle('error',!!error);
+  }
+
+  function statusClass(text){
+    var t=String(text||'').toLowerCase();
+    if(t==='good service') return 'good';
+    if(/closed|suspended|severe|part suspended/.test(t)) return 'bad';
+    if(/minor|reduced|part closure|planned/.test(t)) return 'warn';
+    return '';
+  }
+
+  async function fetchLineStatus(){
+    try{
+      var r=await fetch(API+'/Line/'+encodeURIComponent(currentLineId)+'/Status',{cache:'no-store'});
+      if(!r.ok) throw new Error('Status '+r.status);
+      var body=await r.json();
+      var status=body&&body[0]&&body[0].lineStatuses&&body[0].lineStatuses[0];
+      var label=status&&status.statusSeverityDescription?status.statusSeverityDescription:'Status unavailable';
+      el('lineStatus').textContent=label;
+      el('lineStatus').className='lineStatus '+statusClass(label);
+      return label;
+    }catch(_){
+      el('lineStatus').textContent='Status unavailable';
+      el('lineStatus').className='lineStatus';
+      return 'Status unavailable';
+    }
+  }
+
+  function routeCacheKey(){return ROUTE_CACHE_PREFIX+currentLineId;}
+  function liveCacheKey(){return LIVE_CACHE_PREFIX+currentLineId;}
+
+  function readRouteCache(){
+    try{
+      var x=JSON.parse(localStorage.getItem(routeCacheKey())||'null');
+      if(x&&Array.isArray(x.stations)&&Date.now()-x.savedAt<ROUTE_CACHE_MS) return x.stations;
+    }catch(_){}
+    return null;
+  }
+  function saveRouteCache(list){
+    try{localStorage.setItem(routeCacheKey(),JSON.stringify({savedAt:Date.now(),stations:list}));}catch(_){}
+  }
+  function saveLiveCache(){
+    try{localStorage.setItem(liveCacheKey(),JSON.stringify({savedAt:Date.now(),arrivals:arrivals}));}catch(_){}
+  }
+  function readLiveCache(){
+    try{
+      var x=JSON.parse(localStorage.getItem(liveCacheKey())||'null');
+      if(x&&Array.isArray(x.arrivals)) return x;
+    }catch(_){}
+    return null;
+  }
+
+  function normaliseMatchedStop(s){
+    return {
+      id:s.id||s.stationId||s.naptanId||'',
+      name:cleanStationName(s.name||s.commonName||'Station'),
+      lat:s.lat,
+      lon:s.lon,
+      towards:s.towards||'',
+      zone:s.zone||''
+    };
+  }
+
+  function mergeSequences(body){
+    var out=[],seen=new Set();
+    var seqs=body&&Array.isArray(body.stopPointSequences)?body.stopPointSequences:[];
+    seqs.forEach(function(seq){
+      (seq.stopPoint||[]).forEach(function(s){
+        var n=normaliseMatchedStop(s);
+        var k=n.id||stationKey(n.name);
+        if(!seen.has(k)){seen.add(k);out.push(n);}
+      });
+    });
+    if(!out.length && body&&Array.isArray(body.stations)){
+      body.stations.forEach(function(s){
+        var n=normaliseMatchedStop(s);
+        var k=n.id||stationKey(n.name);
+        if(!seen.has(k)){seen.add(k);out.push(n);}
+      });
+    }
+    return out;
+  }
+
+  async function fetchStations(force){
+    if(!force){
+      var cached=readRouteCache();
+      if(cached&&cached.length){stations=cached;return;}
+    }
+    try{
+      var r=await fetch(API+'/Line/'+encodeURIComponent(currentLineId)+'/Route/Sequence/outbound?excludeCrowding=true',{cache:'no-store'});
+      if(!r.ok) throw new Error('Route sequence '+r.status);
+      var body=await r.json();
+      var list=mergeSequences(body);
+      if(!list.length) throw new Error('No stations in route sequence');
+      stations=list;
+      saveRouteCache(list);
+    }catch(_){
+      var r2=await fetch(API+'/Line/'+encodeURIComponent(currentLineId)+'/StopPoints',{cache:'no-store'});
+      if(!r2.ok) throw new Error('Stations '+r2.status);
+      var points=await r2.json();
+      var seen=new Set();
+      stations=(Array.isArray(points)?points:[]).map(function(s){
+        return {id:s.naptanId||s.id||'',name:cleanStationName(s.commonName||s.name||'Station'),lat:s.lat,lon:s.lon,zone:''};
+      }).filter(function(s){
+        var k=s.id||stationKey(s.name);
+        if(seen.has(k)) return false;
+        seen.add(k);return true;
+      });
+      saveRouteCache(stations);
+    }
+  }
+
+  async function fetchArrivals(){
+    var r=await fetch(API+'/Line/'+encodeURIComponent(currentLineId)+'/Arrivals',{cache:'no-store'});
+    if(!r.ok) throw new Error('Live arrivals returned '+r.status);
+    var body=await r.json();
+    arrivals=(Array.isArray(body)?body:[]).filter(function(a){
+      return a&&a.lineId===currentLineId&&a.operationType!==2;
+    });
+    lastUpdated=new Date();
+    saveLiveCache();
+  }
+
+  function predictionsForStation(station){
+    var key=stationKey(station.name);
+    return arrivals.filter(function(a){
+      return stationKey(a.stationName)===key;
+    }).sort(function(a,b){
+      return (Number(a.timeToStation)||999999)-(Number(b.timeToStation)||999999);
+    });
+  }
+
+  function distinctVehiclesCount(){
+    var set=new Set();
+    arrivals.forEach(function(a){
+      if(a.vehicleId) set.add(a.vehicleId);
+    });
+    return set.size;
+  }
+
+  function renderSummary(){
+    var live=distinctVehiclesCount();
+    var time=lastUpdated?formatClock(lastUpdated):'--:--:--';
+    el('summary').innerHTML='<strong>'+esc(currentLine().name)+'</strong> · '+live+' live train'+(live===1?'':'s')+
+      ' represented in TfL predictions · updated '+esc(time);
+  }
+
+  function predictionHtml(a){
+    var eta=formatEta(a.timeToStation);
+    var platform=a.platformName||a.direction||'Platform not shown';
+    var destination=cleanStationName(a.destinationName||a.towards||'Destination unavailable');
+    var loc=a.currentLocation||'Location not supplied by TfL';
+    var vehicle=a.vehicleId?'<span class="vehicle">Train '+esc(a.vehicleId)+'</span>':'';
+    return '<div class="prediction">'+
+      '<div class="predTop"><span class="platform">'+esc(platform)+'</span><span class="eta '+eta.cls+'">'+esc(eta.label)+'</span></div>'+
+      '<div class="destination">to '+esc(destination)+vehicle+'</div>'+
+      '<div class="location"><strong>Location:</strong> '+esc(loc)+'</div>'+
+    '</div>';
+  }
+
+  function renderStations(){
+    if(!stations.length){
+      el('stations').innerHTML='<div class="empty"><strong>No stations returned</strong>TfL did not return a station list for this line.</div>';
+      return;
+    }
+    el('stations').innerHTML=stations.map(function(s,index){
+      var preds=predictionsForStation(s);
+      var shown=preds.slice(0,3);
+      var meta=[];
+      if(s.zone) meta.push('Zone '+s.zone);
+      if(preds.length) meta.push(preds.length+' live prediction'+(preds.length===1?'':'s'));
+      return '<section class="station">'+
+        '<div class="stationHead"><span class="stationNode" aria-hidden="true"></span><div>'+
+          '<div class="stationName">'+esc(s.name)+'</div>'+
+          '<div class="stationMeta">'+esc(meta.join(' · ')||'London Underground station')+'</div>'+
+        '</div></div>'+
+        (shown.length?'<div class="predictions">'+shown.map(predictionHtml).join('')+'</div>':
+          '<div class="noPrediction">No live train prediction at this station right now.</div>')+
+      '</section>';
+    }).join('');
+  }
+
+  async function loadAll(force){
+    if(refreshing) return;
+    refreshing=true;
+    if(force) el('refreshButton').textContent='Refreshing…';
+    setNotice('');
+    try{
+      await Promise.all([fetchStations(force),fetchLineStatus()]);
+      await fetchArrivals();
+      renderSummary();
+      renderStations();
+    }catch(err){
+      var cached=readLiveCache();
+      if(cached){
+        arrivals=cached.arrivals;
+        lastUpdated=new Date(cached.savedAt);
+        renderSummary();
+        renderStations();
+        setNotice('TfL live data is temporarily unavailable. Showing the most recently saved live predictions for this line.',true);
+      }else{
+        el('stations').innerHTML='<div class="empty"><strong>Live Underground data unavailable</strong>Tap refresh to try again.</div>';
+        el('summary').textContent='TfL live data could not be loaded.';
+        setNotice((err&&err.message?err.message:'TfL data could not be reached')+'.',true);
+      }
+    }finally{
+      refreshing=false;
+      el('refreshButton').textContent='↻ Refresh live data';
+    }
+  }
+
+  function renderLineChoices(){
+    el('lineList').innerHTML=LINES.map(function(l){
+      return '<button class="lineChoice '+(l.id===currentLineId?'active':'')+'" type="button" data-line="'+esc(l.id)+'" style="--choice-colour:'+esc(l.colour)+'">'+
+        '<span class="choiceBar"></span><span class="choiceName">'+esc(l.name)+'</span>'+
+      '</button>';
+    }).join('');
+  }
+  function openLineSheet(){
+    renderLineChoices();
+    el('lineSheet').classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+  function closeLineSheet(){
+    el('lineSheet').classList.remove('open');
+    document.body.style.overflow='';
+  }
+
+  el('lineButton').addEventListener('click',openLineSheet);
+  el('closeLine').addEventListener('click',closeLineSheet);
+  el('lineSheet').addEventListener('click',function(e){
+    if(e.target===el('lineSheet')) closeLineSheet();
+  });
+  el('lineList').addEventListener('click',function(e){
+    var b=e.target.closest('.lineChoice');
+    if(!b) return;
+    var id=b.dataset.line;
+    if(!LINES.some(function(l){return l.id===id;})) return;
+    currentLineId=id;
+    localStorage.setItem(LINE_KEY,currentLineId);
+    stations=[];arrivals=[];lastUpdated=null;
+    applyLineTheme();
+    closeLineSheet();
+    el('lineStatus').textContent='Loading status…';
+    el('summary').textContent='Loading live Underground data…';
+    el('stations').innerHTML='<div class="loading"><span class="spinner"></span>Loading stations and trains…</div>';
+    window.scrollTo({top:0,behavior:'smooth'});
+    loadAll(false);
+  });
+
+  el('refreshButton').addEventListener('click',function(){loadAll(true);});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&el('lineSheet').classList.contains('open')) closeLineSheet();
+  });
+
+  applyLineTheme();
+  updateClock();
+  setInterval(updateClock,1000);
+  loadAll(false);
+  setInterval(function(){loadAll(false);},REFRESH_MS);
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden&&lastUpdated&&Date.now()-lastUpdated.getTime()>REFRESH_MS) loadAll(false);
+  });
+})();
+</script>
+</body>
+</html>

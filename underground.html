@@ -84,6 +84,20 @@ main{max-width:900px;margin:0 auto;padding:0 9px}
   font:800 11px/1.25 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
 .summary strong{color:#fff}
+.stationPicker{
+  margin:0 0 9px;padding:8px 9px;border:1px solid #273038;border-radius:9px;background:#0b0f12;
+}
+.stationPicker label{
+  display:block;margin:0 0 5px;color:#8c99a2;
+  font:850 9px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.stationSelect{
+  width:100%;min-height:42px;border:1px solid #45515a;border-radius:8px;
+  background:#11161a;color:#fff;padding:0 34px 0 10px;
+  font:800 14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.stationSelect:disabled{opacity:.55}
 .station{
   border-bottom:1px solid #343a3f;padding:10px 4px 9px;background:linear-gradient(180deg,#08090a,#050505);
 }
@@ -118,6 +132,12 @@ main{max-width:900px;margin:0 auto;padding:0 9px}
 .eta.due{color:var(--yellow)}
 .destination{
   margin-top:3px;color:#fff;font:850 13px/1.15 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.serviceLineTag{
+  display:inline-flex;align-items:center;margin-right:6px;padding:2px 6px;border-radius:999px;
+  background:var(--train-line-colour);color:var(--train-line-text);
+  font:900 9px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  vertical-align:1px;
 }
 .location{
   margin-top:3px;color:#94a2ab;font:750 11px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -214,6 +234,12 @@ main{max-width:900px;margin:0 auto;padding:0 9px}
   <div class="boardHint">Tap the line name to change line</div>
   <div id="notice" class="notice" hidden></div>
   <div id="summary" class="summary">Loading live Underground data…</div>
+  <div class="stationPicker">
+    <label for="stationSelect">Station view</label>
+    <select id="stationSelect" class="stationSelect" disabled>
+      <option>Loading stations…</option>
+    </select>
+  </div>
   <div id="stations"><div class="loading"><span class="spinner"></span>Loading stations and trains…</div></div>
   <div class="actions"><button id="refreshButton" class="action" type="button">↻ Refresh live data</button></div>
 </main>
@@ -237,6 +263,7 @@ main{max-width:900px;margin:0 auto;padding:0 9px}
   var API='https://api.tfl.gov.uk';
   var REFRESH_MS=30000;
   var LINE_KEY='trecco-underground-line-v1';
+  var STATION_KEY='trecco-underground-station-v1';
   var LIVE_CACHE_PREFIX='trecco-underground-live-v1-';
   var ROUTE_CACHE_PREFIX='trecco-underground-route-v1-';
   var ROUTE_CACHE_MS=24*60*60*1000;
@@ -259,6 +286,7 @@ main{max-width:900px;margin:0 auto;padding:0 9px}
   if(!LINES.some(function(l){return l.id===currentLineId;})) currentLineId='bakerloo';
   var stations=[];
   var arrivals=[];
+  var selectedStationId='';
   var refreshing=false;
   var lastUpdated=null;
 
@@ -269,6 +297,12 @@ main{max-width:900px;margin:0 auto;padding:0 9px}
     });
   }
   function currentLine(){return LINES.find(function(l){return l.id===currentLineId;})||LINES[0];}
+  function selectedStation(){
+    return stations.find(function(s){return s.id===selectedStationId;})||null;
+  }
+  function lineById(id){
+    return LINES.find(function(l){return l.id===id;})||null;
+  }
   function cleanStationName(name){
     return String(name||'')
       .replace(/ Underground Station$/i,'')
@@ -337,7 +371,9 @@ main{max-width:900px;margin:0 auto;padding:0 9px}
   }
 
   function routeCacheKey(){return ROUTE_CACHE_PREFIX+currentLineId;}
-  function liveCacheKey(){return LIVE_CACHE_PREFIX+currentLineId;}
+  function liveCacheKey(){
+    return LIVE_CACHE_PREFIX+(selectedStationId?'station-'+selectedStationId:'line-'+currentLineId);
+  }
 
   function readRouteCache(){
     try{
@@ -420,12 +456,38 @@ main{max-width:900px;margin:0 auto;padding:0 9px}
     }
   }
 
+  function restoreStationSelection(){
+    if(selectedStationId) return;
+    var saved=localStorage.getItem(STATION_KEY)||'';
+    var parts=saved.split('|');
+    if(parts.length===2&&parts[0]===currentLineId&&stations.some(function(s){return s.id===parts[1];})){
+      selectedStationId=parts[1];
+    }
+  }
+
+  function renderStationPicker(){
+    restoreStationSelection();
+    var select=el('stationSelect');
+    select.disabled=false;
+    select.innerHTML='<option value="">All stations on '+esc(currentLine().name)+'</option>'+
+      stations.map(function(s){
+        return '<option value="'+esc(s.id)+'" '+(s.id===selectedStationId?'selected':'')+'>'+esc(s.name)+'</option>';
+      }).join('');
+  }
+
   async function fetchArrivals(){
-    var r=await fetch(API+'/Line/'+encodeURIComponent(currentLineId)+'/Arrivals',{cache:'no-store'});
+    var url=selectedStationId
+      ? API+'/StopPoint/'+encodeURIComponent(selectedStationId)+'/Arrivals'
+      : API+'/Line/'+encodeURIComponent(currentLineId)+'/Arrivals';
+    var r=await fetch(url,{cache:'no-store'});
     if(!r.ok) throw new Error('Live arrivals returned '+r.status);
     var body=await r.json();
     arrivals=(Array.isArray(body)?body:[]).filter(function(a){
-      return a&&a.lineId===currentLineId&&a.operationType!==2;
+      if(!a||a.operationType===2) return false;
+      if(selectedStationId) return LINES.some(function(l){return l.id===a.lineId;});
+      return a.lineId===currentLineId;
+    }).sort(function(a,b){
+      return (Number(a.timeToStation)||999999)-(Number(b.timeToStation)||999999);
     });
     lastUpdated=new Date();
     saveLiveCache();
@@ -451,8 +513,14 @@ main{max-width:900px;margin:0 auto;padding:0 9px}
   function renderSummary(){
     var live=distinctVehiclesCount();
     var time=lastUpdated?formatClock(lastUpdated):'--:--:--';
-    el('summary').innerHTML='<strong>'+esc(currentLine().name)+'</strong> · '+live+' live train'+(live===1?'':'s')+
-      ' represented in TfL predictions · updated '+esc(time);
+    var station=selectedStation();
+    if(station){
+      el('summary').innerHTML='<strong>'+esc(station.name)+'</strong> · all Underground lines · '+live+
+        ' live train'+(live===1?'':'s')+' · updated '+esc(time);
+    }else{
+      el('summary').innerHTML='<strong>'+esc(currentLine().name)+'</strong> · '+live+' live train'+(live===1?'':'s')+
+        ' represented in TfL predictions · updated '+esc(time);
+    }
   }
 
   function predictionHtml(a){
@@ -461,9 +529,13 @@ main{max-width:900px;margin:0 auto;padding:0 9px}
     var destination=cleanStationName(a.destinationName||a.towards||'Destination unavailable');
     var loc=a.currentLocation||'Location not supplied by TfL';
     var vehicle=a.vehicleId?'<span class="vehicle">Train '+esc(a.vehicleId)+'</span>':'';
+    var line=lineById(a.lineId);
+    var lineTag=(selectedStationId&&line)
+      ? '<span class="serviceLineTag" style="--train-line-colour:'+esc(line.colour)+';--train-line-text:'+esc(line.text)+'">'+esc(line.name)+'</span>'
+      : '';
     return '<div class="prediction">'+
       '<div class="predTop"><span class="platform">'+esc(platform)+'</span><span class="eta '+eta.cls+'">'+esc(eta.label)+'</span></div>'+
-      '<div class="destination">to '+esc(destination)+vehicle+'</div>'+
+      '<div class="destination">'+lineTag+'to '+esc(destination)+vehicle+'</div>'+
       '<div class="location"><strong>Location:</strong> '+esc(loc)+'</div>'+
     '</div>';
   }
@@ -473,6 +545,23 @@ main{max-width:900px;margin:0 auto;padding:0 9px}
       el('stations').innerHTML='<div class="empty"><strong>No stations returned</strong>TfL did not return a station list for this line.</div>';
       return;
     }
+
+    var focused=selectedStation();
+    if(focused){
+      var focusedPreds=arrivals.slice();
+      var meta=focusedPreds.length+' live Underground prediction'+(focusedPreds.length===1?'':'s');
+      el('stations').innerHTML='<section class="station">'+
+        '<div class="stationHead"><span class="stationNode" aria-hidden="true"></span><div>'+
+          '<div class="stationName">'+esc(focused.name)+'</div>'+
+          '<div class="stationMeta">'+esc(meta)+'</div>'+
+        '</div></div>'+
+        (focusedPreds.length
+          ? '<div class="predictions">'+focusedPreds.map(predictionHtml).join('')+'</div>'
+          : '<div class="noPrediction">No live Underground trains are currently predicted at this station.</div>')+
+      '</section>';
+      return;
+    }
+
     el('stations').innerHTML=stations.map(function(s,index){
       var preds=predictionsForStation(s);
       var shown=preds.slice(0,3);
@@ -497,6 +586,7 @@ main{max-width:900px;margin:0 auto;padding:0 9px}
     setNotice('');
     try{
       await Promise.all([fetchStations(force),fetchLineStatus()]);
+      renderStationPicker();
       await fetchArrivals();
       renderSummary();
       renderStations();
@@ -548,13 +638,27 @@ main{max-width:900px;margin:0 auto;padding:0 9px}
     if(!LINES.some(function(l){return l.id===id;})) return;
     currentLineId=id;
     localStorage.setItem(LINE_KEY,currentLineId);
+    selectedStationId='';
+    localStorage.removeItem(STATION_KEY);
     stations=[];arrivals=[];lastUpdated=null;
     applyLineTheme();
     closeLineSheet();
     el('lineStatus').textContent='Loading status…';
     el('summary').textContent='Loading live Underground data…';
+    el('stationSelect').disabled=true;
+    el('stationSelect').innerHTML='<option>Loading stations…</option>';
     el('stations').innerHTML='<div class="loading"><span class="spinner"></span>Loading stations and trains…</div>';
     window.scrollTo({top:0,behavior:'smooth'});
+    loadAll(false);
+  });
+
+  el('stationSelect').addEventListener('change',function(){
+    selectedStationId=this.value||'';
+    if(selectedStationId) localStorage.setItem(STATION_KEY,currentLineId+'|'+selectedStationId);
+    else localStorage.removeItem(STATION_KEY);
+    arrivals=[];lastUpdated=null;
+    el('summary').textContent='Loading live Underground data…';
+    el('stations').innerHTML='<div class="loading"><span class="spinner"></span>Loading live trains…</div>';
     loadAll(false);
   });
 
